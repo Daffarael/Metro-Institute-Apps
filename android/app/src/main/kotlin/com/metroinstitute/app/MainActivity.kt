@@ -1,4 +1,4 @@
-package com.metroinstitute.metro_institute_app
+package com.metroinstitute.app
 
 import io.flutter.embedding.android.FlutterActivity
 
