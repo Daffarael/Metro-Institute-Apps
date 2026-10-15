@@ -1,12 +1,14 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/di/injection_container.dart';
+import '../../../data/repositories/auth_repository.dart';
 
-/// SplashScreen â€” Full-screen green branded splash.
-/// Checks auth token â†’ routes to login or basecamp/skill-test.
+/// SplashScreen — Full-screen green branded splash.
+/// Checks auth token → routes to basecamp if logged in, or login if not.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -22,10 +24,22 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigate() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
-    // TODO: Check token via AuthRepository â†’ route accordingly
-    context.go(AppRoutes.login);
+
+    try {
+      final authRepo = sl<AuthRepository>();
+      final loggedIn = await authRepo.isLoggedIn();
+      if (!mounted) return;
+
+      if (loggedIn) {
+        context.go(AppRoutes.basecamp);
+      } else {
+        context.go(AppRoutes.login);
+      }
+    } catch (_) {
+      if (mounted) context.go(AppRoutes.login);
+    }
   }
 
   @override

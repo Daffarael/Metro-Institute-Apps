@@ -3,8 +3,9 @@ class AppConstants {
   AppConstants._();
 
   // ── API ─────────────────────────────────────────────────────────────────────
-  static const String baseUrl     = 'http://10.0.2.2:5000/api/v1'; // Android emulator localhost
   static const String prodBaseUrl = 'https://api.metroinstitute.site/api/v1';
+  static const String devBaseUrl  = 'http://10.0.2.2:5000/api/v1'; // Android emulator localhost
+  static const String baseUrl     = prodBaseUrl; // Default to live Railway API
   static const int connectTimeout = 15000; // ms
   static const int receiveTimeout = 15000; // ms
 

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
 
@@ -64,6 +65,3 @@ class _AuthInterceptor extends Interceptor {
     handler.next(err);
   }
 }
-
-// ignore: avoid_print
-void debugPrint(String s) => print(s);

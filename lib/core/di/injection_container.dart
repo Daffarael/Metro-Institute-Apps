@@ -1,24 +1,19 @@
 import 'package:get_it/get_it.dart';
+import '../../data/datasources/remote/auth_remote_datasource.dart';
+import '../../data/datasources/remote/basecamp_remote_datasource.dart';
+import '../../data/datasources/remote/course_remote_datasource.dart';
+import '../../data/repositories/auth_repository.dart';
 
 final sl = GetIt.instance;
 
 /// init — registers all dependencies (repositories, use cases, blocs, services).
 /// Called once in main.dart before runApp().
 Future<void> init() async {
-  // ── Services ──────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<AuthService>(() => AuthServiceImpl());
-  // sl.registerLazySingleton<TokenService>(() => TokenService(sl()));
-
   // ── Data Sources ──────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl(sl()));
-  // sl.registerLazySingleton<AuthLocalDataSource>(() => AuthLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
+  sl.registerLazySingleton<BasecampRemoteDataSource>(() => BasecampRemoteDataSourceImpl());
+  sl.registerLazySingleton<CourseRemoteDataSource>(() => CourseRemoteDataSourceImpl());
 
   // ── Repositories ──────────────────────────────────────────────────────────
-  // sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl(), sl()));
-
-  // ── Use Cases ─────────────────────────────────────────────────────────────
-  // sl.registerLazySingleton(() => LoginUseCase(sl()));
-
-  // ── BLoCs ─────────────────────────────────────────────────────────────────
-  // sl.registerFactory(() => AuthBloc(loginUseCase: sl(), logoutUseCase: sl()));
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDataSource: sl()));
 }
