@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -97,7 +98,7 @@ class _LearnScreenState extends State<LearnScreen> with SingleTickerProviderStat
         backgroundColor: AppColors.surface,
         elevation: 0,
         title: const Text(
-          'Ruang Belajar Mentee 🎓',
+          'Ruang Belajar',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         ),
         bottom: TabBar(
@@ -217,53 +218,73 @@ class _LearnScreenState extends State<LearnScreen> with SingleTickerProviderStat
   Widget _enrolledCard(Map<String, dynamic> course, double progress) {
     final title = course['title'] as String? ?? 'Kelas Metro';
     final field = (course['field'] as String? ?? 'DIGITAL').replaceAll('_', ' ');
+    final thumbnail = (course['thumbnail'] ?? course['thumbnailUrl']) as String? ?? '';
 
     return GestureDetector(
       onTap: () => _openCourseDetail(course),
       child: Container(
-        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
-                  child: Text(field, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w700)),
+            if (thumbnail.isNotEmpty)
+              SizedBox(
+                height: 120,
+                width: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: thumbnail,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(color: AppColors.backgroundSubtle),
+                  errorWidget: (context, url, error) => Container(color: AppColors.primaryLight),
                 ),
-                const Spacer(),
-                Text('${(progress * 100).toInt()}% Selesai', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                backgroundColor: AppColors.border,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: const [
-                Text('Lanjutkan Modul', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w700)),
-                SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                        child: Text(field, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w700)),
+                      ),
+                      const Spacer(),
+                      Text('${(progress * 100).toInt()}% Selesai', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: AppColors.border,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: const [
+                      Text('Lanjutkan Modul', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w700)),
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -276,53 +297,73 @@ class _LearnScreenState extends State<LearnScreen> with SingleTickerProviderStat
     final shortDesc = course['shortDescription'] as String? ?? '';
     final price = (course['price'] as num?)?.toInt() ?? 0;
     final rating = (course['rating'] as num?)?.toDouble() ?? 5.0;
+    final thumbnail = (course['thumbnail'] ?? course['thumbnailUrl']) as String? ?? '';
     final priceStr = price == 0 ? 'GRATIS' : 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
 
     return GestureDetector(
       onTap: () => _openCourseDetail(course),
       child: Container(
-        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
-                  child: Row(
+            if (thumbnail.isNotEmpty)
+              SizedBox(
+                height: 130,
+                width: double.infinity,
+                child: CachedNetworkImage(
+                  imageUrl: thumbnail,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(color: AppColors.backgroundSubtle),
+                  errorWidget: (context, url, error) => Container(color: AppColors.primaryLight),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      const Icon(Icons.star_rounded, size: 14, color: Colors.amber),
-                      const SizedBox(width: 3),
-                      Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star_rounded, size: 14, color: Colors.amber),
+                            const SizedBox(width: 3),
+                            Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(priceStr, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: price == 0 ? AppColors.primary : AppColors.textPrimary)),
                     ],
                   ),
-                ),
-                const Spacer(),
-                Text(priceStr, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: price == 0 ? AppColors.primary : AppColors.textPrimary)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
-            if (shortDesc.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(shortDesc, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('Akses Penuh + E-Sertifikat', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-                Text('Lihat Silabus >', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w700)),
-              ],
+                  const SizedBox(height: 10),
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  if (shortDesc.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(shortDesc, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('Akses Penuh + E-Sertifikat', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                      Text('Lihat Silabus >', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

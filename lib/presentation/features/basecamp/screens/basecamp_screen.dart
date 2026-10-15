@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -67,52 +68,54 @@ class _BasecampScreenState extends State<BasecampScreen> {
     final user = _data?['user'] as Map<String, dynamic>?;
     final unreadCount = (_data?['unreadCount'] as num?)?.toInt() ?? 0;
     final continueLearning = _data?['continueLearning'] as Map<String, dynamic>?;
-    final courseEnrollments = (_data?['courseEnrollments'] as List?) ?? [];
-    final bootcampEnrollments = (_data?['bootcampEnrollments'] as List?) ?? [];
+    final activeCourses = (_data?['activeCourses'] as List?) ?? [
+      ...((_data?['courseEnrollments'] as List?) ?? []),
+      ...((_data?['bootcampEnrollments'] as List?) ?? []),
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 16,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/logo.png',
+                height: 32,
+                width: 32,
+                fit: BoxFit.cover,
               ),
-              child: const Text('MI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14)),
             ),
-            const SizedBox(width: 8),
-            const Text('Metro Institute', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            const SizedBox(width: 10),
+            const Text(
+              'Metro Institute',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ],
         ),
         actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () => context.push(AppRoutes.notifications),
-                color: AppColors.textSecondary,
+          IconButton(
+            icon: Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text(
+                unreadCount > 9 ? '9+' : '$unreadCount',
+                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
               ),
-              if (unreadCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-                    child: Text(
-                      unreadCount > 9 ? '9+' : '$unreadCount',
-                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-            ],
+              backgroundColor: AppColors.error,
+              child: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 22),
+            ),
+            onPressed: () => context.push(AppRoutes.notifications),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
@@ -122,7 +125,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
             : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -132,8 +135,9 @@ class _BasecampScreenState extends State<BasecampScreen> {
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.1),
+                          color: AppColors.error.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
                         ),
                         child: Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
                       ),
@@ -141,34 +145,33 @@ class _BasecampScreenState extends State<BasecampScreen> {
 
                     // ── XP & Badge Card ────────────────────────────────────
                     _XpBadgeCard(user: user),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
                     // ── Misi Harian ────────────────────────────────────────
-                    _SectionHeader(title: '🎯 Misi Harian', onTap: () {}),
-                    const SizedBox(height: 10),
+                    _SectionHeader(title: 'Misi Harian', onTap: () {}),
+                    const SizedBox(height: 12),
                     const _DailyMissionCard(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
                     // ── Lanjutkan Belajar ──────────────────────────────────
                     if (continueLearning != null) ...[
-                      _SectionHeader(title: '▶️ Lanjutkan Belajar', onTap: () => context.go(AppRoutes.learn)),
-                      const SizedBox(height: 10),
+                      _SectionHeader(title: 'Lanjutkan Belajar', onTap: () => context.go(AppRoutes.learn)),
+                      const SizedBox(height: 12),
                       _ContinueLearningCard(data: continueLearning),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
                     ],
 
                     // ── Kelas Aktif ────────────────────────────────────────
-                    _SectionHeader(title: '📚 Kelas Aktif Saya', onTap: () => context.go(AppRoutes.learn)),
-                    const SizedBox(height: 10),
+                    _SectionHeader(title: 'Kelas Aktif Saya', onTap: () => context.go(AppRoutes.learn)),
+                    const SizedBox(height: 12),
                     _ActiveCoursesRow(
-                      courses: courseEnrollments,
-                      bootcamps: bootcampEnrollments,
+                      activeCourses: activeCourses,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
                     // ── Challenge Banner ───────────────────────────────────
                     _ChallengeBanner(onTap: () => context.go(AppRoutes.challenge)),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -195,14 +198,14 @@ class _XpBadgeCard extends StatelessWidget {
     final badgeLabel = AppConstants.badgeLabels[badge] ?? 'Metro Rookie';
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -213,61 +216,48 @@ class _XpBadgeCard extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Selamat datang kembali,',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    name,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(99),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  badgeLabel.toUpperCase(),
+                  badgeLabel,
                   style: const TextStyle(
                     color: AppColors.primary,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ),
-              // Streak
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.streakBg,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Row(
-                  children: [
-                    const Text('🔥', style: TextStyle(fontSize: 13)),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$streak Hari',
-                      style: const TextStyle(
-                        color: AppColors.streak,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Hai, $name! 👋',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total XP', style: TextStyle(fontSize: 12, color: AppColors.textTertiary, fontWeight: FontWeight.w500)),
-              Text('$totalXp / $targetXp XP', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              const Text('Perkembangan XP', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+              Text('$totalXp / $targetXp XP', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(99),
             child: LinearProgressIndicator(
@@ -277,8 +267,17 @@ class _XpBadgeCard extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
-          const SizedBox(height: 8),
-          const Text('Menuju Level: Metro Explorer 🎖️', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Target: Metro Explorer', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+              Text(
+                streak > 0 ? '$streak Hari Streak' : 'Mulai Streak Belajar',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -295,11 +294,11 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
         if (onTap != null)
           GestureDetector(
             onTap: onTap,
-            child: const Text('Lihat Semua', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+            child: const Text('Lihat Semua', style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600)),
           ),
       ],
     );
@@ -312,27 +311,31 @@ class _DailyMissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
-          _missionItem(icon: '📖', title: 'Tonton 1 Modul Video', xp: '+20 XP', done: true),
-          const Divider(height: 16, color: AppColors.border),
-          _missionItem(icon: '⚡', title: 'Selesaikan 1 Kuis Harian', xp: '+15 XP', done: false),
+          _missionItem(title: 'Tonton 1 Modul Pembelajaran', xp: '+20 XP', done: true),
+          const Divider(height: 18, color: AppColors.border),
+          _missionItem(title: 'Selesaikan 1 Kuis Praktik', xp: '+15 XP', done: false),
         ],
       ),
     );
   }
 
-  Widget _missionItem({required String icon, required String title, required String xp, required bool done}) {
+  Widget _missionItem({required String title, required String xp, required bool done}) {
     return Row(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 10),
+        Icon(
+          done ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+          color: done ? AppColors.primary : AppColors.textTertiary,
+          size: 20,
+        ),
+        const SizedBox(width: 12),
         Expanded(
           child: Text(
             title,
@@ -347,7 +350,7 @@ class _DailyMissionCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: done ? AppColors.border : AppColors.primaryLight,
+            color: done ? AppColors.backgroundSubtle : AppColors.primaryLight,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -373,39 +376,92 @@ class _ContinueLearningCard extends StatelessWidget {
     final title = data['title'] as String? ?? 'Kelas Digital';
     final sessionTitle = data['sessionTitle'] as String? ?? 'Lanjutkan Belajar';
     final progress = ((data['progress'] as num?)?.toDouble() ?? 0.0) / 100;
+    final thumbnail = (data['thumbnail'] ?? data['thumbnailUrl']) as String? ?? '';
 
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.play_arrow_rounded, color: AppColors.primary, size: 28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (thumbnail.isNotEmpty)
+            SizedBox(
+              height: 130,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: thumbnail,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(color: AppColors.backgroundSubtle),
+                    errorWidget: (context, url, error) => Container(color: AppColors.primaryLight),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.65),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 14,
+                    bottom: 12,
+                    right: 14,
+                    child: Text(
+                      sessionTitle,
+                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text(sessionTitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Progres Kelas', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    Text('${(progress * 100).toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                  ],
+                ),
                 const SizedBox(height: 6),
-                LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  backgroundColor: AppColors.border,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 5,
+                    backgroundColor: AppColors.border,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
                 ),
               ],
             ),
@@ -417,19 +473,18 @@ class _ContinueLearningCard extends StatelessWidget {
 }
 
 class _ActiveCoursesRow extends StatelessWidget {
-  final List courses;
-  final List bootcamps;
-  const _ActiveCoursesRow({required this.courses, required this.bootcamps});
+  final List activeCourses;
+  const _ActiveCoursesRow({required this.activeCourses});
 
   @override
   Widget build(BuildContext context) {
-    if (courses.isEmpty && bootcamps.isEmpty) {
+    if (activeCourses.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(
@@ -448,51 +503,92 @@ class _ActiveCoursesRow extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 140,
+      height: 205,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: courses.length + bootcamps.length,
-        separatorBuilder: (_, index) => const SizedBox(width: 12),
+        itemCount: activeCourses.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 14),
         itemBuilder: (context, i) {
-          final isCourse = i < courses.length;
-          final item = isCourse ? courses[i]['course'] : bootcamps[i - courses.length]['bootcamp'];
-          final title = item?['title'] as String? ?? 'Kelas Metro';
+          final item = activeCourses[i] as Map<String, dynamic>;
+          final course = (item['course'] as Map<String, dynamic>?) ?? item;
+          final title = course['title'] as String? ?? 'Kelas Metro';
+          final thumbnail = (course['thumbnail'] ?? course['thumbnailUrl']) as String? ?? '';
+          final type = (course['type'] as String? ?? 'COURSE').toUpperCase();
+          final progress = ((item['progress'] as num?)?.toDouble() ?? 0.0) / 100;
 
           return Container(
-            width: 200,
-            padding: const EdgeInsets.all(12),
+            width: 220,
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isCourse ? Colors.blue.withValues(alpha: 0.1) : AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    isCourse ? 'MINI COURSE' : 'BOOTCAMP',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: isCourse ? Colors.blue : AppColors.primary,
-                    ),
+                SizedBox(
+                  height: 100,
+                  width: double.infinity,
+                  child: thumbnail.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: thumbnail,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(color: AppColors.backgroundSubtle),
+                          errorWidget: (context, url, error) => Container(color: AppColors.primaryLight),
+                        )
+                      : Container(
+                          color: AppColors.primaryLight,
+                          child: const Center(
+                            child: Icon(Icons.play_circle_outline_rounded, size: 32, color: AppColors.primary),
+                          ),
+                        ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: type.contains('BOOTCAMP') ? AppColors.primaryLight : Colors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          type.contains('BOOTCAMP') ? 'BOOTCAMP' : 'MINI COURSE',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: type.contains('BOOTCAMP') ? AppColors.primary : Colors.blue,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        title,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('${(progress * 100).toInt()}% Selesai', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                          const Text('Lanjutkan >', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                const Text('Lanjutkan >', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
               ],
             ),
           );
@@ -533,9 +629,9 @@ class _ChallengeBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('Tantangan & Kuis Baru 🏆', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text('Tantangan & Uji Kemampuan', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
                   SizedBox(height: 4),
-                  Text('Kumpulkan poin XP dan raih badge sertifikasi lebih cepat!', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text('Uji pemahaman materi dan raih poin XP lebih cepat.', style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),

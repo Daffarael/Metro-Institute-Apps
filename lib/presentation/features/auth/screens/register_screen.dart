@@ -119,20 +119,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Daftar Akun Mentee 🚀',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 56,
+                      width: 56,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ).animate().fadeIn(duration: 300.ms),
+
+                const SizedBox(height: 28),
+
+                const Text(
+                  'Daftar Akun Baru',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.3,
+                  ),
+                ).animate().fadeIn(delay: 50.ms, duration: 300.ms),
 
                 const SizedBox(height: 6),
 
                 const Text(
-                  'Mulai perjalanan karir digitalmu bersama Metro Institute',
+                  'Lengkapi data di bawah ini untuk memulai belajar di Metro Institute',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
@@ -140,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 if (_errorMessage != null) ...[
                   Container(

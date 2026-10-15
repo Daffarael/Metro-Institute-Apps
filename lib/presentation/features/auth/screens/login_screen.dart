@@ -85,63 +85,46 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: 36),
 
-                // Brand Logo Badge
+                // Official Metro Institute Brand Logo (Shield)
                 Center(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.25),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 64,
+                      width: 64,
+                      fit: BoxFit.cover,
                     ),
-                    child: const Center(
-                      child: Text(
-                        'MI',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1,
-                        ),
-                      ),
-                    ),
-                  ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
-                ),
+                  ),
+                ).animate().fadeIn(duration: 400.ms),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 32),
 
-                // Heading
+                // Clean Modern Heading
                 const Text(
-                  'Selamat Datang! 👋',
+                  'Masuk ke Akun Anda',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.3,
                   ),
-                ).animate().fadeIn(duration: 300.ms),
+                ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
 
                 const SizedBox(height: 8),
 
                 const Text(
-                  'Masuk untuk melanjutkan pembelajaranmu di Metro Institute',
+                  'Akses materi pembelajaran dan pantau perkembangan karir Anda',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                     height: 1.4,
                   ),
-                ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
+                ).animate().fadeIn(delay: 150.ms, duration: 300.ms),
 
                 const SizedBox(height: 32),
 
