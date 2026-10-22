@@ -59,8 +59,9 @@ class _AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      // TODO: Implement token refresh logic here
-      // If refresh fails → clear storage → navigate to login
+      await _storage.delete(key: AppConstants.keyAccessToken);
+      await _storage.delete(key: AppConstants.keyRefreshToken);
+      await _storage.delete(key: AppConstants.keyUserId);
     }
     handler.next(err);
   }

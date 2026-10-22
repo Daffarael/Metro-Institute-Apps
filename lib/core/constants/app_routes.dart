@@ -45,6 +45,10 @@ class AppRoutes {
   // ── Notification ──────────────────────────────────────────────────────────
   static const String notifications = '/notifications';
 
+  // ── Webinar ───────────────────────────────────────────────────────────────
+  static const String webinar = '/webinar';
+
   // ── Rating ────────────────────────────────────────────────────────────────
   static const String ratingReview = '/rating/:courseId';
 }
+

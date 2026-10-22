@@ -2,12 +2,23 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/app_cache_manager.dart';
 import '../datasources/remote/auth_remote_datasource.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRepository {
   Future<UserModel> login(String email, String password);
   Future<void> register(String name, String email, String phone, String password);
+  Future<UserModel> loginWithGoogle({
+    required String email,
+    String? name,
+    String? googleId,
+    String? photoUrl,
+    String? idToken,
+  });
+  Future<UserModel> updateProfile({String? name, String? phone});
+  Future<void> verifyEmail(String email, String code);
+  Future<void> resendVerify(String email);
   Future<UserModel?> getSavedUser();
   Future<bool> isLoggedIn();
   Future<UserModel> refreshProfile();
@@ -31,6 +42,9 @@ class AuthRepositoryImpl implements AuthRepository {
     final token = result['accessToken'] as String;
     final user = result['user'] as UserModel;
 
+    // Purge old user in-memory caches
+    AppCacheManager.clearAll();
+
     // Save token securely
     await secureStorage.write(key: AppConstants.keyAccessToken, value: token);
     await secureStorage.write(key: AppConstants.keyUserId, value: user.id);
@@ -43,6 +57,46 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<UserModel> loginWithGoogle({
+    required String email,
+    String? name,
+    String? googleId,
+    String? photoUrl,
+    String? idToken,
+  }) async {
+    final result = await remoteDataSource.loginWithGoogle(
+      email: email,
+      name: name,
+      googleId: googleId,
+      photoUrl: photoUrl,
+      idToken: idToken,
+    );
+    final token = result['accessToken'] as String;
+    final user = result['user'] as UserModel;
+
+    // Purge old user in-memory caches
+    AppCacheManager.clearAll();
+
+    // Save token securely
+    await secureStorage.write(key: AppConstants.keyAccessToken, value: token);
+    await secureStorage.write(key: AppConstants.keyUserId, value: user.id);
+
+    // Save user profile locally
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keySavedUser, jsonEncode(user.toJson()));
+
+    return user;
+  }
+
+  @override
+  Future<UserModel> updateProfile({String? name, String? phone}) async {
+    final updatedUser = await remoteDataSource.updateProfile(name: name, phone: phone);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keySavedUser, jsonEncode(updatedUser.toJson()));
+    return updatedUser;
+  }
+
+  @override
   Future<void> register(String name, String email, String phone, String password) async {
     await remoteDataSource.register(
       name: name,
@@ -50,6 +104,16 @@ class AuthRepositoryImpl implements AuthRepository {
       phone: phone,
       password: password,
     );
+  }
+
+  @override
+  Future<void> verifyEmail(String email, String code) async {
+    await remoteDataSource.verifyEmail(email: email, code: code);
+  }
+
+  @override
+  Future<void> resendVerify(String email) async {
+    await remoteDataSource.resendVerify(email: email);
   }
 
   @override
@@ -81,6 +145,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    AppCacheManager.clearAll();
     await secureStorage.delete(key: AppConstants.keyAccessToken);
     await secureStorage.delete(key: AppConstants.keyRefreshToken);
     await secureStorage.delete(key: AppConstants.keyUserId);

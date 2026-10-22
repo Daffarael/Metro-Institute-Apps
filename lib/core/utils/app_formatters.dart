@@ -21,12 +21,30 @@ class AppFormatters {
 
   /// Format date as "15 Oktober 2026"
   static String dateIndo(DateTime date) {
-    return DateFormat('d MMMM yyyy', 'id').format(date);
+    try {
+      return DateFormat('d MMMM yyyy', 'id').format(date);
+    } catch (_) {
+      try {
+        return DateFormat('d MMMM yyyy').format(date);
+      } catch (_) {
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return '${date.day} ${months[date.month - 1]} ${date.year}';
+      }
+    }
   }
 
   /// Format date as "15 Okt 2026"
   static String dateShort(DateTime date) {
-    return DateFormat('d MMM yyyy', 'id').format(date);
+    try {
+      return DateFormat('d MMM yyyy', 'id').format(date);
+    } catch (_) {
+      try {
+        return DateFormat('d MMM yyyy').format(date);
+      } catch (_) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return '${date.day} ${months[date.month - 1]} ${date.year}';
+      }
+    }
   }
 
   /// Duration in minutes → "1j 23m" or "45 menit"

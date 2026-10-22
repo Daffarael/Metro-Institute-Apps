@@ -6,10 +6,10 @@ class AppColors {
   AppColors._();
 
   // ── Brand / Primary ────────────────────────────────────────────────────────
-  static const Color primary       = Color(0xFF018556); // --color-primary
-  static const Color primaryDark   = Color(0xFF016b44); // --color-primary-dark
-  static const Color primaryLight  = Color(0xFFe6f4ef); // --color-primary-light
-  static const Color primaryXLight = Color(0xFFf0faf6); // --color-primary-xlight
+  static const Color primary       = Color(0xFF0F172A); // --color-primary (Dark Navy / Dongker)
+  static const Color primaryDark   = Color(0xFF020617); // --color-primary-dark
+  static const Color primaryLight  = Color(0xFFF1F5F9); // --color-primary-light
+  static const Color primaryXLight = Color(0xFFF8FAFC); // --color-primary-xlight
 
   // ── Accent / Yellow ────────────────────────────────────────────────────────
   static const Color accent      = Color(0xFFFAE653); // --color-accent
@@ -30,14 +30,14 @@ class AppColors {
   static const Color textInverse   = Color(0xFFFFFFFF); // --color-text-inverse
 
   // ── Semantic ───────────────────────────────────────────────────────────────
-  static const Color success   = Color(0xFF018556); // --color-success
-  static const Color successBg = Color(0xFFe6f4ef); // --color-success-bg
+  static const Color success   = Color(0xFF0F172A); // --color-success (Dark Navy / Dongker)
+  static const Color successBg = Color(0xFFF1F5F9); // --color-success-bg
   static const Color warning   = Color(0xFFD97706); // --color-warning
   static const Color warningBg = Color(0xFFFEF3C7); // --color-warning-bg
   static const Color error     = Color(0xFFDC2626); // --color-error
   static const Color errorBg   = Color(0xFFFEF2F2); // --color-error-bg
-  static const Color info      = Color(0xFF2563EB); // --color-info
-  static const Color infoBg    = Color(0xFFEFF6FF); // --color-info-bg
+  static const Color info      = Color(0xFF0F172A); // --color-info (Dark Navy / Dongker)
+  static const Color infoBg    = Color(0xFFF1F5F9); // --color-info-bg
 
   // ── Gamification / XP ──────────────────────────────────────────────────────
   static const Color xp       = Color(0xFFF59E0B); // --color-xp (gold stars, XP)
@@ -46,11 +46,11 @@ class AppColors {
   static const Color streakBg = Color(0xFFFEF2F2); // --color-streak-bg
 
   // ── Badge Levels ───────────────────────────────────────────────────────────
-  static const Color badgeRookie   = Color(0xFF9CA3AF); // Abu
-  static const Color badgeExplorer = Color(0xFF3B82F6); // Biru
+  static const Color badgeRookie   = Color(0xFF64748B); // Slate / Abu-abu rapi
+  static const Color badgeExplorer = Color(0xFF475569); // Slate Dongker
   static const Color badgeAchiever = Color(0xFF8B5CF6); // Ungu
   static const Color badgeExpert   = Color(0xFFF59E0B); // Emas
-  static const Color badgeMaster   = Color(0xFF018556); // Hijau Primary
+  static const Color badgeMaster   = Color(0xFF0F172A); // Dark Navy Master
 
   // ── Overlay ────────────────────────────────────────────────────────────────
   static const Color overlay = Color(0x80000000); // 50% black
