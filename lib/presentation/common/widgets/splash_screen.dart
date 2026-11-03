@@ -7,15 +7,17 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/di/injection_container.dart';
 import '../../../data/repositories/auth_repository.dart';
 
-/// SplashScreen — Pure, Elegant Staged Logo Construction.
+/// SplashScreen — Staged Shield Construction & Typewriter Typography ("Metro Institute").
 ///
-/// Urutan Animasi:
-/// 1. [0.00 – 0.05] Ruang tenang berlatar belakang Hijau Zamrud Metro (#063D2A).
-/// 2. [0.05 – 0.32] Garis kontur luar perisai digambar bersih melingkar.
-/// 3. [0.32 – 0.50] Perisai terisi warna putih solid secara lembut.
-/// 4. [0.50 – 0.72] 3 titik intan & 4 pilar kaligrafi "MI" terukir menembus perisai putih ke hijau zamrud.
-/// 5. [0.72 – 0.88] Logo meluncur mulus ke kiri, teks "Metro" dan "Institute" putih muncul anggun.
-/// 6. [0.88 – 1.00] Hold sejenak sebelum dissolve halus menuju halaman berikutnya.
+/// Urutan Animasi Sinematik:
+/// 1. [0.00 – 0.05] Ruang tenang berlatar belakang Putih Bersih (Colors.white).
+/// 2. [0.05 – 0.30] Garis kontur luar perisai digambar halus, perlahan, dan melingkar.
+/// 3. [0.30 – 0.44] Perisai terisi warna hijau zamrud solid (#063D2A) secara lembut.
+/// 4. [0.44 – 0.62] 3 titik intan & 4 pilar kaligrafi "MI" terukir menembus perisai ke warna putih.
+/// 5. [0.62 – 0.72] Logo meluncur mulus ke posisi kiri.
+/// 6. [0.72 – 0.83] Teks "Metro" diketik huruf demi huruf (Typewriter Effect) dengan kursor berkedip.
+/// 7. [0.82 – 0.95] Teks "Institute" diketik menyusul huruf demi huruf di bawahnya.
+/// 8. [0.95 – 1.00] Kursor menghilang, logo utuh ditampilkan sejenak sebelum transisi dissolve.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -30,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   // ── Tahap 1: Outline Tracing (Garis perisai) ──────────────────────────────
   late Animation<double> _outlineProgress;
 
-  // ── Tahap 2: Pengisian Perisai Putih Solid ────────────────────────────────
+  // ── Tahap 2: Pengisian Perisai Hijau Solid ────────────────────────────────
   late Animation<double> _shieldFillOpacity;
 
   // ── Tahap 3: Ukiran Elemen Dalam (Pure Clean Cutouts) ─────────────────────
@@ -39,18 +41,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _dot3Carve;
   late Animation<double> _pillarsCarve;
 
-  // ── Tahap 4: Geser Logo & Tipografi Bertahap ──────────────────────────────
+  // ── Tahap 4: Geser Logo ───────────────────────────────────────────────────
   late Animation<double> _logoShift;
-  late Animation<double> _metroOpacity;
-  late Animation<double> _metroSlide;
-  late Animation<double> _instituteOpacity;
-  late Animation<double> _instituteSlide;
 
-  // ── Tahap 5: Exit Dissolve ────────────────────────────────────────────────
+  // ── Tahap 5: Efek Mengetik (Typewriter Effect) ────────────────────────────
+  late Animation<double> _metroTypeProgress;
+  late Animation<double> _instituteTypeProgress;
+
+  // ── Tahap 6: Exit Dissolve ────────────────────────────────────────────────
   late Animation<double> _exitScale;
   late Animation<double> _exitOpacity;
 
   bool _hasTriggeredCarveHaptic = false;
+  int _lastMetroChars = 0;
+  int _lastInstituteChars = 0;
+
+  // Warna Brand Utama Metro Institute
+  static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
 
   @override
   void initState() {
@@ -60,93 +67,81 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
-    // 3800ms: Durasi sinematik yang mantap, elegan, dan dinamis
+    // 5600ms: Durasi sinematik yang tenang, lambat, dan memukau
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3800),
+      duration: const Duration(milliseconds: 5600),
     );
 
-    // 1. Tracing Outline: Garis perisai digambar melingkar tajam & bersih (190ms – 1200ms)
+    // 1. Tracing Outline: Garis perisai digambar melingkar tenang & anggun (280ms – 1680ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.05, 0.32, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.05, 0.30, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 2. Perisai putih terisi secara lembut (1200ms – 1900ms)
+    // 2. Perisai hijau terisi secara lembut (1680ms – 2464ms)
     _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.32, 0.50, curve: Curves.easeOutCubic),
+        curve: const Interval(0.30, 0.44, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Tiga titik intan terukir bertahap (1900ms – 2450ms)
+    // 3. Tiga titik intan terukir bertahap (2464ms – 3250ms)
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.50, 0.58, curve: Curves.easeOutBack),
+        curve: const Interval(0.44, 0.51, curve: Curves.easeOutBack),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.54, 0.62, curve: Curves.easeOutBack),
+        curve: const Interval(0.48, 0.55, curve: Curves.easeOutBack),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.58, 0.66, curve: Curves.easeOutBack),
+        curve: const Interval(0.52, 0.59, curve: Curves.easeOutBack),
       ),
     );
 
-    // Empat pilar kaligrafi terukir memotong perisai putih turun ke bawah (2100ms – 2750ms)
+    // Empat pilar kaligrafi terukir memotong perisai turun ke bawah (2800ms – 3470ms)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.56, 0.72, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.50, 0.62, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 4. Logo meluncur ke kiri secara sangat mulus (2750ms – 3350ms)
+    // 4. Logo meluncur ke kiri secara sangat mulus (3470ms – 4030ms)
     _logoShift = Tween<double>(begin: 76.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.72, 0.88, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.62, 0.72, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // Kata "Metro" meluncur masuk lembut dari kiri
-    _metroOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // 5. Animasi Mengetik "Metro" huruf demi huruf (4030ms – 4650ms)
+    _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.74, 0.86, curve: Curves.easeOut),
-      ),
-    );
-    _metroSlide = Tween<double>(begin: -14.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.74, 0.88, curve: Curves.easeOutCubic),
+        curve: const Interval(0.72, 0.83, curve: Curves.linear),
       ),
     );
 
-    // Kata "Institute" menyusul di bawahnya
-    _instituteOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Animasi Mengetik "Institute" huruf demi huruf di bawahnya (4590ms – 5320ms)
+    _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.78, 0.90, curve: Curves.easeOut),
-      ),
-    );
-    _instituteSlide = Tween<double>(begin: -14.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.78, 0.92, curve: Curves.easeOutCubic),
+        curve: const Interval(0.82, 0.95, curve: Curves.linear),
       ),
     );
 
-    // 5. Exit Controller (450ms)
+    // 6. Exit Controller (450ms)
     _exitController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 450),
@@ -159,20 +154,62 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
     );
 
-    // Haptic feedback saat ukiran selesai
+    // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
     _controller.addListener(() {
-      if (_controller.value >= 0.72 && !_hasTriggeredCarveHaptic) {
+      if (_controller.value >= 0.62 && !_hasTriggeredCarveHaptic) {
         _hasTriggeredCarveHaptic = true;
         HapticFeedback.lightImpact();
       }
+
+      // Haptic tactile click saat mengetik tiap karakter
+      final currentMetroLen = _displayedMetroLength;
+      if (currentMetroLen > _lastMetroChars) {
+        _lastMetroChars = currentMetroLen;
+        HapticFeedback.selectionClick();
+      }
+
+      final currentInstLen = _displayedInstituteLength;
+      if (currentInstLen > _lastInstituteChars) {
+        _lastInstituteChars = currentInstLen;
+        HapticFeedback.selectionClick();
+      }
     });
+  }
+
+  // Helper untuk mendapatkan panjang karakter terketik
+  int get _displayedMetroLength {
+    final chars = (_metroTypeProgress.value * 5).floor();
+    return chars.clamp(0, 5);
+  }
+
+  int get _displayedInstituteLength {
+    final chars = (_instituteTypeProgress.value * 9).floor();
+    return chars.clamp(0, 9);
+  }
+
+  String get _displayedMetroText {
+    const word = 'Metro';
+    return word.substring(0, _displayedMetroLength);
+  }
+
+  String get _displayedInstituteText {
+    const word = 'Institute';
+    return word.substring(0, _displayedInstituteLength);
+  }
+
+  bool get _showMetroCursor {
+    return _metroTypeProgress.value > 0.0 && _instituteTypeProgress.value < 0.08;
+  }
+
+  bool get _showInstituteCursor {
+    return _instituteTypeProgress.value >= 0.08 && _instituteTypeProgress.value < 1.0;
   }
 
   Future<void> _runAnimationSequence() async {
     try {
       await _controller.forward();
       // Jeda sejenak untuk mengagumi tampilan logo utuh
-      await Future.delayed(const Duration(milliseconds: 350));
+      await Future.delayed(const Duration(milliseconds: 400));
       if (!mounted) return;
 
       await _exitController.forward();
@@ -206,9 +243,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _exitController.dispose();
     super.dispose();
   }
-
-  // Warna Brand Utama Metro Institute
-  static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
 
   @override
   Widget build(BuildContext context) {
@@ -278,46 +312,56 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ),
                       ),
 
-                      // ── Brand Typography (Selalu di tree, tidak ada layout jump!) ──
+                      // ── Brand Typography (Animasi Mengetik / Typewriter Effect) ──
                       Padding(
                         padding: const EdgeInsets.only(left: 18),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Kata "Metro"
-                            Transform.translate(
-                              offset: Offset(_metroSlide.value, 0),
-                              child: Opacity(
-                                opacity: _metroOpacity.value,
-                                child: Text(
-                                  'Metro',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.8,
-                                    color: _brandColor,
-                                    height: 1.05,
+                            // Baris 1: "Metro"
+                            SizedBox(
+                              height: 38,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _displayedMetroText,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.8,
+                                      color: _brandColor,
+                                      height: 1.05,
+                                    ),
                                   ),
-                                ),
+                                  if (_showMetroCursor)
+                                    const _TypewriterCursor(color: _brandColor),
+                                ],
                               ),
                             ),
 
-                            // Kata "Institute"
-                            Transform.translate(
-                              offset: Offset(_instituteSlide.value, 0),
-                              child: Opacity(
-                                opacity: _instituteOpacity.value,
-                                child: Text(
-                                  'Institute',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.8,
-                                    color: _brandColor,
-                                    height: 1.05,
+                            // Baris 2: "Institute"
+                            SizedBox(
+                              height: 38,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _displayedInstituteText,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.8,
+                                      color: _brandColor,
+                                      height: 1.05,
+                                    ),
                                   ),
-                                ),
+                                  if (_showInstituteCursor)
+                                    const _TypewriterCursor(color: _brandColor),
+                                ],
                               ),
                             ),
                           ],
@@ -331,6 +375,55 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           );
         },
       ),
+    );
+  }
+}
+
+/// Widget Kursor Ketikan Typewriter yang berkedip halus
+class _TypewriterCursor extends StatefulWidget {
+  final Color color;
+  const _TypewriterCursor({required this.color});
+
+  @override
+  State<_TypewriterCursor> createState() => _TypewriterCursorState();
+}
+
+class _TypewriterCursorState extends State<_TypewriterCursor> with SingleTickerProviderStateMixin {
+  late AnimationController _blinkController;
+
+  @override
+  void initState() {
+    super.initState();
+    _blinkController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _blinkController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _blinkController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _blinkController.value > 0.35 ? 1.0 : 0.0,
+          child: Container(
+            width: 3.2,
+            height: 28.0,
+            margin: const EdgeInsets.only(left: 3.0),
+            decoration: BoxDecoration(
+              color: widget.color,
+              borderRadius: BorderRadius.circular(1.6),
+            ),
+          ),
+        );
+      },
     );
   }
 }
