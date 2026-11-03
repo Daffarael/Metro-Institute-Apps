@@ -8,17 +8,22 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/di/injection_container.dart';
 import '../../../data/repositories/auth_repository.dart';
 
-/// SplashScreen — Cinematic Pendant Lamp & Staged Logo Construction.
+/// SplashScreen — Photorealistic Tactile Pull-Cord Pendant Lamp & Staged Logo Construction.
 ///
 /// Urutan Animasi:
-/// 1. [0.00 – 0.10] Ruangan gelap pekat, lampu gantung & tali saklar tergantung diam.
-/// 2. [0.10 – 0.18] Tali saklar ditarik ke bawah (pull down) lalu memantul kembali (snap back).
-/// 3. [0.16 – 0.28] Lampu "KLIK" MENYALA! Filamen memijar hangat, menyorotkan cahaya ke bawah dan menerangi ruangan jadi Hijau Zamrud (#063D2A).
-/// 4. [0.28 – 0.48] Garis kontur luar perisai digambar bersih di bawah sorotan cahaya lampu.
+/// 1. [0.00 – 0.08] Ruangan gelap pekat (#020906), lampu gantung putih satin/aluminium
+///    dan tali saklar tergantung diam (persis seperti referensi foto kondisi OFF).
+/// 2. [0.08 – 0.20] Tali saklar ditarik ke bawah secara mulus oleh tangan tak terlihat,
+///    lalu lepas dan memantul cepat (elastic snap-back).
+/// 3. [0.16 – 0.30] Saklar "KLIK!" (Haptic feedback). Filamen tungsten memijar hangat
+///    berdasarkan kurva radiasi Blackbody (merah bara -> oranye menyala -> putih pijar).
+///    Interior kap lampu menyala emas tembaga cerah, menyemburkan sorotan berkas downlight
+///    scallop ke dinding/latar belakang, mengubah ruangan menjadi Hijau Zamrud Metro (#063D2A).
+/// 4. [0.28 – 0.48] Di bawah cahaya lampu, garis kontur luar perisai digambar bersih melingkar.
 /// 5. [0.48 – 0.62] Perisai terisi warna putih solid secara lembut.
-/// 6. [0.62 – 0.80] 3 titik ketupat & 4 pilar kaligrafi "MI" terukir bersih (cutouts menembus ke hijau zamrud).
-/// 7. [0.80 – 0.94] Logo meluncur mulus ke kiri, teks "Metro" dan "Institute" putih muncul anggun.
-/// 8. [0.94 – 1.00] Hold sejenak sebelum dissolve halus menuju halaman berikutnya.
+/// 6. [0.62 – 0.81] 3 titik intan & 4 pilar kaligrafi terukir menembus perisai putih ke hijau zamrud.
+/// 7. [0.81 – 0.93] Logo meluncur mulus ke kiri, teks "Metro" dan "Institute" putih muncul anggun.
+/// 8. [0.93 – 1.00] Hold sejenak sebelum dissolve halus menuju halaman berikutnya.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -68,38 +73,38 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
-    // 5200ms: Durasi sinematik yang tenang dan elegan
+    // 5300ms: Durasi sinematik yang tenang, berbobot, dan memukau
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5200),
+      duration: const Duration(milliseconds: 5300),
     );
 
-    // 1. Tali saklar ditarik ke bawah lalu memantul kembali (400ms – 900ms)
+    // 1. Tali saklar ditarik ke bawah lalu membal elastis (snap-back)
     _cordPull = TweenSequence<double>([
       TweenSequenceItem(
         tween: Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeInQuad)),
-        weight: 45,
+        weight: 42,
       ),
       TweenSequenceItem(
         tween: Tween<double>(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.elasticOut)),
-        weight: 55,
+        weight: 58,
       ),
     ]).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.08, 0.20),
+        curve: const Interval(0.08, 0.22),
       ),
     );
 
-    // 2. Lampu "KLIK" MENYALA! Filamen memijar hangat dan ruangan terang (800ms – 1450ms)
+    // 2. Lampu menyala! Filamen memijar hangat dan menyinari ruangan (800ms – 1550ms)
     _lampGlow = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.16, 0.28, curve: Curves.easeOutCubic),
+        curve: const Interval(0.16, 0.30, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Tracing Outline: Garis perisai digambar melingkar tajam & bersih (1450ms – 2500ms)
+    // 3. Tracing Outline: Garis luar perisai digambar tajam & bersih (1450ms – 2500ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -135,7 +140,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // Empat pilar kaligrafi terukir memotong perisai putih turun ke bawah (3500ms – 4200ms)
+    // Empat pilar kaligrafi terukir memotong perisai putih turun ke bawah (3500ms – 4250ms)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -143,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Logo meluncur ke kiri secara sangat mulus (4200ms – 4900ms)
+    // 6. Logo meluncur ke kiri secara sangat mulus (4250ms – 4900ms)
     _logoShift = Tween<double>(begin: 76.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -251,9 +256,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       body: AnimatedBuilder(
         animation: Listenable.merge([_controller, _exitController]),
         builder: (context, child) {
-          // Latar belakang bertransisi dinamis dari gelap pekat (#020E08) ke Hijau Zamrud Metro (#063D2A)
+          // Latar belakang bertransisi dinamis dari malam pekat (#020906) ke Hijau Zamrud Metro (#063D2A)
           final backgroundColor = Color.lerp(
-            const Color(0xFF020E08),
+            const Color(0xFF020906),
             const Color(0xFF063D2A),
             _lampGlow.value,
           )!;
@@ -263,17 +268,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // ── LAYER 1: Lampu Gantung Sinematik & Sorotan Cahaya ───────
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 380,
+                // ── LAYER 1: Sorotan Cahaya Downlight Scallop di Dinding ───
+                Positioned.fill(
                   child: CustomPaint(
-                    painter: _PendantLampPainter(
-                      cordPull: _cordPull.value,
+                    painter: _WallLightScallopPainter(
                       glow: _lampGlow.value,
-                      lampDrop: 70.0,
                     ),
                   ),
                 ),
@@ -285,7 +284,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     child: Opacity(
                       opacity: _exitOpacity.value,
                       child: Transform.translate(
-                        offset: Offset(_logoShift.value, 20), // Posisi pas di bawah sorotan lampu
+                        offset: Offset(_logoShift.value, 46), // Posisi proporsional di bawah lampu
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -382,6 +381,21 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
                 ),
+
+                // ── LAYER 3: Lampu Gantung Sinematik & Tali Saklar (Pull-Cord Bulb) ──
+                // Diposisikan tepat di atas layar, persis seperti foto referensi
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 440,
+                  child: CustomPaint(
+                    painter: _PendantLampPainter(
+                      cordPull: _cordPull.value,
+                      glow: _lampGlow.value,
+                    ),
+                  ),
+                ),
               ],
             ),
           );
@@ -391,187 +405,504 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-/// Custom Painter untuk Lampu Gantung Sinematik & Tali Saklar (Pull Cord)
+/// Custom Painter untuk Sorotan Berkas Cahaya di Dinding (Wall Downlight Scallop)
+class _WallLightScallopPainter extends CustomPainter {
+  final double glow;
+
+  _WallLightScallopPainter({required this.glow});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (glow <= 0.005) return;
+
+    final cx = size.width / 2;
+    const rimY = 162.0;
+
+    // 1. Scallop downlight cone melebar ke bawah
+    final conePath = Path()
+      ..moveTo(cx - 100, rimY + 6)
+      ..lineTo(cx + 100, rimY + 6)
+      ..lineTo(size.width * 1.15, size.height)
+      ..lineTo(-size.width * 0.15, size.height)
+      ..close();
+
+    final conePaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          const Color(0xFFFAE653).withValues(alpha: (0.35 * glow).clamp(0.0, 1.0)),
+          const Color(0xFF018556).withValues(alpha: (0.28 * glow).clamp(0.0, 1.0)),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(Rect.fromLTWH(-size.width * 0.15, rimY, size.width * 1.3, size.height - rimY));
+
+    canvas.drawPath(conePath, conePaint);
+
+    // 2. Ambient radial golden wash di area logo
+    final washCenter = Offset(cx, size.height * 0.52);
+    final washPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFAE653).withValues(alpha: (0.16 * glow).clamp(0.0, 1.0)),
+          const Color(0xFF018556).withValues(alpha: (0.08 * glow).clamp(0.0, 1.0)),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(Rect.fromCircle(center: washCenter, radius: size.width * 0.75));
+
+    canvas.drawCircle(washCenter, size.width * 0.75, washPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _WallLightScallopPainter oldDelegate) {
+    return oldDelegate.glow != glow;
+  }
+}
+
+/// Custom Painter untuk Lampu Gantung Sinematik (Pull-Cord Bulb)
+/// Mengikuti 100% anatomi foto referensi:
+/// - Mangkuk plafon aluminium satin (Canopy Cup)
+/// - Kabel gantung lurus
+/// - Leher/Kerah fitting (Collar)
+/// - Kap Kubah Putih Matte/Aluminium (Dome Shade 216px) dengan pencahayaan 3D realistis
+/// - Underside Enamel Cavity: hitam pekat saat MATI, kuning keemasan membara saat HIDUP
+/// - Bohlam kaca jernih dengan filamen tungsten Blackbody (dingin saat OFF, memijar putih-hangat saat ON)
+/// - Soket saklar logam di sisi kanan
+/// - Tali saklar putih satin & bandul buah ek (Acorn) terbalik
 class _PendantLampPainter extends CustomPainter {
   final double cordPull;
   final double glow;
-  final double lampDrop;
 
   _PendantLampPainter({
     required this.cordPull,
     required this.glow,
-    this.lampDrop = 70.0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
 
-    // 1. Sorotan Berkas Cahaya Lampu (Soft Volumetric Downlight Cone)
+    // ── Geometri Lampu Berdasarkan Anatomi Fisik Referensi ──
+    const canopyTopY = 0.0;
+    const canopyHeight = 16.0;
+    const canopyWidth = 52.0;
+
+    const cableTopY = canopyHeight;
+    const cableLength = 38.0;
+    const cableBottomY = cableTopY + cableLength; // 54.0
+
+    const collarHeight = 18.0;
+    const collarWidth = 18.0;
+    const domeTopY = cableBottomY + collarHeight; // 72.0
+
+    const domeRadius = 108.0; // Lebar total kubah: 216.0 px (Sangat anggun & proporsional)
+    const domeHeight = 90.0;
+    const rimY = domeTopY + domeHeight; // 162.0
+    const elevation = 0.17; // Sudut pandang perspektif dari bawah
+    const rimMinorRadius = domeRadius * elevation; // 18.36
+
+    final bulbCenter = Offset(cx, rimY + 16.0); // 178.0
+    const bulbRadius = 25.0; // Diameter 50.0 px
+
+    final cordAnchorX = cx + 56.0; // Soket tali di sisi kanan bawah kap
+    const cordAnchorY = rimY - 2.0;
+    const baseCordLength = 145.0;
+    final currentPullOffset = cordPull * 32.0; // Tali ditarik 32px ke bawah
+    final acornY = cordAnchorY + 14.0 + baseCordLength + currentPullOffset;
+
+    // ── 0. Volumetric Light Bloom (Pendaran Cahaya Bohlam) ────────────────
     if (glow > 0.01) {
-      final shadeBottomY = lampDrop + 32.0;
-
-      // Cone penyinaran yang melebar ke bawah
-      final conePath = Path()
-        ..moveTo(cx - 32, shadeBottomY + 4)
-        ..lineTo(cx + 32, shadeBottomY + 4)
-        ..lineTo(size.width * 0.95, size.height)
-        ..lineTo(size.width * 0.05, size.height)
-        ..close();
-
-      final conePaint = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFFFAE653).withValues(alpha: (0.28 * glow).clamp(0.0, 1.0)),
-            const Color(0xFFFAE653).withValues(alpha: (0.08 * glow).clamp(0.0, 1.0)),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.42, 1.0],
-        ).createShader(Rect.fromLTWH(0, shadeBottomY, size.width, size.height - shadeBottomY));
-
-      canvas.drawPath(conePath, conePaint);
-
-      // Pendaran Radial Halo di sekitar bohlam
-      final bloomCenter = Offset(cx, shadeBottomY + 3);
-      final bloomRadius = 52.0 * glow;
-      final bloomPaint = Paint()
+      // Core Bloom (Putih keemasan intens di sekitar filamen)
+      final coreBloom = Paint()
         ..shader = RadialGradient(
           colors: [
-            const Color(0xFFFFF6D6).withValues(alpha: (0.70 * glow).clamp(0.0, 1.0)),
-            const Color(0xFFFAE653).withValues(alpha: (0.32 * glow).clamp(0.0, 1.0)),
+            Colors.white.withValues(alpha: (0.92 * glow).clamp(0.0, 1.0)),
+            const Color(0xFFFFF7D6).withValues(alpha: (0.75 * glow).clamp(0.0, 1.0)),
+            const Color(0xFFFFB84D).withValues(alpha: (0.35 * glow).clamp(0.0, 1.0)),
             Colors.transparent,
           ],
-          stops: const [0.0, 0.35, 1.0],
-        ).createShader(Rect.fromCircle(center: bloomCenter, radius: bloomRadius));
-      canvas.drawCircle(bloomCenter, bloomRadius, bloomPaint);
+          stops: const [0.0, 0.25, 0.65, 1.0],
+        ).createShader(Rect.fromCircle(center: bulbCenter, radius: 46.0 * glow));
+      canvas.drawCircle(bulbCenter, 46.0 * glow, coreBloom);
+
+      // Wide Ambient Halo (Menyebar lembut ke bawah kap)
+      final wideHalo = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFFB03A).withValues(alpha: (0.45 * glow).clamp(0.0, 1.0)),
+            const Color(0xFFFF8C00).withValues(alpha: (0.18 * glow).clamp(0.0, 1.0)),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.45, 1.0],
+        ).createShader(Rect.fromCircle(center: bulbCenter, radius: 140.0 * glow));
+      canvas.drawCircle(bulbCenter, 140.0 * glow, wideHalo);
     }
 
-    // 2. Mangkuk Plafon (Ceiling Canopy Cup)
-    final cupPaint = Paint()..color = const Color(0xFF161F1A);
-    final cupRect = Rect.fromCenter(center: Offset(cx, 0), width: 34, height: 16);
-    canvas.drawArc(cupRect, 0, math.pi, true, cupPaint);
+    // ── 1. Mangkuk Plafon (Ceiling Canopy Cup) ─────────────────────────────
+    final canopyRect = Rect.fromCenter(
+      center: Offset(cx, canopyTopY + (canopyHeight / 2)),
+      width: canopyWidth,
+      height: canopyHeight,
+    );
+    final canopyPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          Color(0xFFFFFFFF),
+          Color(0xFFE2E6E9),
+          Color(0xFFB5BAC0),
+          Color(0xFF8B9298),
+        ],
+        stops: [0.05, 0.35, 0.75, 1.0],
+      ).createShader(canopyRect);
 
-    // 3. Kabel Gantung (Pendant Cable)
+    final canopyPath = Path()
+      ..moveTo(cx - (canopyWidth / 2), canopyTopY)
+      ..lineTo(cx + (canopyWidth / 2), canopyTopY)
+      ..lineTo(cx + (canopyWidth / 2) - 3, canopyTopY + canopyHeight)
+      ..lineTo(cx - (canopyWidth / 2) + 3, canopyTopY + canopyHeight)
+      ..close();
+    canvas.drawPath(canopyPath, canopyPaint);
+
+    // Garis rim bawah canopy
+    final canopyRimPaint = Paint()
+      ..color = const Color(0xFF6B7280)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(cx - (canopyWidth / 2) + 3, canopyTopY + canopyHeight),
+      Offset(cx + (canopyWidth / 2) - 3, canopyTopY + canopyHeight),
+      canopyRimPaint,
+    );
+
+    // ── 2. Kabel Gantung (Pendant Cable / Stem) ───────────────────────────
+    final cableRect = Rect.fromLTWH(cx - 1.8, cableTopY, 3.6, cableLength);
     final cablePaint = Paint()
-      ..color = const Color(0xFF1E2822)
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(cx, 0), Offset(cx, lampDrop), cablePaint);
+      ..shader = const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          Color(0xFFFFFFFF),
+          Color(0xFFD6DBDE),
+          Color(0xFF8B9399),
+        ],
+      ).createShader(cableRect);
+    canvas.drawRect(cableRect, cablePaint);
 
-    // 4. Kap Lampu Minimalis (Dome Shade)
-    final shadeTopY = lampDrop;
-    const shadeHeight = 32.0;
-    final shadeBottomY = shadeTopY + shadeHeight;
+    // ── 3. Leher Kerah Fitting (Collar Top of Dome) ───────────────────────
+    final collarRect = Rect.fromCenter(
+      center: Offset(cx, cableBottomY + (collarHeight / 2)),
+      width: collarWidth,
+      height: collarHeight,
+    );
+    final collarPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          Color(0xFFFFFFFF),
+          Color(0xFFDDE1E4),
+          Color(0xFF9AA1A7),
+          Color(0xFF70777D),
+        ],
+        stops: [0.08, 0.38, 0.78, 1.0],
+      ).createShader(collarRect);
+    canvas.drawRRect(RRect.fromRectAndRadius(collarRect, const Radius.circular(2.5)), collarPaint);
 
-    final shadePath = Path()
-      ..moveTo(cx - 7, shadeTopY)
-      ..lineTo(cx + 7, shadeTopY)
-      ..quadraticBezierTo(cx + 12, shadeTopY + 10, cx + 36, shadeBottomY)
-      ..lineTo(cx - 36, shadeBottomY)
-      ..quadraticBezierTo(cx - 12, shadeTopY + 10, cx - 7, shadeTopY)
+    // Cincin dasar collar
+    final collarBaseRect = Rect.fromCenter(
+      center: Offset(cx, domeTopY),
+      width: collarWidth + 6,
+      height: 4.0,
+    );
+    canvas.drawOval(collarBaseRect, collarPaint);
+
+    // ── 4. Rongga Dalam Kap Lampu (Inner Enamel Cavity) ───────────────────
+    // Dilihat dari bawah sebagai elips dengan kedalaman perspektif
+    final innerCavityRect = Rect.fromCenter(
+      center: Offset(cx, rimY),
+      width: domeRadius * 2,
+      height: rimMinorRadius * 2,
+    );
+
+    final innerCavityPaint = Paint();
+    if (glow > 0.01) {
+      // KONDISI HIDUP: Menyala emas membara cerah (Luminous Amber Enamel)!
+      innerCavityPaint.shader = RadialGradient(
+        center: const Alignment(0.0, -0.2),
+        radius: 0.9,
+        colors: [
+          Color.lerp(const Color(0xFF222527), const Color(0xFFFFF2A8), glow)!,
+          Color.lerp(const Color(0xFF161819), const Color(0xFFFFAC38), glow)!,
+          Color.lerp(const Color(0xFF0F1011), const Color(0xFFE65100), glow)!,
+          Color.lerp(const Color(0xFF0A0B0C), const Color(0xFF8C2700), glow)!,
+        ],
+        stops: const [0.0, 0.40, 0.80, 1.0],
+      ).createShader(innerCavityRect);
+    } else {
+      // KONDISI MATI: Rongga gelap gulita persis foto referensi
+      innerCavityPaint.shader = const RadialGradient(
+        center: Alignment(0.0, -0.2),
+        radius: 0.9,
+        colors: [
+          Color(0xFF242729),
+          Color(0xFF181A1B),
+          Color(0xFF0D0E0F),
+        ],
+        stops: [0.0, 0.55, 1.0],
+      ).createShader(innerCavityRect);
+    }
+    canvas.drawOval(innerCavityRect, innerCavityPaint);
+
+    // ── 5. Permukaan Luar Kap Kubah (White / Aluminium Dome Shade) ─────────
+    // Kubah setengah bola mulus dengan bayangan 3D matte spun aluminium
+    final domePath = Path()
+      ..moveTo(cx - domeRadius, rimY)
+      // Busur kubah atas dari kiri ke kanan
+      ..arcToPoint(
+        Offset(cx + domeRadius, rimY),
+        radius: const Radius.elliptical(domeRadius, domeHeight),
+        clockwise: true,
+      )
+      // Busur bibir depan bawah kap menutup kubah
+      ..arcToPoint(
+        Offset(cx - domeRadius, rimY),
+        radius: const Radius.elliptical(domeRadius, rimMinorRadius),
+        clockwise: false,
+      )
       ..close();
 
-    final shadeGradient = const LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+    final domeShader = const LinearGradient(
+      begin: Alignment(-0.85, -0.95),
+      end: Alignment(0.85, 0.85),
       colors: [
-        Color(0xFF3D4D44),
-        Color(0xFF1F2B24),
-        Color(0xFF121A15),
+        Color(0xFFFFFFFF), // Highlight pantulan cahaya ruang atas kiri
+        Color(0xFFF3F5F7),
+        Color(0xFFE0E4E7), // Warna dasar putih satin / spun aluminium
+        Color(0xFFC4CBD0),
+        Color(0xFF9AA1A7), // Bayangan lengkungan bawah kanan
       ],
-      stops: [0.0, 0.55, 1.0],
-    ).createShader(Rect.fromLTWH(cx - 38, shadeTopY, 76, shadeHeight));
+      stops: [0.0, 0.22, 0.58, 0.82, 1.0],
+    ).createShader(Rect.fromLTWH(cx - domeRadius, domeTopY, domeRadius * 2, domeHeight + rimMinorRadius));
 
-    final shadePaint = Paint()
-      ..shader = shadeGradient
+    final domePaint = Paint()
+      ..shader = domeShader
       ..style = PaintingStyle.fill;
-    canvas.drawPath(shadePath, shadePaint);
+    canvas.drawPath(domePath, domePaint);
 
-    // Garis bibir kap lampu (Rim Lip)
-    final rimPaint = Paint()
-      ..color = const Color(0xFF5A6E62)
+    // Bibir Roll Bawah Kap (Rolled Rim Lip Catch-Light & Shadow)
+    final frontLipPath = Path()
+      ..moveTo(cx - domeRadius, rimY)
+      ..arcToPoint(
+        Offset(cx + domeRadius, rimY),
+        radius: const Radius.elliptical(domeRadius, rimMinorRadius),
+        clockwise: false,
+      );
+
+    // Kilauan garis putih pada bibir depan
+    final frontLipPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.95)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawLine(Offset(cx - 36, shadeBottomY), Offset(cx + 36, shadeBottomY), rimPaint);
+      ..strokeWidth = 1.6;
+    canvas.drawPath(frontLipPath, frontLipPaint);
 
-    // 5. Bohlam Kaca & Filamen Pijar (Glass Bulb & Hot Filament)
-    final bulbCenter = Offset(cx, shadeBottomY + 6);
-    const bulbRadius = 11.5;
+    // Bayangan halus di bawah bibir
+    final lipShadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.40)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.9;
+    canvas.drawOval(innerCavityRect, lipShadowPaint);
 
-    // Kaca Bohlam
-    final glassFill = Paint()
+    // ── 6. Bohlam Kaca Jernih & Filamen Tungsten (Clear Bulb & Filament) ────
+    final bulbRect = Rect.fromCircle(center: bulbCenter, radius: bulbRadius);
+
+    // Kaca Bohlam (Transparan dengan pantulan specular)
+    final glassFillPaint = Paint();
+    if (glow > 0.01) {
+      glassFillPaint.shader = RadialGradient(
+        center: Alignment.center,
+        radius: 0.85,
+        colors: [
+          Color.lerp(const Color(0x22FFFFFF), const Color(0xD8FFF5D6), glow)!,
+          Color.lerp(const Color(0x18FFFFFF), const Color(0x99FFA726), glow)!,
+          Color.lerp(const Color(0x08FFFFFF), const Color(0x44E65100), glow)!,
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(bulbRect);
+    } else {
+      glassFillPaint.color = const Color(0x1AFFFFFF); // Kaca transparan jernih
+    }
+    canvas.drawCircle(bulbCenter, bulbRadius, glassFillPaint);
+
+    // Kontur kaca bohlam
+    final glassOutlinePaint = Paint()
       ..color = glow > 0.01
-          ? Color.lerp(const Color(0x33FFFFFF), const Color(0x99FFEAA8), glow)!
-          : const Color(0x22FFFFFF);
-    canvas.drawCircle(bulbCenter, bulbRadius, glassFill);
-
-    final glassStroke = Paint()
-      ..color = glow > 0.01
-          ? Color.lerp(const Color(0x66FFFFFF), const Color(0xEEFFF8DB), glow)!
+          ? Color.lerp(const Color(0x55FFFFFF), const Color(0xEEFFF3D1), glow)!
           : const Color(0x44FFFFFF)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawCircle(bulbCenter, bulbRadius, glassStroke);
+      ..strokeWidth = 1.2;
+    canvas.drawCircle(bulbCenter, bulbRadius, glassOutlinePaint);
 
-    // Filamen di dalam bohlam (memijar merah -> kuning putih saat glow naik)
-    final filamentPaint = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.5;
-    if (glow > 0.01) {
-      filamentPaint.color = Color.lerp(const Color(0xFFFF5722), const Color(0xFFFFFFFF), glow)!;
-    } else {
-      filamentPaint.color = const Color(0xFF4A5550);
-    }
-
-    final filamentPath = Path()
-      ..moveTo(cx - 3.5, shadeBottomY + 1)
-      ..lineTo(cx - 2.5, bulbCenter.dy + 1)
-      ..lineTo(cx, bulbCenter.dy - 3)
-      ..lineTo(cx + 2.5, bulbCenter.dy + 1)
-      ..lineTo(cx + 3.5, shadeBottomY + 1);
-    canvas.drawPath(filamentPath, filamentPaint..style = PaintingStyle.stroke);
-
-    // 6. Tali Saklar (Pull Cord) & Bandul Emas (Acorn)
-    final cordAnchorX = cx + 20.0;
-    final cordAnchorY = shadeBottomY;
-    const baseCordLength = 46.0;
-    final currentPullOffset = cordPull * 22.0; // Tali ditarik ke bawah 22px
-    final acornY = cordAnchorY + baseCordLength + currentPullOffset;
-
-    // Tali saklar
-    final cordPaint = Paint()
-      ..color = const Color(0xFFD4AF37) // Warna anyaman emas
+    // Specular Highlight pada kaca (pantulan lengkung di kiri atas bola kaca)
+    final specularPath = Path()
+      ..addArc(
+        Rect.fromCircle(center: bulbCenter, radius: bulbRadius - 3.5),
+        math.pi * 1.10,
+        math.pi * 0.45,
+      );
+    final specularPaint = Paint()
+      ..color = Colors.white.withValues(alpha: glow > 0.01 ? 0.80 : 0.45)
+      ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(cordAnchorX, cordAnchorY), Offset(cordAnchorX, acornY), cordPaint);
+    canvas.drawPath(specularPath, specularPaint);
 
-    // Bandul (Acorn) Emas
-    final acornPaint = Paint()
+    // Dudukan Kaca di Dalam Bohlam (Glass Stem Press)
+    final stemPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.25)
+      ..strokeWidth = 2.0;
+    canvas.drawLine(
+      Offset(cx, rimY + 2.0),
+      Offset(cx, bulbCenter.dy - 6.0),
+      stemPaint,
+    );
+
+    // Kawat Penyangga Filamen (Lead-in Mount Wires)
+    final leadWirePaint = Paint()
+      ..color = glow > 0.01
+          ? Color.lerp(const Color(0xFF6B7280), const Color(0xFFFFD54F), glow)!
+          : const Color(0xFF5A5F63)
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round;
+
+    final leadWireLeft = Path()
+      ..moveTo(cx - 4.0, bulbCenter.dy - 6.0)
+      ..lineTo(cx - 6.5, bulbCenter.dy + 3.0);
+    final leadWireRight = Path()
+      ..moveTo(cx + 4.0, bulbCenter.dy - 6.0)
+      ..lineTo(cx + 6.5, bulbCenter.dy + 3.0);
+
+    canvas.drawPath(leadWireLeft, leadWirePaint);
+    canvas.drawPath(leadWireRight, leadWirePaint);
+
+    // Kumparan Filamen Tungsten (Blackbody Incandescent Coil)
+    final filamentPath = Path()
+      ..moveTo(cx - 6.5, bulbCenter.dy + 3.0)
+      ..quadraticBezierTo(cx, bulbCenter.dy - 2.5, cx + 6.5, bulbCenter.dy + 3.0);
+
+    if (glow > 0.01) {
+      // Glow pijar filamen (Radiasi termal $T^4$ dari merah bara ke putih panas)
+      final filamentGlowColor = glow < 0.35
+          ? Color.lerp(const Color(0xFFFF3700), const Color(0xFFFF8500), glow / 0.35)!
+          : Color.lerp(const Color(0xFFFF8500), const Color(0xFFFFFFFF), (glow - 0.35) / 0.65)!;
+
+      final filamentHotPaint = Paint()
+        ..color = filamentGlowColor
+        ..strokeWidth = 2.4
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(filamentPath, filamentHotPaint);
+
+      // Inti putih panas murni di tengah filamen
+      final filamentCorePaint = Paint()
+        ..color = Colors.white
+        ..strokeWidth = 1.3
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(filamentPath, filamentCorePaint);
+    } else {
+      // Filamen dingin metalik saat lampu padam
+      final filamentColdPaint = Paint()
+        ..color = const Color(0xFF4A4E52)
+        ..strokeWidth = 1.4
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(filamentPath, filamentColdPaint);
+    }
+
+    // ── 7. Soket Tali Saklar (Pull-Switch Metal Socket) ───────────────────
+    final socketRect = Rect.fromLTWH(cordAnchorX - 3.5, cordAnchorY, 7.0, 14.0);
+    final socketPaint = Paint()
       ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
         colors: [
-          Color(0xFFFAE653), // Metro Yellow Gold
-          Color(0xFFB88E18),
+          Color(0xFFFFFFFF),
+          Color(0xFFD6DBDE),
+          Color(0xFF8B9399),
         ],
-      ).createShader(Rect.fromLTWH(cordAnchorX - 3.5, acornY, 7, 12));
+      ).createShader(socketRect);
+    canvas.drawRRect(RRect.fromRectAndRadius(socketRect, const Radius.circular(1.5)), socketPaint);
+
+    // ── 8. Tali Saklar Putih Satin (Braided Textile Pull-Cord) ────────────
+    final cordStartX = cordAnchorX;
+    final cordStartY = cordAnchorY + 14.0;
+    final cordEndY = acornY;
+
+    final cordColor = glow > 0.01
+        ? Color.lerp(const Color(0xFFE5E7EB), const Color(0xFFFFF7DB), glow)!
+        : const Color(0xFFE2E6E8);
+
+    final cordPaint = Paint()
+      ..color = cordColor
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(cordStartX, cordStartY), Offset(cordStartX, cordEndY), cordPaint);
+
+    // ── 9. Bandul Saklar Buah Ek (Turned Aluminium Acorn) ──────────────────
+    // Bentuk tetesan buah ek khas pada referensi foto (Teardrop Acorn Weight)
+    final acornRect = Rect.fromLTWH(cordStartX - 6.5, acornY, 13.0, 26.0);
+    final acornPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          glow > 0.01 ? const Color(0xFFFFFDF5) : const Color(0xFFFFFFFF),
+          glow > 0.01 ? const Color(0xFFF7EED2) : const Color(0xFFE2E6E9),
+          glow > 0.01 ? const Color(0xFFDAC79E) : const Color(0xFFB5BAC0),
+          glow > 0.01 ? const Color(0xFFA6906A) : const Color(0xFF858C92),
+        ],
+        stops: const [0.05, 0.35, 0.75, 1.0],
+      ).createShader(acornRect);
 
     final acornPath = Path()
-      ..moveTo(cordAnchorX - 2.5, acornY)
-      ..lineTo(cordAnchorX + 2.5, acornY)
-      ..lineTo(cordAnchorX + 3.5, acornY + 6)
-      ..quadraticBezierTo(cordAnchorX, acornY + 11, cordAnchorX - 3.5, acornY + 6)
+      // Kerah atas tempat masuknya tali
+      ..moveTo(cordStartX - 3.0, acornY)
+      ..lineTo(cordStartX + 3.0, acornY)
+      ..lineTo(cordStartX + 3.5, acornY + 3.5)
+      // Badan membulat anggun menyerupai buah ek / tetesan air terbalik
+      ..cubicTo(
+        cordStartX + 6.8, acornY + 7.0,
+        cordStartX + 6.8, acornY + 17.0,
+        cordStartX, acornY + 25.0,
+      )
+      ..cubicTo(
+        cordStartX - 6.8, acornY + 17.0,
+        cordStartX - 6.8, acornY + 7.0,
+        cordStartX - 3.5, acornY + 3.5,
+      )
       ..close();
+
     canvas.drawPath(acornPath, acornPaint);
+
+    // Garis rim cincin atas acorn
+    final acornRimPaint = Paint()
+      ..color = const Color(0xFF6B7280).withValues(alpha: 0.6)
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(cordStartX - 3.0, acornY + 3.5),
+      Offset(cordStartX + 3.0, acornY + 3.5),
+      acornRimPaint,
+    );
   }
 
   @override
   bool shouldRepaint(covariant _PendantLampPainter oldDelegate) {
-    return oldDelegate.cordPull != cordPull ||
-        oldDelegate.glow != glow ||
-        oldDelegate.lampDrop != lampDrop;
+    return oldDelegate.cordPull != cordPull || oldDelegate.glow != glow;
   }
 }
 
