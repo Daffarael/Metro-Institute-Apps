@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/di/injection_container.dart';
 import '../../../data/repositories/auth_repository.dart';
+import 'text_effect.dart';
 
 /// SplashScreen — Staged Shield Construction & Typewriter Typography ("Metro Institute").
 ///
@@ -125,19 +126,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 5. Animasi Mengetik "Metro" PELAN-PELAN huruf demi huruf (~240ms per huruf: 4560ms – 5776ms)
+    // 5. Animasi "Metro" via Framer Motion TextEffect Blur Preset (4560ms – 5850ms)
     _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.60, 0.76, curve: Curves.linear),
+        curve: const Interval(0.60, 0.77, curve: Curves.linear),
       ),
     );
 
-    // Animasi Mengetik "Institute" PELAN-PELAN huruf demi huruf di bawahnya (~160ms per huruf: 5776ms – 7220ms)
+    // Animasi "Institute" via Framer Motion TextEffect Blur Preset di bawahnya (5700ms – 7220ms)
     _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.76, 0.95, curve: Curves.linear),
+        curve: const Interval(0.75, 0.95, curve: Curves.linear),
       ),
     );
 
@@ -176,68 +177,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     });
   }
 
-  bool get _showMetroCursor {
-    return _metroTypeProgress.value > 0.0 && _instituteTypeProgress.value <= 0.0;
-  }
 
-  bool get _showInstituteCursor {
-    return _instituteTypeProgress.value > 0.0 && _instituteTypeProgress.value < 1.0;
-  }
-
-  /// Membangun teks efek mengetik yang sangat mulus (Smooth Per-Character Fluid Reveal)
-  /// Setiap huruf mekar dengan transisi opasitas kurva kubik halus, tidak kaku atau patah-patah
-  Widget _buildSmoothTypewriterText({
-    required String fullText,
-    required double progress,
-    required bool showCursor,
-    required TextStyle style,
-  }) {
-    final spans = <InlineSpan>[];
-    final n = fullText.length;
-
-    for (int i = 0; i < n; i++) {
-      final start = i / n;
-      final end = (i + 1) / n;
-
-      if (progress >= start) {
-        final localT = ((progress - start) / (end - start)).clamp(0.0, 1.0);
-        // Transisi opasitas kurva kubik halus, mengalir lembut seperti tinta
-        final charOpacity = Curves.easeOutCubic.transform(localT);
-
-        spans.add(
-          TextSpan(
-            text: fullText[i],
-            style: style.copyWith(
-              color: (style.color ?? _brandColor).withValues(alpha: charOpacity),
-            ),
-          ),
-        );
-      }
-    }
-
-    // Tempatkan kursor tepat di sebelah huruf aktif
-    if (showCursor) {
-      spans.add(
-        WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: _TypewriterCursor(color: style.color ?? _brandColor),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 38,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text.rich(
-          TextSpan(children: spans),
-          style: style,
-          maxLines: 1,
-          softWrap: false,
-        ),
-      ),
-    );
-  }
 
   Future<void> _runAnimationSequence() async {
     try {
@@ -361,11 +301,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Baris 1: "Metro" diketik sangat mulus
-                                    _buildSmoothTypewriterText(
-                                      fullText: 'Metro',
+                                    // Baris 1: "Metro" via Framer Motion TextEffect (Preset: Blur)
+                                    TextEffect(
+                                      text: 'Metro',
+                                      preset: TextEffectPreset.blur,
+                                      per: TextEffectPer.char,
                                       progress: _metroTypeProgress.value,
-                                      showCursor: _showMetroCursor,
+                                      curve: Curves.easeOutCubic,
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 34,
                                         fontWeight: FontWeight.w700,
@@ -375,11 +317,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                       ),
                                     ),
 
-                                    // Baris 2: "Institute" diketik sangat mulus
-                                    _buildSmoothTypewriterText(
-                                      fullText: 'Institute',
+                                    // Baris 2: "Institute" via Framer Motion TextEffect (Preset: Blur)
+                                    TextEffect(
+                                      text: 'Institute',
+                                      preset: TextEffectPreset.blur,
+                                      per: TextEffectPer.char,
                                       progress: _instituteTypeProgress.value,
-                                      showCursor: _showInstituteCursor,
+                                      curve: Curves.easeOutCubic,
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 34,
                                         fontWeight: FontWeight.w700,
@@ -406,59 +350,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-/// Widget Kursor Ketikan Typewriter yang berdenyut lembut (Smooth Pulsing Cursor)
-class _TypewriterCursor extends StatefulWidget {
-  final Color color;
-  const _TypewriterCursor({super.key, required this.color});
-
-  @override
-  State<_TypewriterCursor> createState() => _TypewriterCursorState();
-}
-
-class _TypewriterCursorState extends State<_TypewriterCursor> with SingleTickerProviderStateMixin {
-  late AnimationController _blinkController;
-  late Animation<double> _cursorPulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _blinkController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 380),
-    )..repeat(reverse: true);
-
-    _cursorPulse = Tween<double>(begin: 0.15, end: 1.0).animate(
-      CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _blinkController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _cursorPulse,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _cursorPulse.value,
-          child: Container(
-            width: 2.8,
-            height: 26.0,
-            margin: const EdgeInsets.only(left: 3.0),
-            decoration: BoxDecoration(
-              color: widget.color,
-              borderRadius: BorderRadius.circular(1.4),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 /// Custom Painter yang menggambar garis perisai dan ukiran cutouts
 class _LogoCarvingPainter extends CustomPainter {
