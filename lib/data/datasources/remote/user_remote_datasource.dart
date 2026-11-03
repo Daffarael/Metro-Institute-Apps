@@ -7,12 +7,18 @@ abstract class UserRemoteDataSource {
   Future<Map<String, dynamic>> getXpLogs({int page = 1, int limit = 20});
   Future<List<dynamic>> getTransactions();
   Future<void> changePassword({required String currentPassword, required String newPassword});
+  Future<Map<String, dynamic>> validateVoucher({
+    required String code,
+    required String productType,
+    required String productId,
+  });
   Future<Map<String, dynamic>> initiateTransaction({
     required String productType,
     String? courseId,
     String? bootcampId,
     String? webinarId,
     String? paymentMethod,
+    String? voucherCode,
   });
   Future<Map<String, dynamic>> verifyTransaction(String orderId);
   Future<Map<String, dynamic>> simulateTransaction(String orderId);
@@ -97,12 +103,37 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   }
 
   @override
+  Future<Map<String, dynamic>> validateVoucher({
+    required String code,
+    required String productType,
+    required String productId,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/voucher/validate',
+        data: {
+          'code': code.trim().toUpperCase(),
+          'productType': productType,
+          'productId': productId,
+        },
+      );
+      return (response.data['data'] as Map<String, dynamic>?) ?? {};
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? 'Kode voucher tidak valid atau telah habis.';
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Gagal memvalidasi voucher: $e');
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>> initiateTransaction({
     required String productType,
     String? courseId,
     String? bootcampId,
     String? webinarId,
     String? paymentMethod,
+    String? voucherCode,
   }) async {
     try {
       final Map<String, dynamic> body = {'productType': productType};
@@ -110,6 +141,9 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       if (bootcampId != null) body['bootcampId'] = bootcampId;
       if (webinarId != null) body['webinarId'] = webinarId;
       if (paymentMethod != null && paymentMethod != 'ALL') body['paymentMethod'] = paymentMethod;
+      if (voucherCode != null && voucherCode.trim().isNotEmpty) {
+        body['voucherCode'] = voucherCode.trim().toUpperCase();
+      }
 
       final response = await dio.post(
         '/transactions/initiate',
