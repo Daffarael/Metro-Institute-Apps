@@ -301,7 +301,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
-                                  // Staged Carving Custom Painter
+                                  // 100% Pure Vector Painting (Bentuk bingkai konsisten & tidak berubah)
                                   Positioned.fill(
                                     child: CustomPaint(
                                       painter: _LogoCarvingPainter(
@@ -315,31 +315,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                       ),
                                     ),
                                   ),
-
-                                  // Pixel-Perfect Crossfade ke Asset Resmi saat ukiran selesai
-                                  if (_pillarsCarve.value >= 0.95)
-                                    Positioned.fill(
-                                      child: Opacity(
-                                        opacity: ((_pillarsCarve.value - 0.95) / 0.05).clamp(0.0, 1.0),
-                                        child: Image.asset(
-                                          'assets/images/metro_shield.png',
-                                          color: _brandColor,
-                                          colorBlendMode: BlendMode.srcIn,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (context, error, stackTrace) => Image.asset(
-                                            'assets/images/logo_clean.png',
-                                            color: _brandColor,
-                                            colorBlendMode: BlendMode.srcIn,
-                                            fit: BoxFit.contain,
-                                            errorBuilder: (c, e, s) => Image.asset(
-                                              'assets/images/logo.png',
-                                              color: _brandColor,
-                                              colorBlendMode: BlendMode.srcIn,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),
