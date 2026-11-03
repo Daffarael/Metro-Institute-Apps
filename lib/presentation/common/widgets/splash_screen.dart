@@ -162,43 +162,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
 
       // Haptic tactile click saat mengetik tiap karakter
-      final currentMetroLen = _displayedMetroLength;
+      final currentMetroLen = (_metroTypeProgress.value * 5).floor().clamp(0, 5);
       if (currentMetroLen > _lastMetroChars) {
         _lastMetroChars = currentMetroLen;
         HapticFeedback.selectionClick();
       }
 
-      final currentInstLen = _displayedInstituteLength;
+      final currentInstLen = (_instituteTypeProgress.value * 9).floor().clamp(0, 9);
       if (currentInstLen > _lastInstituteChars) {
         _lastInstituteChars = currentInstLen;
         HapticFeedback.selectionClick();
       }
     });
-  }
-
-  // Helper untuk mendapatkan panjang karakter terketik
-  int get _displayedMetroLength {
-    if (_metroTypeProgress.value <= 0.0) return 0;
-    if (_metroTypeProgress.value >= 1.0) return 5;
-    final chars = (_metroTypeProgress.value * 5).floor();
-    return chars.clamp(0, 5);
-  }
-
-  int get _displayedInstituteLength {
-    if (_instituteTypeProgress.value <= 0.0) return 0;
-    if (_instituteTypeProgress.value >= 1.0) return 9;
-    final chars = (_instituteTypeProgress.value * 9).floor();
-    return chars.clamp(0, 9);
-  }
-
-  String get _displayedMetroText {
-    const word = 'Metro';
-    return word.substring(0, _displayedMetroLength);
-  }
-
-  String get _displayedInstituteText {
-    const word = 'Institute';
-    return word.substring(0, _displayedInstituteLength);
   }
 
   bool get _showMetroCursor {
@@ -207,6 +182,61 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   bool get _showInstituteCursor {
     return _instituteTypeProgress.value > 0.0 && _instituteTypeProgress.value < 1.0;
+  }
+
+  /// Membangun teks efek mengetik yang sangat mulus (Smooth Per-Character Fluid Reveal)
+  /// Setiap huruf mekar dengan transisi opasitas kurva kubik halus, tidak kaku atau patah-patah
+  Widget _buildSmoothTypewriterText({
+    required String fullText,
+    required double progress,
+    required bool showCursor,
+    required TextStyle style,
+  }) {
+    final spans = <InlineSpan>[];
+    final n = fullText.length;
+
+    for (int i = 0; i < n; i++) {
+      final start = i / n;
+      final end = (i + 1) / n;
+
+      if (progress >= start) {
+        final localT = ((progress - start) / (end - start)).clamp(0.0, 1.0);
+        // Transisi opasitas kurva kubik halus, mengalir lembut seperti tinta
+        final charOpacity = Curves.easeOutCubic.transform(localT);
+
+        spans.add(
+          TextSpan(
+            text: fullText[i],
+            style: style.copyWith(
+              color: (style.color ?? _brandColor).withValues(alpha: charOpacity),
+            ),
+          ),
+        );
+      }
+    }
+
+    // Tempatkan kursor tepat di sebelah huruf aktif
+    if (showCursor) {
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: _TypewriterCursor(color: style.color ?? _brandColor),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 38,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text.rich(
+          TextSpan(children: spans),
+          style: style,
+          maxLines: 1,
+          softWrap: false,
+        ),
+      ),
+    );
   }
 
   Future<void> _runAnimationSequence() async {
@@ -331,49 +361,31 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Baris 1: "Metro"
-                                    SizedBox(
-                                      height: 38,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            _displayedMetroText,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 34,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: -0.8,
-                                              color: _brandColor,
-                                              height: 1.05,
-                                            ),
-                                          ),
-                                          if (_showMetroCursor)
-                                            const _TypewriterCursor(color: _brandColor),
-                                        ],
+                                    // Baris 1: "Metro" diketik sangat mulus
+                                    _buildSmoothTypewriterText(
+                                      fullText: 'Metro',
+                                      progress: _metroTypeProgress.value,
+                                      showCursor: _showMetroCursor,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.8,
+                                        color: _brandColor,
+                                        height: 1.05,
                                       ),
                                     ),
 
-                                    // Baris 2: "Institute"
-                                    SizedBox(
-                                      height: 38,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            _displayedInstituteText,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 34,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: -0.8,
-                                              color: _brandColor,
-                                              height: 1.05,
-                                            ),
-                                          ),
-                                          if (_showInstituteCursor)
-                                            const _TypewriterCursor(color: _brandColor),
-                                        ],
+                                    // Baris 2: "Institute" diketik sangat mulus
+                                    _buildSmoothTypewriterText(
+                                      fullText: 'Institute',
+                                      progress: _instituteTypeProgress.value,
+                                      showCursor: _showInstituteCursor,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.8,
+                                        color: _brandColor,
+                                        height: 1.05,
                                       ),
                                     ),
                                   ],
@@ -394,10 +406,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-/// Widget Kursor Ketikan Typewriter yang berkedip halus
+/// Widget Kursor Ketikan Typewriter yang berdenyut lembut (Smooth Pulsing Cursor)
 class _TypewriterCursor extends StatefulWidget {
   final Color color;
-  const _TypewriterCursor({required this.color});
+  const _TypewriterCursor({super.key, required this.color});
 
   @override
   State<_TypewriterCursor> createState() => _TypewriterCursorState();
@@ -405,14 +417,19 @@ class _TypewriterCursor extends StatefulWidget {
 
 class _TypewriterCursorState extends State<_TypewriterCursor> with SingleTickerProviderStateMixin {
   late AnimationController _blinkController;
+  late Animation<double> _cursorPulse;
 
   @override
   void initState() {
     super.initState();
     _blinkController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 380),
     )..repeat(reverse: true);
+
+    _cursorPulse = Tween<double>(begin: 0.15, end: 1.0).animate(
+      CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -424,17 +441,17 @@ class _TypewriterCursorState extends State<_TypewriterCursor> with SingleTickerP
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _blinkController,
+      animation: _cursorPulse,
       builder: (context, child) {
         return Opacity(
-          opacity: _blinkController.value > 0.35 ? 1.0 : 0.0,
+          opacity: _cursorPulse.value,
           child: Container(
-            width: 3.2,
-            height: 28.0,
+            width: 2.8,
+            height: 26.0,
             margin: const EdgeInsets.only(left: 3.0),
             decoration: BoxDecoration(
               color: widget.color,
-              borderRadius: BorderRadius.circular(1.6),
+              borderRadius: BorderRadius.circular(1.4),
             ),
           ),
         );
