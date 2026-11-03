@@ -305,6 +305,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     TextEffect(
                                       text: 'Metro',
                                       preset: TextEffectPreset.blur,
+                                      blurColor: Colors.white,
                                       per: TextEffectPer.char,
                                       progress: _metroTypeProgress.value,
                                       curve: Curves.easeOutCubic,
@@ -321,6 +322,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     TextEffect(
                                       text: 'Institute',
                                       preset: TextEffectPreset.blur,
+                                      blurColor: Colors.white,
                                       per: TextEffectPer.char,
                                       progress: _instituteTypeProgress.value,
                                       curve: Curves.easeOutCubic,

@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 /// Available animation presets matching Framer Motion TextEffect presets:
-/// - [blur]: Gaussian optical blur (12px -> 0px) with fade and subtle float-up
+/// - [blur]: Gaussian optical blur with luminous white transition and subtle float-up
 /// - [slide]: Slide up from y: 20 with fade
 /// - [scale]: Scale up from 0 to 1 with fade
 /// - [fade]: Pure opacity fade from 0 to 1
@@ -45,6 +45,7 @@ class TextEffect extends StatefulWidget {
   final VoidCallback? onAnimationComplete;
   final TextAlign textAlign;
   final double overlap;
+  final Color blurColor;
 
   const TextEffect({
     super.key,
@@ -60,6 +61,7 @@ class TextEffect extends StatefulWidget {
     this.onAnimationComplete,
     this.textAlign = TextAlign.start,
     this.overlap = 0.55,
+    this.blurColor = Colors.white,
   });
 
   @override
@@ -257,18 +259,35 @@ class _TextEffectState extends State<TextEffect> with SingleTickerProviderStateM
 
     switch (widget.preset) {
       case TextEffectPreset.blur:
-        // Framer Motion blur preset:
-        // filter: blur(12px) -> blur(0px)
-        // opacity: 0 -> 1
-        // subtle upward drift: y: 8 -> 0
+        // Luminous White Optical Blur:
+        // Letter emerges from luminous white into rich crisp brand color,
+        // completely eliminating dark ink smudges on white backgrounds.
         final opacity = curvedT.clamp(0.0, 1.0);
-        final blur = (1.0 - curvedT) * 12.0;
-        final y = (1.0 - curvedT) * 8.0;
-        final scale = 0.94 + (0.06 * curvedT);
+        final blur = (1.0 - curvedT) * 4.5;
+        final y = (1.0 - curvedT) * 6.0;
+        final scale = 0.95 + (0.05 * curvedT);
 
-        Widget child = Text(displayText, style: style);
+        final targetColor = style.color ?? const Color(0xFF063D2A);
+        final animatedColor = Color.lerp(
+          widget.blurColor,
+          targetColor,
+          math.pow(curvedT, 2.0).toDouble(),
+        )!;
 
-        if (blur > 0.1) {
+        final dynamicStyle = style.copyWith(
+          color: animatedColor,
+          shadows: [
+            if (curvedT < 0.9)
+              Shadow(
+                color: widget.blurColor.withValues(alpha: (1.0 - curvedT).clamp(0.0, 1.0)),
+                blurRadius: (1.0 - curvedT) * 10.0,
+              ),
+          ],
+        );
+
+        Widget child = Text(displayText, style: dynamicStyle);
+
+        if (blur > 0.15) {
           child = ImageFiltered(
             imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
             child: child,
