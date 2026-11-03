@@ -10,12 +10,13 @@ import '../../../data/repositories/auth_repository.dart';
 
 /// SplashScreen — Cinematic Staged Logo Construction Animation.
 ///
-/// Tahapan Pembuatan Logo:
-/// 1. Blueprint & Outline Tracing: Garis kontur perisai digambar secara bertahap oleh pena cahaya neon.
-/// 2. Core Glyph Carving: 3 titik ketupat (diamonds) muncul pop satu per satu, disusul 3 pilar vertikal & sayap kanan terukir naik.
-/// 3. Solidification & Specular Shimmer: Bentuk geometris menyatu menjadi perisai solid dengan kilatan cahaya (metallic sheen sweep).
-/// 4. Shift & Sequential Wordmark: Logo bergeser ke kiri, kata "Metro" meluncur masuk disusul kata "Institute" dan tagline.
-/// 5. Exit Transition: Dissolve mulus ke halaman utama/login.
+/// Proses Pembuatan Logo:
+/// 1. [0.00 – 0.28] Blueprint & Outline Tracing: Garis perisai digambar halus melingkar oleh pena cahaya neon.
+/// 2. [0.28 – 0.42] Liquid White Fill: Perisai terisi warna putih solid secara lembut.
+/// 3. [0.42 – 0.65] Precision Carving: 3 titik ketupat (diamonds) & 4 pilar diukir (carved) memotong perisai putih menjadi siluet autentik.
+/// 4. [0.65 – 0.76] Metallic Sheen Sweep: Kilatan cahaya menyapu diagonal logo setelah selesai ditempa.
+/// 5. [0.76 – 0.92] Shift & Sequential Wordmark: Logo bergeser ke kiri dengan kurva lembut, "Metro" meluncur disusul "Institute" dan tagline.
+/// 6. [0.92 – 1.00] Hold & Exit: Momen penuh sebelum dissolve mulus ke halaman utama.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,21 +28,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _controller;
   late AnimationController _exitController;
 
-  // ── Tahap 1: Blueprint & Outline Tracing (0.0 - 0.28) ──────────────────────
+  // ── Tahap 1: Blueprint & Outline Tracing ─────────────────────────
   late Animation<double> _blueprintOpacity;
   late Animation<double> _outlineProgress;
 
-  // ── Tahap 2: Ukiran Elemen Dalam (Diamonds & Pillars) (0.28 - 0.48) ────────
-  late Animation<double> _dot1Scale;
-  late Animation<double> _dot2Scale;
-  late Animation<double> _dot3Scale;
-  late Animation<double> _pillarsProgress;
+  // ── Tahap 2: Pengisian Perisai Putih Solid ───────────────────────
+  late Animation<double> _shieldFillOpacity;
 
-  // ── Tahap 3: Solidifikasi & Kilau Cahaya (0.48 - 0.62) ─────────────────────
-  late Animation<double> _solidFill;
+  // ── Tahap 3: Ukiran Elemen Dalam (Carving Cutouts) ────────────────
+  late Animation<double> _dot1Carve;
+  late Animation<double> _dot2Carve;
+  late Animation<double> _dot3Carve;
+  late Animation<double> _pillarsCarve;
+
+  // ── Tahap 4: Kilau Logam Selesai Ditempa ─────────────────────────
   late Animation<double> _shimmerProgress;
 
-  // ── Tahap 4: Geser Logo & Tipografi Bertahap (0.62 - 0.85) ──────────────────
+  // ── Tahap 5: Geser Logo & Tipografi Bertahap ─────────────────────
   late Animation<double> _logoShift;
   late Animation<double> _metroOpacity;
   late Animation<double> _metroSlide;
@@ -49,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _instituteSlide;
   late Animation<double> _taglineOpacity;
 
-  // ── Tahap 5: Exit Dissolve ──────────────────────────────────────────────────
+  // ── Tahap 6: Exit Dissolve ───────────────────────────────────────
   late Animation<double> _exitScale;
   late Animation<double> _exitOpacity;
 
@@ -63,22 +66,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
+    // Durasi lebih panjang (4800ms) agar transisinya anggun, tenang, dan tidak terburu-buru
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3200),
+      duration: const Duration(milliseconds: 4800),
     );
 
-    // 1. Blueprint Grid & Guidance Lines (Fade in & slowly fade out)
+    // 1. Blueprint Grid & Radar Lines (Fade in lalu perlahan pudar)
     _blueprintOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeOut)), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.35).chain(CurveTween(curve: Curves.easeInOut)), weight: 40),
-      TweenSequenceItem(tween: Tween(begin: 0.35, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.40).chain(CurveTween(curve: Curves.easeInOut)), weight: 45),
+      TweenSequenceItem(tween: Tween(begin: 0.40, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 35),
     ]).animate(CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.0, 0.65),
     ));
 
-    // Outline path tracing: Menggambar keliling perisai (0ms - 900ms)
+    // Outline path tracing: Menggambar garis keliling perisai (0ms – 1350ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -86,108 +90,110 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 2. Tiga Titik Intan (Diamonds) muncul estafet: Dot 1 -> Dot 2 -> Dot 3
-    _dot1Scale = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // 2. Pengisian Perisai Putih (1350ms – 2000ms)
+    _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.28, 0.36, curve: Curves.easeOutBack),
-      ),
-    );
-    _dot2Scale = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.33, 0.41, curve: Curves.easeOutBack),
-      ),
-    );
-    _dot3Scale = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.38, 0.46, curve: Curves.easeOutBack),
+        curve: const Interval(0.26, 0.40, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Pilar & Spire mengukir naik dari bawah ke atas
-    _pillarsProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // 3. Ukiran 3 Titik Intan (2000ms – 2500ms): Dot 1 -> Dot 2 -> Dot 3
+    _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.34, 0.48, curve: Curves.easeOutCubic),
+        curve: const Interval(0.40, 0.47, curve: Curves.easeOutBack),
+      ),
+    );
+    _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.45, 0.52, curve: Curves.easeOutBack),
+      ),
+    );
+    _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.50, 0.57, curve: Curves.easeOutBack),
       ),
     );
 
-    // 3. Solidifikasi menyatu penuh & Kilau Cahaya (Shimmer) meluncur
-    _solidFill = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Ukiran 4 Pilar vertikal memotong perisai putih turun ke bawah (2400ms – 3100ms)
+    _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.48, 0.58, curve: Curves.easeOut),
+        curve: const Interval(0.48, 0.65, curve: Curves.easeInOutCubic),
       ),
     );
+
+    // 4. Kilatan Cahaya Logam Selesai Ditempa (3100ms – 3650ms)
     _shimmerProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.52, 0.64, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.65, 0.76, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 4. Logo bergeser ke kiri (76px -> 0px)
-    _logoShift = Tween<double>(begin: 84.0, end: 0.0).animate(
+    // 5. Logo bergeser sangat mulus ke kiri (3650ms – 4400ms)
+    _logoShift = Tween<double>(begin: 76.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.64, 0.82, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.74, 0.90, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // Teks "Metro" meluncur dari kiri dan memudar jelas
+    // Kata "Metro" meluncur masuk dengan halus
     _metroOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.66, 0.78, curve: Curves.easeOut),
+        curve: const Interval(0.76, 0.86, curve: Curves.easeOut),
       ),
     );
-    _metroSlide = Tween<double>(begin: -16.0, end: 0.0).animate(
+    _metroSlide = Tween<double>(begin: -14.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.66, 0.80, curve: Curves.easeOutCubic),
+        curve: const Interval(0.76, 0.88, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Teks "Institute" menyusul di bawahnya
+    // Kata "Institute" menyusul di bawahnya
     _instituteOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.72, 0.84, curve: Curves.easeOut),
+        curve: const Interval(0.81, 0.91, curve: Curves.easeOut),
       ),
     );
-    _instituteSlide = Tween<double>(begin: -16.0, end: 0.0).animate(
+    _instituteSlide = Tween<double>(begin: -14.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.72, 0.86, curve: Curves.easeOutCubic),
+        curve: const Interval(0.81, 0.93, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Tagline kecil "Grow Your Digital Future"
+    // Tagline "Grow Your Digital Future"
     _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.80, 0.94, curve: Curves.easeOut),
+        curve: const Interval(0.88, 0.98, curve: Curves.easeOut),
       ),
     );
 
-    // 5. Exit Controller
+    // 6. Exit Controller
     _exitController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
 
-    _exitScale = Tween<double>(begin: 1.0, end: 1.05).animate(
+    _exitScale = Tween<double>(begin: 1.0, end: 1.04).animate(
       CurvedAnimation(parent: _exitController, curve: Curves.easeInOutCubic),
     );
     _exitOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
     );
 
-    // Listener untuk haptic feedback saat logo berhasil terkunci
+    // Getaran haptic feedback saat perisai selesai diukir & berkilau
     _controller.addListener(() {
-      if (_controller.value >= 0.52 && !_hasTriggeredHaptic) {
+      if (_controller.value >= 0.65 && !_hasTriggeredHaptic) {
         _hasTriggeredHaptic = true;
         HapticFeedback.lightImpact();
       }
@@ -197,6 +203,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Future<void> _runAnimationSequence() async {
     try {
       await _controller.forward();
+      // Momen penuh agar pengguna dapat menikmati tampilan logo utuh
       await Future.delayed(const Duration(milliseconds: 400));
       if (!mounted) return;
 
@@ -235,15 +242,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0D12), // Deep luxurious dark background
+      backgroundColor: const Color(0xFF0F1216), // Premium deep dark background
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background Blueprint Grid (Muncul saat proses pembuatan logo)
+          // Background Blueprint Grid (Muncul tenang saat proses perakitan logo)
           AnimatedBuilder(
             animation: _controller,
             builder: (context, _) {
-              if (_blueprintOpacity.value <= 0.01) return const SizedBox.shrink();
+              if (_blueprintOpacity.value <= 0.005) return const SizedBox.shrink();
               return Opacity(
                 opacity: _blueprintOpacity.value,
                 child: CustomPaint(
@@ -269,21 +276,21 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // ── Logo Canvas: Visual Proses Pembuatan Logo ──
+                          // ── Logo Canvas (Perisai yang Dibentuk Bertahap) ──
                           SizedBox(
                             width: 82,
                             height: 104,
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                // Aura / Ambient Glow
+                                // Ambient Halo Glow
                                 Positioned.fill(
                                   child: Container(
                                     decoration: BoxDecoration(
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.white.withValues(
-                                            alpha: 0.12 * _solidFill.value + 0.06 * _outlineProgress.value,
+                                            alpha: 0.10 * _shieldFillOpacity.value + 0.05 * _outlineProgress.value,
                                           ),
                                           blurRadius: 36,
                                           spreadRadius: 2,
@@ -293,25 +300,25 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   ),
                                 ),
 
-                                // 1. Staged Vector Construction Painter
+                                // Staged Carving Custom Painter
                                 Positioned.fill(
                                   child: CustomPaint(
-                                    painter: _LogoConstructionPainter(
+                                    painter: _LogoCarvingPainter(
                                       outlineProgress: _outlineProgress.value,
-                                      dot1Progress: _dot1Scale.value,
-                                      dot2Progress: _dot2Scale.value,
-                                      dot3Progress: _dot3Scale.value,
-                                      pillarsProgress: _pillarsProgress.value,
-                                      solidFillProgress: _solidFill.value,
+                                      shieldFillOpacity: _shieldFillOpacity.value,
+                                      dot1Carve: _dot1Carve.value,
+                                      dot2Carve: _dot2Carve.value,
+                                      dot3Carve: _dot3Carve.value,
+                                      pillarsCarve: _pillarsCarve.value,
                                     ),
                                   ),
                                 ),
 
-                                // 2. Solid High-Res Shield (Memudar masuk saat proses perakitan selesai)
-                                if (_solidFill.value > 0.01)
+                                // Pixel-Perfect Crossfade to Assets saat pemahatan selesai
+                                if (_pillarsCarve.value >= 0.95)
                                   Positioned.fill(
                                     child: Opacity(
-                                      opacity: _solidFill.value,
+                                      opacity: ((_pillarsCarve.value - 0.95) / 0.05).clamp(0.0, 1.0),
                                       child: Image.asset(
                                         'assets/images/metro_shield.png',
                                         fit: BoxFit.contain,
@@ -324,7 +331,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     ),
                                   ),
 
-                                // 3. Metallic Shimmer Light Sweep (Kilatan cahaya saat logo terkunci)
+                                // Metallic Shimmer Light Sweep (Kilatan cahaya setelah selesai diukir)
                                 if (_shimmerProgress.value > 0.01 && _shimmerProgress.value < 0.99)
                                   Positioned.fill(
                                     child: CustomPaint(
@@ -335,83 +342,82 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
                           ),
 
-                          // ── Brand Typography: Bertahap Muncul Setelah Logo Jadi ──
-                          if (_controller.value >= 0.62)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 18),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Kata "Metro"
-                                  Transform.translate(
-                                    offset: Offset(_metroSlide.value, 0),
-                                    child: Opacity(
-                                      opacity: _metroOpacity.value,
-                                      child: Text(
-                                        'Metro',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 34,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.8,
-                                          color: Colors.white,
-                                          height: 1.05,
-                                        ),
+                          // ── Brand Typography Container (Selalu ada di tree, stabil tanpa layout jump!) ──
+                          Padding(
+                            padding: const EdgeInsets.only(left: 18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Kata "Metro"
+                                Transform.translate(
+                                  offset: Offset(_metroSlide.value, 0),
+                                  child: Opacity(
+                                    opacity: _metroOpacity.value,
+                                    child: Text(
+                                      'Metro',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.8,
+                                        color: Colors.white,
+                                        height: 1.05,
                                       ),
                                     ),
                                   ),
+                                ),
 
-                                  // Kata "Institute"
-                                  Transform.translate(
-                                    offset: Offset(_instituteSlide.value, 0),
-                                    child: Opacity(
-                                      opacity: _instituteOpacity.value,
-                                      child: Text(
-                                        'Institute',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 34,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.8,
-                                          color: Colors.white,
-                                          height: 1.05,
-                                        ),
+                                // Kata "Institute"
+                                Transform.translate(
+                                  offset: Offset(_instituteSlide.value, 0),
+                                  child: Opacity(
+                                    opacity: _instituteOpacity.value,
+                                    child: Text(
+                                      'Institute',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.8,
+                                        color: Colors.white,
+                                        height: 1.05,
                                       ),
                                     ),
                                   ),
+                                ),
 
-                                  // Sub-tagline elegan
-                                  if (_taglineOpacity.value > 0.01) ...[
-                                    const SizedBox(height: 5),
-                                    Opacity(
-                                      opacity: _taglineOpacity.value,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 14,
-                                            height: 2,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF018556),
-                                              borderRadius: BorderRadius.circular(1),
-                                            ),
+                                // Tagline
+                                Opacity(
+                                  opacity: _taglineOpacity.value,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 5),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 14,
+                                          height: 2,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF018556),
+                                            borderRadius: BorderRadius.circular(1),
                                           ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            'Grow Your Digital Future',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 0.6,
-                                              color: const Color(0xFF94A3B8),
-                                            ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Grow Your Digital Future',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.6,
+                                            color: const Color(0xFF94A3B8),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ],
-                              ),
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -426,40 +432,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-/// Painter untuk menggambar garis outline, titik 3 intan, dan pilar secara bertahap
-class _LogoConstructionPainter extends CustomPainter {
+/// Custom Painter yang menggambar proses pemahatan (carving) perisai secara geometris presisi
+class _LogoCarvingPainter extends CustomPainter {
   final double outlineProgress;
-  final double dot1Progress;
-  final double dot2Progress;
-  final double dot3Progress;
-  final double pillarsProgress;
-  final double solidFillProgress;
+  final double shieldFillOpacity;
+  final double dot1Carve;
+  final double dot2Carve;
+  final double dot3Carve;
+  final double pillarsCarve;
 
-  _LogoConstructionPainter({
+  _LogoCarvingPainter({
     required this.outlineProgress,
-    required this.dot1Progress,
-    required this.dot2Progress,
-    required this.dot3Progress,
-    required this.pillarsProgress,
-    required this.solidFillProgress,
+    required this.shieldFillOpacity,
+    required this.dot1Carve,
+    required this.dot2Carve,
+    required this.dot3Carve,
+    required this.pillarsCarve,
   });
-
-  // Normalized shield polygon boundary (13 exact points)
-  static const List<Offset> _shieldBoundary = [
-    Offset(0.0569, 0.0436),
-    Offset(0.0018, 0.0788),
-    Offset(0.0036, 0.6793),
-    Offset(0.0819, 0.7778),
-    Offset(0.2082, 0.8720),
-    Offset(0.4431, 0.9831),
-    Offset(0.5285, 0.9930),
-    Offset(0.8238, 0.8509),
-    Offset(0.9911, 0.6878),
-    Offset(0.9964, 0.0759),
-    Offset(0.8683, 0.0267),
-    Offset(0.6210, 0.0028),
-    Offset(0.2829, 0.0084),
-  ];
 
   // Normalized 3 Diamond Rhombuses
   static const List<Offset> _dot1 = [
@@ -512,76 +501,29 @@ class _LogoConstructionPainter extends CustomPainter {
     Offset(0.7598, 0.5331),
   ];
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  /// Membuat path perisai dengan kurva Bezier mulus 98.23% IoU
+  Path _createSmoothShieldPath(Size size) {
     final w = size.width;
     final h = size.height;
+    final path = Path();
 
-    // 1. Gambar Garis Outline Perisai (Tracing Stroke)
-    if (outlineProgress > 0.0) {
-      final shieldPath = Path();
-      shieldPath.moveTo(_shieldBoundary[0].dx * w, _shieldBoundary[0].dy * h);
-      for (int i = 1; i < _shieldBoundary.length; i++) {
-        shieldPath.lineTo(_shieldBoundary[i].dx * w, _shieldBoundary[i].dy * h);
-      }
-      shieldPath.close();
+    path.moveTo(w * 0.50, h * 0.005);
+    path.quadraticBezierTo(w * 0.85, h * 0.015, w * 0.95, h * 0.05);
+    path.quadraticBezierTo(w * 0.995, h * 0.08, w * 0.995, h * 0.15);
+    path.lineTo(w * 0.995, h * 0.66);
+    path.cubicTo(w * 0.98, h * 0.78, w * 0.78, h * 0.89, w * 0.50, h * 0.995);
+    path.cubicTo(w * 0.22, h * 0.89, w * 0.02, h * 0.78, w * 0.005, h * 0.66);
+    path.lineTo(w * 0.005, h * 0.15);
+    path.quadraticBezierTo(w * 0.005, h * 0.08, w * 0.05, h * 0.05);
+    path.quadraticBezierTo(w * 0.15, h * 0.015, w * 0.50, h * 0.005);
+    path.close();
 
-      final metrics = shieldPath.computeMetrics().first;
-      final currentLength = metrics.length * outlineProgress;
-      final drawnPath = metrics.extractPath(0.0, currentLength);
-
-      final strokePaint = Paint()
-        ..color = Colors.white.withValues(alpha: 0.85 + 0.15 * solidFillProgress)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-
-      // Glow outline
-      final glowPaint = Paint()
-        ..color = const Color(0xFF018556).withValues(alpha: 0.45)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 5.0
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
-
-      canvas.drawPath(drawnPath, glowPaint);
-      canvas.drawPath(drawnPath, strokePaint);
-
-      // Glowing Tracer Spark at the leading edge of drawing
-      if (outlineProgress > 0.01 && outlineProgress < 0.99) {
-        final tangent = metrics.getTangentForOffset(currentLength);
-        if (tangent != null) {
-          final sparkGlow = Paint()
-            ..color = const Color(0xFF00F0FF).withValues(alpha: 0.9)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
-          final sparkCore = Paint()..color = Colors.white;
-
-          canvas.drawCircle(tangent.position, 5.0, sparkGlow);
-          canvas.drawCircle(tangent.position, 2.4, sparkCore);
-        }
-      }
-    }
-
-    // 2. Gambar 3 Titik Intan (Diamonds)
-    _drawDiamond(canvas, size, _dot1, dot1Progress);
-    _drawDiamond(canvas, size, _dot2, dot2Progress);
-    _drawDiamond(canvas, size, _dot3, dot3Progress);
-
-    // 3. Gambar 4 Pilar / Spire Dalam Perisai (Carving from bottom to top)
-    if (pillarsProgress > 0.0) {
-      _drawCarvedPillar(canvas, size, _pillar1, pillarsProgress);
-      _drawCarvedPillar(canvas, size, _pillar2, pillarsProgress);
-      _drawCarvedPillar(canvas, size, _pillar3, pillarsProgress);
-      _drawCarvedPillar(canvas, size, _rightSpire, pillarsProgress);
-    }
+    return path;
   }
 
-  void _drawDiamond(Canvas canvas, Size size, List<Offset> points, double scale) {
-    if (scale <= 0.001) return;
+  Path _createDiamondPath(List<Offset> points, Size size, double scale) {
     final w = size.width;
     final h = size.height;
-
-    // Hitung pusat titik intan
     double cx = 0, cy = 0;
     for (final p in points) {
       cx += p.dx * w;
@@ -601,24 +543,13 @@ class _LogoConstructionPainter extends CustomPainter {
       }
     }
     path.close();
-
-    final fillPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.9 * scale).clamp(0.0, 1.0))
-      ..style = PaintingStyle.fill;
-
-    final glowPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.4 * scale).clamp(0.0, 1.0))
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5);
-
-    canvas.drawPath(path, glowPaint);
-    canvas.drawPath(path, fillPaint);
+    return path;
   }
 
-  void _drawCarvedPillar(Canvas canvas, Size size, List<Offset> points, double progress) {
+  Path _createCarvedPillarPath(List<Offset> points, Size size, double progress) {
     final w = size.width;
     final h = size.height;
 
-    // Hitung minY dan maxY dari polygon
     double minY = points.first.dy * h;
     double maxY = points.first.dy * h;
     for (final p in points) {
@@ -628,12 +559,8 @@ class _LogoConstructionPainter extends CustomPainter {
     }
 
     final totalHeight = maxY - minY;
-    // Reveal naik dari bawah ke atas
-    final currentCutY = maxY - (totalHeight * progress);
-
-    canvas.save();
-    // Clip rect yang membesar dari bawah ke atas
-    canvas.clipRect(Rect.fromLTRB(0, currentCutY, w, maxY + 2));
+    // Ukiran turun dari atas ke bawah
+    final currentCutBottom = minY + (totalHeight * progress);
 
     final path = Path();
     path.moveTo(points[0].dx * w, points[0].dy * h);
@@ -642,30 +569,108 @@ class _LogoConstructionPainter extends CustomPainter {
     }
     path.close();
 
-    final fillPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.85 * progress).clamp(0.0, 1.0))
-      ..style = PaintingStyle.fill;
-
-    final strokePaint = Paint()
-      ..color = const Color(0xFF00F0FF).withValues(alpha: (0.7 * (1.0 - progress)).clamp(0.0, 0.7))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    canvas.drawPath(path, fillPaint);
-    if (progress < 0.95) {
-      canvas.drawPath(path, strokePaint);
-    }
-    canvas.restore();
+    // Clip vertically sesuai kedalaman ukiran
+    final clipPath = Path()..addRect(Rect.fromLTRB(0, minY - 2, w, currentCutBottom));
+    return Path.combine(PathOperation.intersect, path, clipPath);
   }
 
   @override
-  bool shouldRepaint(covariant _LogoConstructionPainter oldDelegate) {
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Gambar Garis Outline Perisai (Tracing Stroke)
+    if (outlineProgress > 0.0 && shieldFillOpacity < 0.95) {
+      final shieldPath = _createSmoothShieldPath(size);
+      final metrics = shieldPath.computeMetrics().first;
+      final currentLength = metrics.length * outlineProgress;
+      final drawnPath = metrics.extractPath(0.0, currentLength);
+
+      final strokePaint = Paint()
+        ..color = Colors.white.withValues(alpha: (0.85 * (1.0 - shieldFillOpacity)).clamp(0.0, 0.85))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final glowPaint = Paint()
+        ..color = const Color(0xFF018556).withValues(alpha: (0.45 * (1.0 - shieldFillOpacity)).clamp(0.0, 0.45))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4.5
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+
+      canvas.drawPath(drawnPath, glowPaint);
+      canvas.drawPath(drawnPath, strokePaint);
+
+      // Glowing Tracer Spark at the leading edge of drawing
+      if (outlineProgress > 0.01 && outlineProgress < 0.99) {
+        final tangent = metrics.getTangentForOffset(currentLength);
+        if (tangent != null) {
+          final sparkGlow = Paint()
+            ..color = const Color(0xFF00F0FF).withValues(alpha: 0.9)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
+          final sparkCore = Paint()..color = Colors.white;
+
+          canvas.drawCircle(tangent.position, 4.5, sparkGlow);
+          canvas.drawCircle(tangent.position, 2.2, sparkCore);
+        }
+      }
+    }
+
+    // 2. Gambar Perisai Putih Solid dengan Ukiran Elemen Dalam (PathFillType.evenOdd)
+    if (shieldFillOpacity > 0.0) {
+      final solidShield = _createSmoothShieldPath(size);
+      solidShield.fillType = PathFillType.evenOdd;
+
+      // Pahat 3 lubang titik intan
+      if (dot1Carve > 0.01) {
+        solidShield.addPath(_createDiamondPath(_dot1, size, dot1Carve), Offset.zero);
+      }
+      if (dot2Carve > 0.01) {
+        solidShield.addPath(_createDiamondPath(_dot2, size, dot2Carve), Offset.zero);
+      }
+      if (dot3Carve > 0.01) {
+        solidShield.addPath(_createDiamondPath(_dot3, size, dot3Carve), Offset.zero);
+      }
+
+      // Pahat 4 lubang pilar vertikal
+      if (pillarsCarve > 0.01) {
+        solidShield.addPath(_createCarvedPillarPath(_pillar1, size, pillarsCarve), Offset.zero);
+        solidShield.addPath(_createCarvedPillarPath(_pillar2, size, pillarsCarve), Offset.zero);
+        solidShield.addPath(_createCarvedPillarPath(_pillar3, size, pillarsCarve), Offset.zero);
+        solidShield.addPath(_createCarvedPillarPath(_rightSpire, size, pillarsCarve), Offset.zero);
+      }
+
+      final fillPaint = Paint()
+        ..color = Colors.white.withValues(alpha: shieldFillOpacity.clamp(0.0, 1.0))
+        ..style = PaintingStyle.fill;
+
+      canvas.drawPath(solidShield, fillPaint);
+
+      // 3. Efek Kilatan Laser di Ujung Garis yang Sedang Diukir
+      if (pillarsCarve > 0.02 && pillarsCarve < 0.98) {
+        final laserPaint = Paint()
+          ..color = const Color(0xFF00F0FF).withValues(alpha: 0.8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
+
+        canvas.drawPath(_createCarvedPillarPath(_pillar1, size, pillarsCarve), laserPaint);
+        canvas.drawPath(_createCarvedPillarPath(_pillar2, size, pillarsCarve), laserPaint);
+        canvas.drawPath(_createCarvedPillarPath(_pillar3, size, pillarsCarve), laserPaint);
+        canvas.drawPath(_createCarvedPillarPath(_rightSpire, size, pillarsCarve), laserPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LogoCarvingPainter oldDelegate) {
     return oldDelegate.outlineProgress != outlineProgress ||
-        oldDelegate.dot1Progress != dot1Progress ||
-        oldDelegate.dot2Progress != dot2Progress ||
-        oldDelegate.dot3Progress != dot3Progress ||
-        oldDelegate.pillarsProgress != pillarsProgress ||
-        oldDelegate.solidFillProgress != solidFillProgress;
+        oldDelegate.shieldFillOpacity != shieldFillOpacity ||
+        oldDelegate.dot1Carve != dot1Carve ||
+        oldDelegate.dot2Carve != dot2Carve ||
+        oldDelegate.dot3Carve != dot3Carve ||
+        oldDelegate.pillarsCarve != pillarsCarve;
   }
 }
 
@@ -684,9 +689,9 @@ class _LightSweepPainter extends CustomPainter {
         end: Alignment(-1.5 + progress * 5.0, 1.0),
         colors: [
           Colors.transparent,
-          Colors.white.withValues(alpha: 0.25),
+          Colors.white.withValues(alpha: 0.20),
           Colors.white.withValues(alpha: 0.90),
-          Colors.white.withValues(alpha: 0.25),
+          Colors.white.withValues(alpha: 0.20),
           Colors.transparent,
         ],
         stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
@@ -697,9 +702,7 @@ class _LightSweepPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _LightSweepPainter oldDelegate) {
-    return oldDelegate.progress != progress;
-  }
+  bool shouldRepaint(covariant _LightSweepPainter oldDelegate) => oldDelegate.progress != progress;
 }
 
 /// Painter untuk latar belakang grid blueprint arsitektural halus
@@ -707,10 +710,10 @@ class _BlueprintGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF018556).withValues(alpha: 0.08)
+      ..color = const Color(0xFF018556).withValues(alpha: 0.07)
       ..strokeWidth = 1.0;
 
-    const step = 32.0;
+    const step = 34.0;
     for (double x = 0; x < size.width; x += step) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
@@ -721,7 +724,7 @@ class _BlueprintGridPainter extends CustomPainter {
     // Circular radar guide in center
     final center = Offset(size.width / 2, size.height / 2);
     final circlePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.04)
+      ..color = Colors.white.withValues(alpha: 0.03)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
