@@ -291,7 +291,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               ),
                             ),
 
-                            // Kata "Institute" dengan aksen Kuning Emas resmi Metro Institute
+                            // Kata "Institute" putih bersih
                             Transform.translate(
                               offset: Offset(_instituteSlide.value, 0),
                               child: Opacity(
@@ -302,7 +302,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     fontSize: 34,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.8,
-                                    color: const Color(0xFFFAE653), // Kuning Emas Metro Institute (#FAE653)
+                                    color: Colors.white,
                                     height: 1.05,
                                   ),
                                 ),
