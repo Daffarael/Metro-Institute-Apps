@@ -67,77 +67,77 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
-    // 5800ms: Durasi sinematik yang tenang, lambat, dan sangat mulus
+    // 7600ms: Durasi sinematik dengan ketikan lambat, santai, dan sangat memuaskan
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5800),
+      duration: const Duration(milliseconds: 7600),
     );
 
-    // 1. Tracing Outline: Garis perisai digambar melingkar sangat halus (290ms – 1850ms)
+    // 1. Tracing Outline: Garis perisai digambar melingkar sangat halus (300ms – 1900ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.05, 0.32, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.04, 0.25, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 2. Perisai hijau terisi secara lembut (1850ms – 2660ms)
+    // 2. Perisai hijau terisi secara lembut (1900ms – 2740ms)
     _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.32, 0.46, curve: Curves.easeOutCubic),
+        curve: const Interval(0.25, 0.36, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Tiga titik intan terukir bertahap dengan mulus (2660ms – 3480ms)
+    // 3. Tiga titik intan terukir bertahap dengan mulus (2740ms – 3880ms)
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.46, 0.54, curve: Curves.easeOutCubic),
+        curve: const Interval(0.36, 0.43, curve: Curves.easeOutCubic),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.50, 0.58, curve: Curves.easeOutCubic),
+        curve: const Interval(0.40, 0.47, curve: Curves.easeOutCubic),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.54, 0.62, curve: Curves.easeOutCubic),
+        curve: const Interval(0.44, 0.51, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Empat pilar kaligrafi terukir memotong perisai turun ke bawah (3000ms – 3710ms)
+    // Empat pilar kaligrafi terukir memotong perisai turun ke bawah (3190ms – 3950ms)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.52, 0.64, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.42, 0.52, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 4. Perisai meluncur mulus dari titik tengah absolut ke posisi kiri (3710ms – 4350ms)
+    // 4. Perisai meluncur mulus dari titik tengah absolut ke posisi kiri (3950ms – 4560ms)
     _logoShiftProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.64, 0.75, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.52, 0.60, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 5. Animasi Mengetik "Metro" huruf demi huruf (4290ms – 4930ms)
+    // 5. Animasi Mengetik "Metro" PELAN-PELAN huruf demi huruf (~240ms per huruf: 4560ms – 5776ms)
     _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.74, 0.85, curve: Curves.linear),
+        curve: const Interval(0.60, 0.76, curve: Curves.linear),
       ),
     );
 
-    // Animasi Mengetik "Institute" huruf demi huruf di bawahnya (4870ms – 5560ms)
+    // Animasi Mengetik "Institute" PELAN-PELAN huruf demi huruf di bawahnya (~160ms per huruf: 5776ms – 7220ms)
     _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.84, 0.96, curve: Curves.linear),
+        curve: const Interval(0.76, 0.95, curve: Curves.linear),
       ),
     );
 
@@ -156,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
     _controller.addListener(() {
-      if (_controller.value >= 0.64 && !_hasTriggeredCarveHaptic) {
+      if (_controller.value >= 0.52 && !_hasTriggeredCarveHaptic) {
         _hasTriggeredCarveHaptic = true;
         HapticFeedback.lightImpact();
       }
@@ -202,11 +202,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   bool get _showMetroCursor {
-    return _metroTypeProgress.value > 0.0 && _instituteTypeProgress.value < 0.08;
+    return _metroTypeProgress.value > 0.0 && _instituteTypeProgress.value <= 0.0;
   }
 
   bool get _showInstituteCursor {
-    return _instituteTypeProgress.value >= 0.08 && _instituteTypeProgress.value < 1.0;
+    return _instituteTypeProgress.value > 0.0 && _instituteTypeProgress.value < 1.0;
   }
 
   Future<void> _runAnimationSequence() async {
