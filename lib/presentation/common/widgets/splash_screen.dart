@@ -8,15 +8,14 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/di/injection_container.dart';
 import '../../../data/repositories/auth_repository.dart';
 
-/// SplashScreen — Clean, Elegant Staged Logo Construction.
+/// SplashScreen — Clean, Flat & Minimalist Staged Logo Construction.
 ///
 /// Proses Pembuatan Logo:
-/// 1. [0.00 – 0.28] Garis kontur luar perisai digambar secara tenang dan mulus (tanpa titik pemandu, background bersih pekat).
-/// 2. [0.28 – 0.42] Perisai terisi warna putih solid secara lembut.
-/// 3. [0.42 – 0.65] 3 titik ketupat & 4 pilar kaligrafi "MI" terukir bersih (clean carved cutouts, tanpa garis toska).
-/// 4. [0.65 – 0.76] Berkas kilatan cahaya putih bersih (pure white sheen sweep) menyapu diagonal perisai.
-/// 5. [0.76 – 0.92] Logo meluncur mulus ke kiri, teks "Metro" disusul "Institute" dan tagline muncul anggun.
-/// 6. [0.92 – 1.00] Hold sejenak sebelum dissolve halus menuju halaman utama.
+/// 1. [0.00 – 0.32] Garis kontur luar perisai digambar bersih dan mulus (tanpa titik, tanpa efek kabur).
+/// 2. [0.32 – 0.48] Perisai terisi warna putih solid secara lembut.
+/// 3. [0.48 – 0.72] 3 titik ketupat & 4 pilar kaligrafi "MI" terukir bersih (cutouts murni tanpa kilauan/warna toska).
+/// 4. [0.72 – 0.90] Logo meluncur mulus ke kiri, teks "Metro" disusul "Institute" dan tagline muncul anggun.
+/// 5. [0.90 – 1.00] Hold sejenak sebelum dissolve halus menuju halaman utama.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -40,10 +39,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _dot3Carve;
   late Animation<double> _pillarsCarve;
 
-  // ── Tahap 4: Kilatan Cahaya Putih Bersih ──────────────────────────────────
-  late Animation<double> _shimmerProgress;
-
-  // ── Tahap 5: Geser Logo & Tipografi Bertahap ──────────────────────────────
+  // ── Tahap 4: Geser Logo & Tipografi Bertahap ──────────────────────────────
   late Animation<double> _logoShift;
   late Animation<double> _metroOpacity;
   late Animation<double> _metroSlide;
@@ -51,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _instituteSlide;
   late Animation<double> _taglineOpacity;
 
-  // ── Tahap 6: Exit Dissolve ────────────────────────────────────────────────
+  // ── Tahap 5: Exit Dissolve ────────────────────────────────────────────────
   late Animation<double> _exitScale;
   late Animation<double> _exitOpacity;
 
@@ -65,69 +61,61 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
-    // 4800ms: Durasi tenang dan anggun agar prosesnya dinikmati tanpa terburu-buru
+    // Durasi tenang dan anggun (4500ms)
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 4800),
+      duration: const Duration(milliseconds: 4500),
     );
 
-    // 1. Tracing Outline: Garis perisai digambar melingkar bersih (0ms – 1350ms)
+    // 1. Tracing Outline: Garis perisai digambar melingkar tajam & bersih (0ms – 1400ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.02, 0.28, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.02, 0.32, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 2. Perisai putih terisi secara lembut (1350ms – 2000ms)
+    // 2. Perisai putih terisi secara lembut (1400ms – 2100ms)
     _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.26, 0.40, curve: Curves.easeOutCubic),
+        curve: const Interval(0.30, 0.46, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Tiga titik intan terukir bertahap (2000ms – 2500ms): Dot 1 -> Dot 2 -> Dot 3
+    // 3. Tiga titik intan terukir bertahap (2100ms – 2600ms): Dot 1 -> Dot 2 -> Dot 3
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.40, 0.47, curve: Curves.easeOutBack),
+        curve: const Interval(0.46, 0.54, curve: Curves.easeOutBack),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.45, 0.52, curve: Curves.easeOutBack),
+        curve: const Interval(0.51, 0.59, curve: Curves.easeOutBack),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.50, 0.57, curve: Curves.easeOutBack),
+        curve: const Interval(0.56, 0.64, curve: Curves.easeOutBack),
       ),
     );
 
-    // Empat pilar kaligrafi terukir memotong perisai putih turun ke bawah (2400ms – 3100ms)
+    // Empat pilar kaligrafi terukir memotong perisai putih turun ke bawah (2500ms – 3200ms)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.48, 0.65, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.54, 0.72, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 4. Kilatan Cahaya Putih Bersih menyapu perisai (3100ms – 3650ms)
-    _shimmerProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.65, 0.76, curve: Curves.easeInOutCubic),
-      ),
-    );
-
-    // 5. Logo meluncur ke kiri secara sangat mulus (3650ms – 4400ms)
+    // 4. Logo meluncur ke kiri secara sangat mulus (3250ms – 4100ms)
     _logoShift = Tween<double>(begin: 76.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.74, 0.90, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.72, 0.90, curve: Curves.easeInOutCubic),
       ),
     );
 
@@ -135,13 +123,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _metroOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.76, 0.86, curve: Curves.easeOut),
+        curve: const Interval(0.75, 0.86, curve: Curves.easeOut),
       ),
     );
     _metroSlide = Tween<double>(begin: -14.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.76, 0.88, curve: Curves.easeOutCubic),
+        curve: const Interval(0.75, 0.88, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -149,13 +137,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _instituteOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.81, 0.91, curve: Curves.easeOut),
+        curve: const Interval(0.80, 0.91, curve: Curves.easeOut),
       ),
     );
     _instituteSlide = Tween<double>(begin: -14.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.81, 0.93, curve: Curves.easeOutCubic),
+        curve: const Interval(0.80, 0.93, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -163,11 +151,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.88, 0.98, curve: Curves.easeOut),
+        curve: const Interval(0.87, 0.98, curve: Curves.easeOut),
       ),
     );
 
-    // 6. Exit Controller (500ms)
+    // 5. Exit Controller (500ms)
     _exitController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -180,9 +168,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
     );
 
-    // Haptic feedback saat logo selesai ditempa
+    // Haptic feedback saat perisai selesai diukir sempurna
     _controller.addListener(() {
-      if (_controller.value >= 0.65 && !_hasTriggeredHaptic) {
+      if (_controller.value >= 0.72 && !_hasTriggeredHaptic) {
         _hasTriggeredHaptic = true;
         HapticFeedback.lightImpact();
       }
@@ -193,7 +181,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     try {
       await _controller.forward();
       // Jeda sejenak untuk mengagumi tampilan logo utuh
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 350));
       if (!mounted) return;
 
       await _exitController.forward();
@@ -231,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1216), // Solid, bersih pekat, tanpa grid/lingkaran
+      backgroundColor: const Color(0xFF0F1216), // Solid, bersih pekat, matte & minimalis
       body: Center(
         child: AnimatedBuilder(
           animation: Listenable.merge([_controller, _exitController]),
@@ -246,31 +234,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // ── Logo Canvas (Perisai yang Dibentuk Bertahap) ──
+                      // ── Logo Canvas (Perisai yang Dibentuk Bertahap Murni) ──
                       SizedBox(
                         width: 82,
                         height: 104,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            // Ambient Glow Putih Bersih
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.12 * _shieldFillOpacity.value + 0.05 * _outlineProgress.value,
-                                      ),
-                                      blurRadius: 36,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            // Staged Carving Custom Painter (Garis outline & ukiran lubang murni tanpa toska)
+                            // Staged Carving Custom Painter (Garis outline & ukiran lubang murni, tanpa efek penerang/kilauan)
                             Positioned.fill(
                               child: CustomPaint(
                                 painter: _LogoCarvingPainter(
@@ -298,14 +269,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                       errorBuilder: (c, e, s) => Image.asset('assets/images/logo.png'),
                                     ),
                                   ),
-                                ),
-                              ),
-
-                            // Pure White Specular Sheen (Kilatan putih bersih saat logo selesai)
-                            if (_shimmerProgress.value > 0.01 && _shimmerProgress.value < 0.99)
-                              Positioned.fill(
-                                child: CustomPaint(
-                                  painter: _PureWhiteSheenPainter(progress: _shimmerProgress.value),
                                 ),
                               ),
                           ],
@@ -400,7 +363,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-/// Custom Painter yang menggambar garis perisai (tanpa titik) dan memahat lubang secara bersih
+/// Custom Painter yang menggambar garis perisai (bersih murni tanpa efek glow/penerang)
 class _LogoCarvingPainter extends CustomPainter {
   final double outlineProgress;
   final double shieldFillOpacity;
@@ -544,35 +507,25 @@ class _LogoCarvingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Gambar Garis Outline Perisai (Murni Garis Mulus Tanpa Titik)
+    // 1. Gambar Garis Outline Perisai (Murni Garis Putih Tajam & Bersih, Tanpa Glow / Penerang)
     if (outlineProgress > 0.0 && shieldFillOpacity < 0.95) {
       final shieldPath = _createSmoothShieldPath(size);
       final metrics = shieldPath.computeMetrics().first;
       final currentLength = metrics.length * outlineProgress;
       final drawnPath = metrics.extractPath(0.0, currentLength);
 
-      // Garis stroke putih bersih
       final strokePaint = Paint()
-        ..color = Colors.white.withValues(alpha: (0.90 * (1.0 - shieldFillOpacity)).clamp(0.0, 0.90))
+        ..color = Colors.white.withValues(alpha: (1.0 - shieldFillOpacity).clamp(0.0, 1.0))
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2
+        ..strokeWidth = 2.4
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
 
-      // Glow putih lembut di sekitar garis
-      final glowPaint = Paint()
-        ..color = Colors.white.withValues(alpha: (0.22 * (1.0 - shieldFillOpacity)).clamp(0.0, 0.22))
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4.5
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
-
-      canvas.drawPath(drawnPath, glowPaint);
       canvas.drawPath(drawnPath, strokePaint);
-      // Titik di ujung garis telah DIHAPUS sesuai permintaan user
     }
 
     // 2. Gambar Perisai Putih Solid dengan Ukiran Elemen Dalam (PathFillType.evenOdd)
-    // Bersih murni hitam/putih, TANPA WARNA TOSKA
+    // Murni putih solid dan latar belakang gelap, flat, matte, tanpa efek kilauan
     if (shieldFillOpacity > 0.0) {
       final solidShield = _createSmoothShieldPath(size);
       solidShield.fillType = PathFillType.evenOdd;
@@ -601,7 +554,6 @@ class _LogoCarvingPainter extends CustomPainter {
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(solidShield, fillPaint);
-      // Garis toska laser telah DIHAPUS 100% sehingga ukiran murni bersih
     }
   }
 
@@ -614,35 +566,4 @@ class _LogoCarvingPainter extends CustomPainter {
         oldDelegate.dot3Carve != dot3Carve ||
         oldDelegate.pillarsCarve != pillarsCarve;
   }
-}
-
-/// Painter untuk menyapukan kilauan cahaya specular putih murni (tanpa toska)
-class _PureWhiteSheenPainter extends CustomPainter {
-  final double progress;
-
-  _PureWhiteSheenPainter({required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final sweepPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment(-2.5 + progress * 5.0, -1.0),
-        end: Alignment(-1.5 + progress * 5.0, 1.0),
-        colors: [
-          Colors.transparent,
-          Colors.white.withValues(alpha: 0.15),
-          Colors.white.withValues(alpha: 0.85),
-          Colors.white.withValues(alpha: 0.15),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-      ).createShader(rect)
-      ..blendMode = BlendMode.srcATop;
-
-    canvas.drawRect(rect, sweepPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PureWhiteSheenPainter oldDelegate) => oldDelegate.progress != progress;
 }
