@@ -210,7 +210,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1216), // Solid, bersih pekat, matte & minimalis
+      backgroundColor: const Color(0xFF063D2A), // Hijau Zamrud Metro Institute (#063D2A) — Otentik, Prestisius & Solid
       body: Center(
         child: AnimatedBuilder(
           animation: Listenable.merge([_controller, _exitController]),
@@ -291,7 +291,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               ),
                             ),
 
-                            // Kata "Institute"
+                            // Kata "Institute" dengan aksen Kuning Emas resmi Metro Institute
                             Transform.translate(
                               offset: Offset(_instituteSlide.value, 0),
                               child: Opacity(
@@ -302,7 +302,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     fontSize: 34,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.8,
-                                    color: Colors.white,
+                                    color: const Color(0xFFFAE653), // Kuning Emas Metro Institute (#FAE653)
                                     height: 1.05,
                                   ),
                                 ),

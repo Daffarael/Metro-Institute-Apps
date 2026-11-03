@@ -6,10 +6,11 @@ class AppColors {
   AppColors._();
 
   // ── Brand / Primary ────────────────────────────────────────────────────────
-  static const Color primary       = Color(0xFF0F172A); // --color-primary (Dark Navy / Dongker)
-  static const Color primaryDark   = Color(0xFF020617); // --color-primary-dark
-  static const Color primaryLight  = Color(0xFFF1F5F9); // --color-primary-light
-  static const Color primaryXLight = Color(0xFFF8FAFC); // --color-primary-xlight
+  static const Color primary       = Color(0xFF018556); // --color-primary (Metro Green)
+  static const Color emeraldDark   = Color(0xFF063D2A); // --color-emerald-dark (Hijau Zamrud Metro)
+  static const Color primaryDark   = Color(0xFF016B44); // --color-primary-dark
+  static const Color primaryLight  = Color(0xFFE6F4EF); // --color-primary-light
+  static const Color primaryXLight = Color(0xFFF0FAF6); // --color-primary-xlight
 
   // ── Accent / Yellow ────────────────────────────────────────────────────────
   static const Color accent      = Color(0xFFFAE653); // --color-accent
