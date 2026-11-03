@@ -43,25 +43,30 @@ class _VerifyEmailBottomSheetState extends State<VerifyEmailBottomSheet> {
         void statusListener(AnimationStatus status) {
           if (status == AnimationStatus.completed) {
             route!.animation?.removeStatusListener(statusListener);
-            if (mounted) setState(() => _showCloseButton = true);
+            // Settle delay: show close button only after sheet has fully settled
+            Future.delayed(const Duration(milliseconds: 180), () {
+              if (mounted) setState(() => _showCloseButton = true);
+            });
           } else if (status == AnimationStatus.reverse) {
             if (mounted) setState(() => _showCloseButton = false);
           }
         }
 
         if (route!.animation!.isCompleted) {
-          if (mounted) setState(() => _showCloseButton = true);
+          Future.delayed(const Duration(milliseconds: 180), () {
+            if (mounted) setState(() => _showCloseButton = true);
+          });
         } else {
           route.animation!.addStatusListener(statusListener);
         }
       } else {
-        Future.delayed(const Duration(milliseconds: 400), () {
+        Future.delayed(const Duration(milliseconds: 560), () {
           if (mounted) setState(() => _showCloseButton = true);
         });
       }
     });
 
-    Future.delayed(const Duration(milliseconds: 440), () {
+    Future.delayed(const Duration(milliseconds: 650), () {
       if (mounted && !_showCloseButton) {
         setState(() => _showCloseButton = true);
       }
@@ -459,11 +464,11 @@ class _VerifyEmailBottomSheetState extends State<VerifyEmailBottomSheet> {
             top: -22,
             child: AnimatedOpacity(
               opacity: (_showCloseButton && !isKeyboardOpen) ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 260),
+              duration: const Duration(milliseconds: 240),
               curve: Curves.easeOutCubic,
               child: AnimatedScale(
-                scale: (_showCloseButton && !isKeyboardOpen) ? 1.0 : 0.3,
-                duration: const Duration(milliseconds: 280),
+                scale: (_showCloseButton && !isKeyboardOpen) ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 320),
                 curve: Curves.easeOutBack,
                 child: IgnorePointer(
                   ignoring: !_showCloseButton || isKeyboardOpen,

@@ -41,8 +41,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    // Wait until card entrance animation (420ms) finishes before showing button X
-    Future.delayed(const Duration(milliseconds: 440), () {
+    // Fallback timer ensures button displays reliably after card has settled
+    Future.delayed(const Duration(milliseconds: 650), () {
       if (mounted && !_showCloseButton) {
         setState(() => _showCloseButton = true);
       }
@@ -628,9 +628,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             duration: const Duration(milliseconds: 420),
             curve: const Cubic(0.32, 0.72, 0.0, 1.0),
             onEnd: () {
-              if (mounted && !_showCloseButton) {
-                setState(() => _showCloseButton = true);
-              }
+              // Settle delay: show close button only after card has arrived and settled
+              Future.delayed(const Duration(milliseconds: 180), () {
+                if (mounted && !_showCloseButton) {
+                  setState(() => _showCloseButton = true);
+                }
+              });
             },
             builder: (context, val, child) {
               return Transform.translate(
@@ -953,11 +956,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       top: -20,
                       child: AnimatedOpacity(
                         opacity: (_showCloseButton && !isKeyboardOpen) ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 260),
+                        duration: const Duration(milliseconds: 240),
                         curve: Curves.easeOutCubic,
                         child: AnimatedScale(
-                          scale: (_showCloseButton && !isKeyboardOpen) ? 1.0 : 0.3,
-                          duration: const Duration(milliseconds: 280),
+                          scale: (_showCloseButton && !isKeyboardOpen) ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 320),
                           curve: Curves.easeOutBack,
                           child: IgnorePointer(
                             ignoring: !_showCloseButton || isKeyboardOpen,

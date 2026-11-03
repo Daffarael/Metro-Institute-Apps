@@ -1685,12 +1685,51 @@ class _AuthModalSheetWidget extends StatefulWidget {
 class _AuthModalSheetWidgetState extends State<_AuthModalSheetWidget> {
   late bool _isRegisterMode;
   late final ScrollController _sheetScrollController;
+  bool _showCloseButton = false;
 
   @override
   void initState() {
     super.initState();
     _isRegisterMode = widget.initialRegister;
     _sheetScrollController = ScrollController();
+
+    // Show close button only after the modal sheet card entrance has fully completed and settled
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final route = ModalRoute.of(context);
+      if (route?.animation != null) {
+        void statusListener(AnimationStatus status) {
+          if (status == AnimationStatus.completed) {
+            route!.animation?.removeStatusListener(statusListener);
+            // Settle delay: ensure card has fully arrived and docked before popping the close button
+            Future.delayed(const Duration(milliseconds: 180), () {
+              if (mounted) setState(() => _showCloseButton = true);
+            });
+          } else if (status == AnimationStatus.reverse) {
+            if (mounted) setState(() => _showCloseButton = false);
+          }
+        }
+
+        if (route!.animation!.isCompleted) {
+          Future.delayed(const Duration(milliseconds: 180), () {
+            if (mounted) setState(() => _showCloseButton = true);
+          });
+        } else {
+          route.animation!.addStatusListener(statusListener);
+        }
+      } else {
+        Future.delayed(const Duration(milliseconds: 560), () {
+          if (mounted) setState(() => _showCloseButton = true);
+        });
+      }
+    });
+
+    // Fallback timer ensures button displays reliably even if route animation state differs
+    Future.delayed(const Duration(milliseconds: 650), () {
+      if (mounted && !_showCloseButton) {
+        setState(() => _showCloseButton = true);
+      }
+    });
   }
 
   @override
@@ -1702,6 +1741,7 @@ class _AuthModalSheetWidgetState extends State<_AuthModalSheetWidget> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final isButtonVisible = _showCloseButton && bottomInset == 0;
     final screenH = MediaQuery.sizeOf(context).height;
     final topPadding = MediaQuery.paddingOf(context).top;
     final minTopClearance = topPadding + 40.0;
@@ -1783,31 +1823,44 @@ class _AuthModalSheetWidgetState extends State<_AuthModalSheetWidget> {
                 ),
               ),
 
-              // Floating Circular (X) Close Button (Slides up smoothly with the card)
+              // Floating Circular (X) Close Button (Revealed with smooth bounce after card arrives)
               Positioned(
                 top: -20,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(widget.sheetCtx).pop(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0D1117),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2.5),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x25000000),
-                          blurRadius: 10,
-                          offset: Offset(0, 3),
+                child: AnimatedOpacity(
+                  opacity: isButtonVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedScale(
+                    scale: isButtonVisible ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 320),
+                    curve: Curves.easeOutBack,
+                    child: IgnorePointer(
+                      ignoring: !isButtonVisible,
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(widget.sheetCtx).pop(),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0D1117),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x25000000),
+                                blurRadius: 10,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: Colors.white,
-                        size: 20,
                       ),
                     ),
                   ),
