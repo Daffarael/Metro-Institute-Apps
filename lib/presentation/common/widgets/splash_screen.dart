@@ -560,81 +560,84 @@ class _LogoCarvingPainter extends CustomPainter {
     required this.dot2Carve,
     required this.dot3Carve,
     required this.pillarsCarve,
-    required this.logoColor,
+    this.logoColor = const Color(0xFF063D2A),
   });
 
+  // Normalized 3 Diamond Rhombuses
+  static const List<Offset> _dot1 = [
+    Offset(0.3203, 0.1435),
+    Offset(0.2687, 0.1842),
+    Offset(0.3203, 0.2250),
+    Offset(0.3701, 0.1857),
+  ];
+  static const List<Offset> _dot2 = [
+    Offset(0.4270, 0.1435),
+    Offset(0.3754, 0.1842),
+    Offset(0.4270, 0.2250),
+    Offset(0.4786, 0.1857),
+  ];
+  static const List<Offset> _dot3 = [
+    Offset(0.5356, 0.1435),
+    Offset(0.4840, 0.1842),
+    Offset(0.5338, 0.2250),
+    Offset(0.5872, 0.1842),
+  ];
+
+  // Normalized 4 Pillars / Spire
+  static const List<Offset> _pillar1 = [
+    Offset(0.3132, 0.2588),
+    Offset(0.2100, 0.2588),
+    Offset(0.1655, 0.5471),
+    Offset(0.1886, 0.6203),
+    Offset(0.2367, 0.6779),
+  ];
+  static const List<Offset> _pillar2 = [
+    Offset(0.4786, 0.2588),
+    Offset(0.3737, 0.2672),
+    Offset(0.2954, 0.7145),
+    Offset(0.3790, 0.7384),
+    Offset(0.3986, 0.7173),
+  ];
+  static const List<Offset> _pillar3 = [
+    Offset(0.6459, 0.2588),
+    Offset(0.5409, 0.2630),
+    Offset(0.4502, 0.7722),
+    Offset(0.4626, 0.8256),
+    Offset(0.5196, 0.8565),
+    Offset(0.5409, 0.8509),
+  ];
+  static const List<Offset> _rightSpire = [
+    Offset(0.8327, 0.1406),
+    Offset(0.7295, 0.1421),
+    Offset(0.6335, 0.6779),
+    Offset(0.7064, 0.6174),
+    Offset(0.7598, 0.5331),
+  ];
+
+  /// Membuat path perisai dengan kurva Bezier mulus
   Path _createSmoothShieldPath(Size size) {
     final w = size.width;
     final h = size.height;
     final path = Path();
 
-    path.moveTo(w * 0.12, h * 0.08);
-    path.quadraticBezierTo(w * 0.50, h * 0.00, w * 0.88, h * 0.08);
-    path.quadraticBezierTo(w * 1.00, h * 0.10, w * 0.99, h * 0.40);
-    path.quadraticBezierTo(w * 0.98, h * 0.72, w * 0.52, h * 0.99);
-    path.lineTo(w * 0.48, h * 0.99);
-    path.quadraticBezierTo(w * 0.02, h * 0.72, w * 0.01, h * 0.40);
-    path.quadraticBezierTo(w * 0.00, h * 0.10, w * 0.12, h * 0.08);
+    path.moveTo(w * 0.50, h * 0.005);
+    path.quadraticBezierTo(w * 0.85, h * 0.015, w * 0.95, h * 0.05);
+    path.quadraticBezierTo(w * 0.995, h * 0.08, w * 0.995, h * 0.15);
+    path.lineTo(w * 0.995, h * 0.66);
+    path.cubicTo(w * 0.98, h * 0.78, w * 0.78, h * 0.89, w * 0.50, h * 0.995);
+    path.cubicTo(w * 0.22, h * 0.89, w * 0.02, h * 0.78, w * 0.005, h * 0.66);
+    path.lineTo(w * 0.005, h * 0.15);
+    path.quadraticBezierTo(w * 0.005, h * 0.08, w * 0.05, h * 0.05);
+    path.quadraticBezierTo(w * 0.15, h * 0.015, w * 0.50, h * 0.005);
     path.close();
 
     return path;
   }
 
-  static const List<Offset> _dot1 = [
-    Offset(0.355, 0.190),
-    Offset(0.395, 0.220),
-    Offset(0.355, 0.250),
-    Offset(0.315, 0.220),
-  ];
-
-  static const List<Offset> _dot2 = [
-    Offset(0.500, 0.190),
-    Offset(0.540, 0.220),
-    Offset(0.500, 0.250),
-    Offset(0.460, 0.220),
-  ];
-
-  static const List<Offset> _dot3 = [
-    Offset(0.645, 0.190),
-    Offset(0.685, 0.220),
-    Offset(0.645, 0.250),
-    Offset(0.605, 0.220),
-  ];
-
-  static const List<Offset> _pillar1 = [
-    Offset(0.260, 0.320),
-    Offset(0.350, 0.320),
-    Offset(0.300, 0.720),
-    Offset(0.240, 0.640),
-  ];
-
-  static const List<Offset> _pillar2 = [
-    Offset(0.410, 0.320),
-    Offset(0.500, 0.320),
-    Offset(0.455, 0.770),
-    Offset(0.400, 0.730),
-  ];
-
-  static const List<Offset> _pillar3 = [
-    Offset(0.560, 0.320),
-    Offset(0.650, 0.320),
-    Offset(0.600, 0.810),
-    Offset(0.545, 0.850),
-  ];
-
-  static const List<Offset> _rightSpire = [
-    Offset(0.720, 0.300),
-    Offset(0.810, 0.300),
-    Offset(0.700, 0.690),
-    Offset(0.640, 0.740),
-  ];
-
   Path _createDiamondPath(List<Offset> points, Size size, double scale) {
     final w = size.width;
     final h = size.height;
-
-    double cx = 0;
-    double cy = 0;
+    double cx = 0, cy = 0;
     for (final p in points) {
       cx += p.dx * w;
       cy += p.dy * h;
@@ -735,12 +738,12 @@ class _LogoCarvingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LogoCarvingPainter oldDelegate) {
-    return outlineProgress != oldDelegate.outlineProgress ||
-        shieldFillOpacity != oldDelegate.shieldFillOpacity ||
-        dot1Carve != oldDelegate.dot1Carve ||
-        dot2Carve != oldDelegate.dot2Carve ||
-        dot3Carve != oldDelegate.dot3Carve ||
-        pillarsCarve != oldDelegate.pillarsCarve ||
-        logoColor != oldDelegate.logoColor;
+    return oldDelegate.outlineProgress != outlineProgress ||
+        oldDelegate.shieldFillOpacity != shieldFillOpacity ||
+        oldDelegate.dot1Carve != dot1Carve ||
+        oldDelegate.dot2Carve != dot2Carve ||
+        oldDelegate.dot3Carve != dot3Carve ||
+        oldDelegate.pillarsCarve != pillarsCarve ||
+        oldDelegate.logoColor != logoColor;
   }
 }
