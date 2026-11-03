@@ -14,7 +14,7 @@ import '../../../data/repositories/auth_repository.dart';
 /// 1. [0.00 – 0.32] Garis kontur luar perisai digambar bersih dan mulus (tanpa titik, tanpa efek kabur).
 /// 2. [0.32 – 0.48] Perisai terisi warna putih solid secara lembut.
 /// 3. [0.48 – 0.72] 3 titik ketupat & 4 pilar kaligrafi "MI" terukir bersih (cutouts murni tanpa kilauan/warna toska).
-/// 4. [0.72 – 0.90] Logo meluncur mulus ke kiri, teks "Metro" disusul "Institute" dan tagline muncul anggun.
+/// 4. [0.72 – 0.90] Logo meluncur mulus ke kiri, teks "Metro" disusul "Institute" muncul anggun.
 /// 5. [0.90 – 1.00] Hold sejenak sebelum dissolve halus menuju halaman utama.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -45,7 +45,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _metroSlide;
   late Animation<double> _instituteOpacity;
   late Animation<double> _instituteSlide;
-  late Animation<double> _taglineOpacity;
 
   // ── Tahap 5: Exit Dissolve ────────────────────────────────────────────────
   late Animation<double> _exitScale;
@@ -144,14 +143,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.80, 0.93, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    // Tagline "Grow Your Digital Future"
-    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.87, 0.98, curve: Curves.easeOut),
       ),
     );
 
@@ -314,37 +305,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     color: Colors.white,
                                     height: 1.05,
                                   ),
-                                ),
-                              ),
-                            ),
-
-                            // Tagline dengan aksen hijau Metro solid
-                            Opacity(
-                              opacity: _taglineOpacity.value,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 5),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 14,
-                                      height: 2,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF018556),
-                                        borderRadius: BorderRadius.circular(1),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Grow Your Digital Future',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 0.6,
-                                        color: const Color(0xFF94A3B8),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ),
