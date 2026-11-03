@@ -1377,7 +1377,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ],
-                ).animate().fadeIn(duration: 500.ms),
+                ),
 
                 const Spacer(),
 
