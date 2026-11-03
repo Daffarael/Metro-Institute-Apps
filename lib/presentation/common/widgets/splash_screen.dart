@@ -207,10 +207,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     super.dispose();
   }
 
+  // Warna Brand Utama Metro Institute
+  static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF063D2A), // Hijau Zamrud Asli Metro Institute
+      backgroundColor: Colors.white, // Latar Belakang Putih Bersih
       body: AnimatedBuilder(
         animation: Listenable.merge([_controller, _exitController]),
         builder: (context, child) {
@@ -242,6 +245,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   dot2Carve: _dot2Carve.value,
                                   dot3Carve: _dot3Carve.value,
                                   pillarsCarve: _pillarsCarve.value,
+                                  logoColor: _brandColor,
                                 ),
                               ),
                             ),
@@ -253,11 +257,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   opacity: ((_pillarsCarve.value - 0.95) / 0.05).clamp(0.0, 1.0),
                                   child: Image.asset(
                                     'assets/images/metro_shield.png',
+                                    color: _brandColor,
+                                    colorBlendMode: BlendMode.srcIn,
                                     fit: BoxFit.contain,
                                     errorBuilder: (context, error, stackTrace) => Image.asset(
                                       'assets/images/logo_clean.png',
+                                      color: _brandColor,
+                                      colorBlendMode: BlendMode.srcIn,
                                       fit: BoxFit.contain,
-                                      errorBuilder: (c, e, s) => Image.asset('assets/images/logo.png'),
+                                      errorBuilder: (c, e, s) => Image.asset(
+                                        'assets/images/logo.png',
+                                        color: _brandColor,
+                                        colorBlendMode: BlendMode.srcIn,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -284,14 +296,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     fontSize: 34,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.8,
-                                    color: Colors.white,
+                                    color: _brandColor,
                                     height: 1.05,
                                   ),
                                 ),
                               ),
                             ),
 
-                            // Kata "Institute" putih bersih
+                            // Kata "Institute"
                             Transform.translate(
                               offset: Offset(_instituteSlide.value, 0),
                               child: Opacity(
@@ -302,7 +314,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                     fontSize: 34,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.8,
-                                    color: Colors.white,
+                                    color: _brandColor,
                                     height: 1.05,
                                   ),
                                 ),
@@ -331,6 +343,7 @@ class _LogoCarvingPainter extends CustomPainter {
   final double dot2Carve;
   final double dot3Carve;
   final double pillarsCarve;
+  final Color logoColor;
 
   _LogoCarvingPainter({
     required this.outlineProgress,
@@ -339,6 +352,7 @@ class _LogoCarvingPainter extends CustomPainter {
     required this.dot2Carve,
     required this.dot3Carve,
     required this.pillarsCarve,
+    this.logoColor = const Color(0xFF063D2A),
   });
 
   // Normalized 3 Diamond Rhombuses
@@ -473,7 +487,7 @@ class _LogoCarvingPainter extends CustomPainter {
       final drawnPath = metrics.extractPath(0.0, currentLength);
 
       final strokePaint = Paint()
-        ..color = Colors.white.withValues(alpha: (1.0 - shieldFillOpacity).clamp(0.0, 1.0))
+        ..color = logoColor.withValues(alpha: (1.0 - shieldFillOpacity).clamp(0.0, 1.0))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.4
         ..strokeCap = StrokeCap.round
@@ -482,7 +496,7 @@ class _LogoCarvingPainter extends CustomPainter {
       canvas.drawPath(drawnPath, strokePaint);
     }
 
-    // 2. Gambar Perisai Putih Solid dengan Ukiran Elemen Dalam (evenOdd)
+    // 2. Gambar Perisai Putih/Hijau Solid dengan Ukiran Elemen Dalam (evenOdd)
     if (shieldFillOpacity > 0.0) {
       final solidShield = _createSmoothShieldPath(size);
       solidShield.fillType = PathFillType.evenOdd;
@@ -507,7 +521,7 @@ class _LogoCarvingPainter extends CustomPainter {
       }
 
       final fillPaint = Paint()
-        ..color = Colors.white.withValues(alpha: shieldFillOpacity.clamp(0.0, 1.0))
+        ..color = logoColor.withValues(alpha: shieldFillOpacity.clamp(0.0, 1.0))
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(solidShield, fillPaint);
@@ -521,6 +535,7 @@ class _LogoCarvingPainter extends CustomPainter {
         oldDelegate.dot1Carve != dot1Carve ||
         oldDelegate.dot2Carve != dot2Carve ||
         oldDelegate.dot3Carve != dot3Carve ||
-        oldDelegate.pillarsCarve != pillarsCarve;
+        oldDelegate.pillarsCarve != pillarsCarve ||
+        oldDelegate.logoColor != logoColor;
   }
 }
