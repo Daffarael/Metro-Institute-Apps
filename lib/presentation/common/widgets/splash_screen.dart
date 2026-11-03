@@ -9,15 +9,15 @@ import '../../../data/repositories/auth_repository.dart';
 
 /// SplashScreen — Staged Shield Construction & Typewriter Typography ("Metro Institute").
 ///
-/// Urutan Animasi Sinematik:
-/// 1. [0.00 – 0.05] Ruang tenang berlatar belakang Putih Bersih (Colors.white).
-/// 2. [0.05 – 0.30] Garis kontur luar perisai digambar halus, perlahan, dan melingkar.
-/// 3. [0.30 – 0.44] Perisai terisi warna hijau zamrud solid (#063D2A) secara lembut.
-/// 4. [0.44 – 0.62] 3 titik intan & 4 pilar kaligrafi "MI" terukir menembus perisai ke warna putih.
-/// 5. [0.62 – 0.72] Logo meluncur mulus ke posisi kiri.
-/// 6. [0.72 – 0.83] Teks "Metro" diketik huruf demi huruf (Typewriter Effect) dengan kursor berkedip.
-/// 7. [0.82 – 0.95] Teks "Institute" diketik menyusul huruf demi huruf di bawahnya.
-/// 8. [0.95 – 1.00] Kursor menghilang, logo utuh ditampilkan sejenak sebelum transisi dissolve.
+/// Urutan Animasi Sinematik & Sangat Mulus:
+/// 1. [0.00 – 0.05] Ruang tenang, perisai MULAI PERSIS DI TITIK TENGAH LAYAR (Dead Center).
+/// 2. [0.05 – 0.32] Garis kontur perisai digambar sangat halus, lembut, dan melingkar (easeInOutCubic).
+/// 3. [0.32 – 0.46] Perisai terisi warna hijau zamrud solid (#063D2A) secara lembut mengalir.
+/// 4. [0.46 – 0.64] 3 titik intan & 4 pilar kaligrafi "MI" terukir presisi menembus perisai ke warna putih.
+/// 5. [0.64 – 0.75] Perisai meluncur mulus (easeInOutCubic) dari titik tengah ke posisi kiri lockup.
+/// 6. [0.74 – 0.85] Teks "Metro" diketik huruf demi huruf (Typewriter Effect) dengan kursor berkedip.
+/// 7. [0.84 – 0.96] Teks "Institute" diketik menyusul huruf demi huruf tepat di bawahnya.
+/// 8. [0.96 – 1.00] Kursor menghilang, logo utuh yang seimbang di tengah layar dinikmati sebelum dissolve.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -41,8 +41,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _dot3Carve;
   late Animation<double> _pillarsCarve;
 
-  // ── Tahap 4: Geser Logo ───────────────────────────────────────────────────
-  late Animation<double> _logoShift;
+  // ── Tahap 4: Geser Perisai dari Tengah ke Kiri (Mulus) ───────────────────
+  late Animation<double> _logoShiftProgress;
 
   // ── Tahap 5: Efek Mengetik (Typewriter Effect) ────────────────────────────
   late Animation<double> _metroTypeProgress;
@@ -67,77 +67,77 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
-    // 5600ms: Durasi sinematik yang tenang, lambat, dan memukau
+    // 5800ms: Durasi sinematik yang tenang, lambat, dan sangat mulus
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5600),
+      duration: const Duration(milliseconds: 5800),
     );
 
-    // 1. Tracing Outline: Garis perisai digambar melingkar tenang & anggun (280ms – 1680ms)
+    // 1. Tracing Outline: Garis perisai digambar melingkar sangat halus (290ms – 1850ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.05, 0.30, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.05, 0.32, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 2. Perisai hijau terisi secara lembut (1680ms – 2464ms)
+    // 2. Perisai hijau terisi secara lembut (1850ms – 2660ms)
     _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.30, 0.44, curve: Curves.easeOutCubic),
+        curve: const Interval(0.32, 0.46, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Tiga titik intan terukir bertahap (2464ms – 3250ms)
+    // 3. Tiga titik intan terukir bertahap dengan mulus (2660ms – 3480ms)
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.44, 0.51, curve: Curves.easeOutBack),
+        curve: const Interval(0.46, 0.54, curve: Curves.easeOutCubic),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.48, 0.55, curve: Curves.easeOutBack),
+        curve: const Interval(0.50, 0.58, curve: Curves.easeOutCubic),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.52, 0.59, curve: Curves.easeOutBack),
+        curve: const Interval(0.54, 0.62, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Empat pilar kaligrafi terukir memotong perisai turun ke bawah (2800ms – 3470ms)
+    // Empat pilar kaligrafi terukir memotong perisai turun ke bawah (3000ms – 3710ms)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.50, 0.62, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.52, 0.64, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 4. Logo meluncur ke kiri secara sangat mulus (3470ms – 4030ms)
-    _logoShift = Tween<double>(begin: 76.0, end: 0.0).animate(
+    // 4. Perisai meluncur mulus dari titik tengah absolut ke posisi kiri (3710ms – 4350ms)
+    _logoShiftProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.62, 0.72, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.64, 0.75, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 5. Animasi Mengetik "Metro" huruf demi huruf (4030ms – 4650ms)
+    // 5. Animasi Mengetik "Metro" huruf demi huruf (4290ms – 4930ms)
     _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.72, 0.83, curve: Curves.linear),
+        curve: const Interval(0.74, 0.85, curve: Curves.linear),
       ),
     );
 
-    // Animasi Mengetik "Institute" huruf demi huruf di bawahnya (4590ms – 5320ms)
+    // Animasi Mengetik "Institute" huruf demi huruf di bawahnya (4870ms – 5560ms)
     _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.82, 0.95, curve: Curves.linear),
+        curve: const Interval(0.84, 0.96, curve: Curves.linear),
       ),
     );
 
@@ -156,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
     _controller.addListener(() {
-      if (_controller.value >= 0.62 && !_hasTriggeredCarveHaptic) {
+      if (_controller.value >= 0.64 && !_hasTriggeredCarveHaptic) {
         _hasTriggeredCarveHaptic = true;
         HapticFeedback.lightImpact();
       }
@@ -178,11 +178,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   // Helper untuk mendapatkan panjang karakter terketik
   int get _displayedMetroLength {
+    if (_metroTypeProgress.value <= 0.0) return 0;
+    if (_metroTypeProgress.value >= 1.0) return 5;
     final chars = (_metroTypeProgress.value * 5).floor();
     return chars.clamp(0, 5);
   }
 
   int get _displayedInstituteLength {
+    if (_instituteTypeProgress.value <= 0.0) return 0;
+    if (_instituteTypeProgress.value >= 1.0) return 9;
     final chars = (_instituteTypeProgress.value * 9).floor();
     return chars.clamp(0, 9);
   }
@@ -208,8 +212,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Future<void> _runAnimationSequence() async {
     try {
       await _controller.forward();
-      // Jeda sejenak untuk mengagumi tampilan logo utuh
-      await Future.delayed(const Duration(milliseconds: 400));
+      // Jeda sejenak untuk mengagumi tampilan logo utuh yang seimbang di tengah
+      await Future.delayed(const Duration(milliseconds: 450));
       if (!mounted) return;
 
       await _exitController.forward();
@@ -256,119 +260,155 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               scale: _exitScale.value,
               child: Opacity(
                 opacity: _exitOpacity.value,
-                child: Transform.translate(
-                  offset: Offset(_logoShift.value, 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // ── Logo Canvas (Perisai yang Dibentuk Bertahap Murni) ──
-                      SizedBox(
-                        width: 82,
-                        height: 104,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            // Staged Carving Custom Painter
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: _LogoCarvingPainter(
-                                  outlineProgress: _outlineProgress.value,
-                                  shieldFillOpacity: _shieldFillOpacity.value,
-                                  dot1Carve: _dot1Carve.value,
-                                  dot2Carve: _dot2Carve.value,
-                                  dot3Carve: _dot3Carve.value,
-                                  pillarsCarve: _pillarsCarve.value,
-                                  logoColor: _brandColor,
-                                ),
-                              ),
-                            ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    const shieldWidth = 82.0;
+                    const shieldHeight = 104.0;
+                    const gap = 18.0;
 
-                            // Pixel-Perfect Crossfade ke Asset Resmi saat ukiran selesai
-                            if (_pillarsCarve.value >= 0.95)
-                              Positioned.fill(
-                                child: Opacity(
-                                  opacity: ((_pillarsCarve.value - 0.95) / 0.05).clamp(0.0, 1.0),
-                                  child: Image.asset(
-                                    'assets/images/metro_shield.png',
-                                    color: _brandColor,
-                                    colorBlendMode: BlendMode.srcIn,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => Image.asset(
-                                      'assets/images/logo_clean.png',
-                                      color: _brandColor,
-                                      colorBlendMode: BlendMode.srcIn,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (c, e, s) => Image.asset(
-                                        'assets/images/logo.png',
-                                        color: _brandColor,
-                                        colorBlendMode: BlendMode.srcIn,
+                    // Mengukur lebar teks "Institute" secara presisi
+                    final textPainter = TextPainter(
+                      text: TextSpan(
+                        text: 'Institute',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.8,
+                        ),
+                      ),
+                      textDirection: TextDirection.ltr,
+                    )..layout();
+                    final textWidth = textPainter.width;
+
+                    // Jarak pergeseran perisai ke kiri dari titik tengah absolut
+                    // Agar [Perisai + Gap + Teks] berada 100% presisi di tengah layar saat selesai:
+                    final shiftDistance = (gap + textWidth) / 2;
+                    final currentShieldOffset = -shiftDistance * _logoShiftProgress.value;
+
+                    return SizedBox(
+                      width: constraints.maxWidth,
+                      height: shieldHeight,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
+                        children: [
+                          // ── 1. Perisai (Mulai 100% PERSIS DI TITIK TENGAH LAYAR) ──
+                          Transform.translate(
+                            offset: Offset(currentShieldOffset, 0),
+                            child: SizedBox(
+                              width: shieldWidth,
+                              height: shieldHeight,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // Staged Carving Custom Painter
+                                  Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: _LogoCarvingPainter(
+                                        outlineProgress: _outlineProgress.value,
+                                        shieldFillOpacity: _shieldFillOpacity.value,
+                                        dot1Carve: _dot1Carve.value,
+                                        dot2Carve: _dot2Carve.value,
+                                        dot3Carve: _dot3Carve.value,
+                                        pillarsCarve: _pillarsCarve.value,
+                                        logoColor: _brandColor,
                                       ),
                                     ),
                                   ),
+
+                                  // Pixel-Perfect Crossfade ke Asset Resmi saat ukiran selesai
+                                  if (_pillarsCarve.value >= 0.95)
+                                    Positioned.fill(
+                                      child: Opacity(
+                                        opacity: ((_pillarsCarve.value - 0.95) / 0.05).clamp(0.0, 1.0),
+                                        child: Image.asset(
+                                          'assets/images/metro_shield.png',
+                                          color: _brandColor,
+                                          colorBlendMode: BlendMode.srcIn,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (context, error, stackTrace) => Image.asset(
+                                            'assets/images/logo_clean.png',
+                                            color: _brandColor,
+                                            colorBlendMode: BlendMode.srcIn,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (c, e, s) => Image.asset(
+                                              'assets/images/logo.png',
+                                              color: _brandColor,
+                                              colorBlendMode: BlendMode.srcIn,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // ── 2. Tipografi Mengetik ("Metro Institute") ──
+                          // Berada persis di sebelah kanan perisai: shieldRight + gap
+                          if (_logoShiftProgress.value > 0.01)
+                            Positioned(
+                              left: (constraints.maxWidth / 2) + currentShieldOffset + (shieldWidth / 2) + gap,
+                              child: Opacity(
+                                opacity: _logoShiftProgress.value.clamp(0.0, 1.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Baris 1: "Metro"
+                                    SizedBox(
+                                      height: 38,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            _displayedMetroText,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 34,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: -0.8,
+                                              color: _brandColor,
+                                              height: 1.05,
+                                            ),
+                                          ),
+                                          if (_showMetroCursor)
+                                            const _TypewriterCursor(color: _brandColor),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Baris 2: "Institute"
+                                    SizedBox(
+                                      height: 38,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            _displayedInstituteText,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 34,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: -0.8,
+                                              color: _brandColor,
+                                              height: 1.05,
+                                            ),
+                                          ),
+                                          if (_showInstituteCursor)
+                                            const _TypewriterCursor(color: _brandColor),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
-
-                      // ── Brand Typography (Animasi Mengetik / Typewriter Effect) ──
-                      Padding(
-                        padding: const EdgeInsets.only(left: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Baris 1: "Metro"
-                            SizedBox(
-                              height: 38,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _displayedMetroText,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 34,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: -0.8,
-                                      color: _brandColor,
-                                      height: 1.05,
-                                    ),
-                                  ),
-                                  if (_showMetroCursor)
-                                    const _TypewriterCursor(color: _brandColor),
-                                ],
-                              ),
                             ),
-
-                            // Baris 2: "Institute"
-                            SizedBox(
-                              height: 38,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _displayedInstituteText,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 34,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: -0.8,
-                                      color: _brandColor,
-                                      height: 1.05,
-                                    ),
-                                  ),
-                                  if (_showInstituteCursor)
-                                    const _TypewriterCursor(color: _brandColor),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ),
