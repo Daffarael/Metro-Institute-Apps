@@ -160,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     if (!mounted) return;
 
     // 2. Jeda sangat singkat (60ms) agar mata pengguna siap
-    await Future.delayed(const Duration(milliseconds: 60));
+    await Future.delayed(const Duration(milliseconds: 350));
     if (!mounted) return;
 
     // 3. Pre-cache gambar ditunda di background agar Frame 1 sama sekali tidak lag
@@ -186,7 +186,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.00, 0.25, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.02, 0.25, curve: Curves.easeInOutCubic),
       ),
     );
 
