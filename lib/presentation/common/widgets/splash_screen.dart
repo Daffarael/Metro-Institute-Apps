@@ -14,12 +14,13 @@ import 'text_effect.dart';
 /// Urutan Animasi Sinematik:
 /// 1. [0.00 – 0.05] Ruang tenang, perisai MULAI PERSIS DI TITIK TENGAH LAYAR (Dead Center).
 /// 2. [0.05 – 0.25] Garis kontur perisai digambar sangat halus, lembut, dan melingkar.
-/// 3. [0.25 – 0.36] Perisai terisi warna hijau zamrud solid (#063D2A) secara lembut mengalir.
-/// 4. [0.36 – 0.52] 3 titik intan & 4 pilar kaligrafi "MI" terukir presisi menembus perisai ke warna putih.
-/// 5. [0.52 – 0.60] Perisai meluncur mulus (easeInOutCubic) dari titik tengah ke posisi kiri lockup.
-/// 6. [0.60 – 0.77] Teks "Metro" mekar dengan TextEffect (Luminous White Blur Preset).
-/// 7. [0.75 – 0.95] Teks "Institute" mekar menyusul tepat di bawahnya.
-/// 8. [0.95 – 1.00] Logo utuh di tengah layar dinikmati sejenak.
+/// 3. [0.25 – 0.34] Perisai terisi warna hijau zamrud solid (#063D2A) secara lembut mengalir.
+/// 4. [0.34 – 0.46] 3 titik intan (diamonds) mekar anggun terlebih dahulu di puncak perisai.
+/// 5. [0.47 – 0.60] 4 garis pilar kaligrafi "M" asli terukir mengalir perlahan turun ke bawah.
+/// 6. [0.60 – 0.67] Perisai utuh meluncur mulus dari titik tengah ke posisi kiri lockup.
+/// 7. [0.67 – 0.82] Teks "Metro" mekar dengan TextEffect.
+/// 8. [0.81 – 0.97] Teks "Institute" mekar menyusul tepat di bawahnya.
+/// 9. [0.97 – 1.00] Logo utuh dinikmati sejenak sebelum transisi mendarat.
 /// 9. [Flight Transition: ~950ms]:
 ///    - Background onboarding malam hari melarut lembut menggantikan latar putih.
 ///    - Perisai & teks "Metro Institute" terbang anggun dari titik tengah ke kiri atas.
@@ -58,6 +59,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _metroTypeProgress;
   late Animation<double> _instituteTypeProgress;
 
+  bool _hasTriggeredDot1Haptic = false;
+  bool _hasTriggeredDot2Haptic = false;
+  bool _hasTriggeredDot3Haptic = false;
   bool _hasTriggeredCarveHaptic = false;
   int _lastMetroChars = 0;
   int _lastInstituteChars = 0;
@@ -211,55 +215,55 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 3. Tiga titik intan terukir bertahap dengan mulus (2740ms – 3880ms)
+    // 3. Tiga buah intan muncul TERLEBIH DAHULU di puncak (34% – 46%)
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.36, 0.43, curve: Curves.easeOutCubic),
+        curve: const Interval(0.34, 0.40, curve: Curves.easeOutCubic),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.40, 0.47, curve: Curves.easeOutCubic),
+        curve: const Interval(0.37, 0.43, curve: Curves.easeOutCubic),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.44, 0.51, curve: Curves.easeOutCubic),
+        curve: const Interval(0.40, 0.46, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Empat pilar kaligrafi terukir memotong perisai turun ke bawah (3190ms – 3950ms)
+    // 4. Setelah tiga buah intan muncul, baru garis-garis "M" terukir perlahan (47% – 60%)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.42, 0.52, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.47, 0.60, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 4. Perisai meluncur mulus dari titik tengah absolut ke posisi kiri (3950ms – 4560ms)
+    // 5. Perisai utuh meluncur mulus dari titik tengah absolut ke posisi kiri (60% – 67%)
     _logoShiftProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.52, 0.60, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.60, 0.67, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 5. Animasi "Metro" via Framer Motion TextEffect Blur Preset (4560ms – 5850ms)
+    // 6. Animasi "Metro" via Framer Motion TextEffect Blur Preset (67% – 82%)
     _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.60, 0.77, curve: Curves.linear),
+        curve: const Interval(0.67, 0.82, curve: Curves.linear),
       ),
     );
 
-    // Animasi "Institute" via Framer Motion TextEffect Blur Preset di bawahnya (5700ms – 7220ms)
+    // Animasi "Institute" via Framer Motion TextEffect Blur Preset di bawahnya (81% – 97%)
     _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.75, 0.95, curve: Curves.linear),
+        curve: const Interval(0.81, 0.97, curve: Curves.linear),
       ),
     );
 
@@ -276,7 +280,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
     _controller.addListener(() {
-      if (_controller.value >= 0.52 && !_hasTriggeredCarveHaptic) {
+      if (_dot1Carve.value > 0.5 && !_hasTriggeredDot1Haptic) {
+        _hasTriggeredDot1Haptic = true;
+        HapticFeedback.selectionClick();
+      }
+      if (_dot2Carve.value > 0.5 && !_hasTriggeredDot2Haptic) {
+        _hasTriggeredDot2Haptic = true;
+        HapticFeedback.selectionClick();
+      }
+      if (_dot3Carve.value > 0.5 && !_hasTriggeredDot3Haptic) {
+        _hasTriggeredDot3Haptic = true;
+        HapticFeedback.selectionClick();
+      }
+      if (_pillarsCarve.value >= 0.99 && !_hasTriggeredCarveHaptic) {
         _hasTriggeredCarveHaptic = true;
         HapticFeedback.lightImpact();
       }
@@ -724,7 +740,7 @@ class LogoCarvingPainter extends CustomPainter {
     this.logoColor = const Color(0xFF063D2A),
   });
 
-  // Normalized 3 Diamond Rhombuses
+  // Vektor 3 Intan (Diamonds) Presisi 100% dari Logo Asli Metro Institute
   static const List<Offset> _dot1 = [
     Offset(0.3203, 0.1435),
     Offset(0.2687, 0.1842),
@@ -732,47 +748,104 @@ class LogoCarvingPainter extends CustomPainter {
     Offset(0.3701, 0.1857),
   ];
   static const List<Offset> _dot2 = [
-    Offset(0.4270, 0.1435),
+    Offset(0.4288, 0.1449),
     Offset(0.3754, 0.1842),
     Offset(0.4270, 0.2250),
-    Offset(0.4786, 0.1857),
+    Offset(0.4786, 0.1842),
   ];
   static const List<Offset> _dot3 = [
     Offset(0.5356, 0.1435),
     Offset(0.4840, 0.1842),
-    Offset(0.5338, 0.2250),
+    Offset(0.5356, 0.2250),
     Offset(0.5872, 0.1842),
   ];
 
-  // Normalized 4 Pillars / Spire
+  // Vektor 4 Garis Pilar Kaligrafi "M" Presisi 100% dari Logo Asli Metro Institute
+  // Pillar 1: Garis pilar kiri pertama (mengikuti lekukan perisai luar kiri)
   static const List<Offset> _pillar1 = [
     Offset(0.3132, 0.2588),
     Offset(0.2100, 0.2588),
+    Offset(0.2028, 0.2911),
+    Offset(0.1993, 0.3221),
+    Offset(0.1655, 0.5035),
     Offset(0.1655, 0.5471),
-    Offset(0.1886, 0.6203),
+    Offset(0.1708, 0.5752),
+    Offset(0.1868, 0.6160),
+    Offset(0.2100, 0.6512),
     Offset(0.2367, 0.6779),
+    Offset(0.2580, 0.5710),
+    Offset(0.2580, 0.5584),
   ];
+
+  // Pillar 2: Garis pilar kedua (sejajar miring, melengkung di dasar perisai)
   static const List<Offset> _pillar2 = [
     Offset(0.4786, 0.2588),
-    Offset(0.3737, 0.2672),
+    Offset(0.3754, 0.2588),
     Offset(0.2954, 0.7145),
-    Offset(0.3790, 0.7384),
-    Offset(0.3986, 0.7173),
+    Offset(0.3381, 0.7300),
+    Offset(0.3808, 0.7384),
+    Offset(0.3932, 0.7384),
+    Offset(0.3986, 0.7159),
+    Offset(0.4004, 0.6934),
+    Offset(0.4217, 0.5865),
+    Offset(0.4235, 0.5640),
+    Offset(0.4306, 0.5359),
+    Offset(0.4306, 0.5246),
   ];
+
+  // Pillar 3: Garis pilar ketiga (menembus paling dalam ke ujung runcing perisai)
   static const List<Offset> _pillar3 = [
     Offset(0.6459, 0.2588),
-    Offset(0.5409, 0.2630),
-    Offset(0.4502, 0.7722),
+    Offset(0.5427, 0.2588),
+    Offset(0.5302, 0.3347),
+    Offset(0.5249, 0.3516),
+    Offset(0.5231, 0.3741),
+    Offset(0.5160, 0.4023),
+    Offset(0.4982, 0.5148),
+    Offset(0.4929, 0.5316),
+    Offset(0.4929, 0.5429),
+    Offset(0.4502, 0.7750),
+    Offset(0.4502, 0.7989),
     Offset(0.4626, 0.8256),
-    Offset(0.5196, 0.8565),
-    Offset(0.5409, 0.8509),
+    Offset(0.4840, 0.8439),
+    Offset(0.5036, 0.8523),
+    Offset(0.5214, 0.8565),
+    Offset(0.5391, 0.8565),
+    Offset(0.5409, 0.8383),
+    Offset(0.5480, 0.8115),
+    Offset(0.5498, 0.7890),
+    Offset(0.5641, 0.7201),
+    Offset(0.5658, 0.6990),
+    Offset(0.5712, 0.6821),
+    Offset(0.5730, 0.6596),
+    Offset(0.5801, 0.6315),
+    Offset(0.5890, 0.5696),
+    Offset(0.5943, 0.5527),
+    Offset(0.5961, 0.5302),
+    Offset(0.6032, 0.5021),
+    Offset(0.6032, 0.4909),
   ];
+
+  // Pillar 4: Garis pilar kanan keempat (memanjang anggun dari puncak atas ke kanan)
   static const List<Offset> _rightSpire = [
     Offset(0.8327, 0.1406),
     Offset(0.7295, 0.1421),
+    Offset(0.7189, 0.2124),
+    Offset(0.6975, 0.3193),
+    Offset(0.6957, 0.3418),
+    Offset(0.6886, 0.3685),
+    Offset(0.6868, 0.3910),
+    Offset(0.6726, 0.4599),
+    Offset(0.6726, 0.4712),
+    Offset(0.6566, 0.5485),
+    Offset(0.6477, 0.6104),
     Offset(0.6335, 0.6779),
-    Offset(0.7064, 0.6174),
-    Offset(0.7598, 0.5331),
+    Offset(0.6477, 0.6695),
+    Offset(0.6779, 0.6456),
+    Offset(0.7100, 0.6132),
+    Offset(0.7438, 0.5654),
+    Offset(0.7598, 0.5316),
+    Offset(0.7687, 0.5049),
   ];
 
   /// Membuat path perisai dengan kurva Bezier mulus
