@@ -1393,7 +1393,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       letterSpacing: -0.8,
                     ),
                   ),
-                ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+                ),
 
                 const SizedBox(height: 12),
 
@@ -1405,7 +1405,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color(0xFFCBD5E1),
                     height: 1.5,
                   ),
-                ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+                ),
 
                 const SizedBox(height: 52),
 
@@ -1445,7 +1445,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                ).animate().fadeIn(delay: 400.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
+                ),
 
                 const SizedBox(height: 24),
               ],

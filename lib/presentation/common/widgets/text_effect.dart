@@ -259,35 +259,31 @@ class _TextEffectState extends State<TextEffect> with SingleTickerProviderStateM
 
     switch (widget.preset) {
       case TextEffectPreset.blur:
-        // Luminous White Optical Blur:
-        // Letter emerges from luminous white into rich crisp brand color,
-        // completely eliminating dark ink smudges on white backgrounds.
+        // Pure Framer Motion Optical Blur Reveal:
+        // Zero muddy halos, zero dark fringing on light backgrounds.
+        // 1. Opacity eases from 0.0 -> 1.0
+        // 2. Color blends from pure white to target emerald brand color
+        // 3. Sigma resolves from 2.0 -> 0.0
+        // 4. Subtle micro-slide (y: 4.0 -> 0.0) and micro-settle (scale: 0.96 -> 1.0)
         final opacity = curvedT.clamp(0.0, 1.0);
-        final blur = (1.0 - curvedT) * 4.5;
-        final y = (1.0 - curvedT) * 6.0;
-        final scale = 0.95 + (0.05 * curvedT);
+        final y = (1.0 - curvedT) * 4.0;
+        final scale = 0.96 + (0.04 * curvedT);
+        final blur = (1.0 - curvedT) * 2.0;
 
         final targetColor = style.color ?? const Color(0xFF063D2A);
         final animatedColor = Color.lerp(
-          widget.blurColor,
+          Colors.white,
           targetColor,
-          math.pow(curvedT, 2.0).toDouble(),
+          curvedT,
         )!;
 
         final dynamicStyle = style.copyWith(
           color: animatedColor,
-          shadows: [
-            if (curvedT < 0.9)
-              Shadow(
-                color: widget.blurColor.withValues(alpha: (1.0 - curvedT).clamp(0.0, 1.0)),
-                blurRadius: (1.0 - curvedT) * 10.0,
-              ),
-          ],
         );
 
         Widget child = Text(displayText, style: dynamicStyle);
 
-        if (blur > 0.15) {
+        if (blur > 0.1) {
           child = ImageFiltered(
             imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
             child: child,

@@ -75,17 +75,9 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const LoginScreen(),
-          transitionDuration: const Duration(milliseconds: 240),
+          transitionDuration: Duration.zero,
           reverseTransitionDuration: const Duration(milliseconds: 200),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              ),
-              child: child,
-            );
-          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
         ),
       ),
       GoRoute(

@@ -66,6 +66,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-cache aset latar belakang & logo agar 120 FPS tanpa frame drop saat terbang
+    precacheImage(const AssetImage('assets/images/onboarding_intro.jpg'), context);
+    precacheImage(const AssetImage('assets/images/metro_shield.png'), context);
+  }
+
+  @override
   void initState() {
     super.initState();
     _initAnimations();
@@ -147,15 +155,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks dari tengah ke kiri atas menuju Onboarding (950ms)
+    // 6. Flight Controller: Gerakan logo & teks dari tengah ke kiri atas menuju Onboarding (1400ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 950),
+      duration: const Duration(milliseconds: 1400),
     );
 
     _flightAnimation = CurvedAnimation(
       parent: _flightController,
-      curve: const Cubic(0.32, 0.72, 0.0, 1.0), // Apple fluid motion curve
+      curve: Curves.easeInOutCubic, // Gerakan fluida sinematik dengan akselerasi & deselerasi lembut
     );
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
@@ -247,28 +255,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           const gapStart = 18.0;
           const gapEnd = 10.0;
 
-          // Mengukur lebar teks "Institute" secara presisi pada 34px
-          final textPainterInst = TextPainter(
-            text: TextSpan(
-              text: 'Institute',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 34,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.8,
-              ),
-            ),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          final textWidthInst34 = textPainterInst.width;
-
-          final shiftDistance = (gapStart + textWidthInst34) / 2;
+          // Lebar teks 'Institute' pada 34px bold diukur sekali untuk pergeseran perisai awal
+          const textWidthInst34 = 144.5;
+          const shiftDistance = (gapStart + textWidthInst34) / 2;
           final initialShieldOffset = -shiftDistance * _logoShiftProgress.value;
 
           // ── Posisi Perisai: Tengah Layar -> Kiri Atas Onboarding ────────
           final startShieldLeft = (screenWidth / 2) - (shieldWStart / 2) + initialShieldOffset;
           final startShieldTop = (screenHeight - shieldHStart) / 2;
 
-          final endShieldLeft = 24.0;
+          const endShieldLeft = 24.0;
           final endShieldTop = topPadding + 20.0;
 
           final currentShieldLeft = ui.lerpDouble(startShieldLeft, endShieldLeft, flightT)!;
@@ -283,37 +279,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             Curves.easeInOutCubic.transform(flightT),
           )!;
 
-          // ── Posisi & Skala Tipografi: 34px -> 16.5px ─────────────────────
+          // ── Posisi & Skala Tipografi: 34px -> 16.5px (GPU Transform, 120 FPS) ──
           final startTextBaseLeft = (screenWidth / 2) + initialShieldOffset + (shieldWStart / 2) + gapStart;
           final startTextBaseTop = (screenHeight - shieldHStart) / 2 + 14.0;
 
-          final endTextBaseLeft = endShieldLeft + shieldWEnd + gapEnd; // 66.0
+          const endTextBaseLeft = endShieldLeft + shieldWEnd + gapEnd; // 66.0
           final endTextBaseTop = endShieldTop + (shieldHEnd - 20.0) / 2; // Rata tengah vertikal dengan perisai 38h
 
           final currentTextBaseLeft = ui.lerpDouble(startTextBaseLeft, endTextBaseLeft, flightT)!;
           final currentTextBaseTop = ui.lerpDouble(startTextBaseTop, endTextBaseTop, flightT)!;
-
-          final currentFontSize = ui.lerpDouble(34.0, 16.5, flightT)!;
-          final currentLetterSpacing = ui.lerpDouble(-0.8, -0.2, flightT)!;
-
-          // Mengukur lebar 'Metro' pada font size aktif untuk pergeseran 'Institute' ke samping
-          final textPainterMetro = TextPainter(
-            text: TextSpan(
-              text: 'Metro',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: currentFontSize,
-                fontWeight: FontWeight.w700,
-                letterSpacing: currentLetterSpacing,
-              ),
-            ),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          final currentMetroWidth = textPainterMetro.width;
-
-          // 'Institute' bergerak dari baris 2 (bawah Metro) ke baris 1 (samping Metro)
-          final targetInstDx = currentMetroWidth + 5.0;
-          final currentInstDx = ui.lerpDouble(0.0, targetInstDx, flightT)!;
-          final currentInstDy = ui.lerpDouble(38.0 * (currentFontSize / 34.0), 0.0, flightT)!;
 
           return SizedBox(
             width: screenWidth,
@@ -484,7 +458,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   ),
                 ),
 
-                // ── 5. Tipografi "Metro Institute" yang Bergerak & Menyatu ──
+                // ── 5. Tipografi "Metro Institute" (GPU Transform & Seamless Crossfade) ──
                 if (_logoShiftProgress.value > 0.01)
                   Positioned(
                     left: currentTextBaseLeft,
@@ -494,42 +468,71 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          // Kata 1: "Metro"
-                          TextEffect(
-                            text: 'Metro',
-                            preset: TextEffectPreset.blur,
-                            blurColor: Colors.white,
-                            per: TextEffectPer.char,
-                            progress: _metroTypeProgress.value,
-                            curve: Curves.easeOutCubic,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: currentFontSize,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: currentLetterSpacing,
-                              color: currentBrandColor,
-                              height: 1.05,
-                            ),
-                          ),
-
-                          // Kata 2: "Institute" (Meluncur dari bawah Metro ke samping kanan Metro)
-                          Transform.translate(
-                            offset: Offset(currentInstDx, currentInstDy),
-                            child: TextEffect(
-                              text: 'Institute',
-                              preset: TextEffectPreset.blur,
-                              blurColor: Colors.white,
-                              per: TextEffectPer.char,
-                              progress: _instituteTypeProgress.value,
-                              curve: Curves.easeOutCubic,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: currentFontSize,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: currentLetterSpacing,
-                                color: currentBrandColor,
-                                height: 1.05,
+                          // Format A: 2-Baris Vertikal ("Metro\nInstitute" 34px)
+                          // Bergerak & mengecil mulus selama awal penerbangan via GPU scale
+                          if (flightT < 0.65)
+                            Opacity(
+                              opacity: (1.0 - (flightT - 0.20) / 0.35).clamp(0.0, 1.0),
+                              child: Transform.scale(
+                                scale: ui.lerpDouble(1.0, 16.5 / 34.0, flightT)!,
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextEffect(
+                                      text: 'Metro',
+                                      preset: TextEffectPreset.blur,
+                                      blurColor: Colors.white,
+                                      per: TextEffectPer.char,
+                                      overlap: 0.65,
+                                      progress: _metroTypeProgress.value,
+                                      curve: Curves.easeOutCubic,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.8,
+                                        color: currentBrandColor,
+                                        height: 1.05,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    TextEffect(
+                                      text: 'Institute',
+                                      preset: TextEffectPreset.blur,
+                                      blurColor: Colors.white,
+                                      per: TextEffectPer.char,
+                                      overlap: 0.65,
+                                      progress: _instituteTypeProgress.value,
+                                      curve: Curves.easeOutCubic,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.8,
+                                        color: currentBrandColor,
+                                        height: 1.05,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
+
+                          // Format B: 1-Baris Horizontal ("Metro Institute" 16.5px)
+                          // Mengambil alih di udara dengan crossfade lembut dan mendarat presisi di header
+                          if (flightT > 0.25)
+                            Opacity(
+                              opacity: ((flightT - 0.25) / 0.35).clamp(0.0, 1.0),
+                              child: Text(
+                                'Metro Institute',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                  color: currentBrandColor,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
