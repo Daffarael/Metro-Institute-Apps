@@ -1,12 +1,33 @@
 // ============================================================================
 // File: custom_bottom_nav_bar.dart
-// Deskripsi: Floating Bottom Navigation Bar dengan transisi lembut, dock putih,
-//            dan aksen aktif abu-abu minimalis super clean (tanpa warna hijau).
+// Deskripsi: Floating Bottom Navigation Bar dengan fisika Framer Motion Spring
+//            (stiffness: 350, damping: 32), whileTap scale 0.97, dock putih bersih,
+//            dan kapsul aktif abu-abu minimalis super clean.
 // ============================================================================
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+/// Kurva pegas fisika Framer Motion persis:
+/// `type: "spring", stiffness: 350, damping: 32`
+class FramerSpringCurve extends Curve {
+  const FramerSpringCurve();
+
+  @override
+  double transformInternal(double t) {
+    if (t >= 1.0) return 1.0;
+    if (t <= 0.0) return 0.0;
+    final timeSec = t * 0.320;
+    const zeta = 0.855236; // 32 / (2 * sqrt(350))
+    const omega0 = 18.7083; // sqrt(350)
+    const omegaD = 9.6961; // omega0 * sqrt(1 - zeta^2)
+    final envelope = math.exp(-zeta * omega0 * timeSec);
+    final term = math.cos(omegaD * timeSec) + (zeta * omega0 / omegaD) * math.sin(omegaD * timeSec);
+    return 1.0 - envelope * term;
+  }
+}
 
 class NavItem {
   final String label;
@@ -39,10 +60,8 @@ class CustomBottomNavBar extends StatefulWidget {
 class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   late int _activeIndex;
 
-  // --- UKURAN TETAP (KONSISTEN & BEBAS GETAR — JANGAN DIUBAH) ---
-  static const double _inactiveWidth = 44.0; // Lebar tombol saat tidak aktif
-  static const double _activeWidth = 128.0;  // Lebar tombol saat aktif
-  static const double _itemHeight = 42.0;    // Tinggi tombol
+  // Lebar maksimal label animasi sesuai acuan Framer Motion MOBILE_LABEL_WIDTH = 72
+  static const double _mobileLabelWidth = 72.0;
 
   // --- MENU NAVIGASI METRO INSTITUTE ---
   static const List<NavItem> _defaultNavItems = [
@@ -111,118 +130,160 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-              decoration: BoxDecoration(
-                color: navBgColor,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: borderColor, width: 1),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x140F172A),
-                    blurRadius: 20,
-                    offset: Offset(0, 6),
-                  ),
-                  BoxShadow(
-                    color: Color(0x060F172A),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(_navItems.length, (idx) {
-                  final item = _navItems[idx];
-                  final isActive = _activeIndex == idx;
+                height: 54,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                decoration: BoxDecoration(
+                  color: navBgColor,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: borderColor, width: 1),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x140F172A),
+                      blurRadius: 20,
+                      offset: Offset(0, 6),
+                    ),
+                    BoxShadow(
+                      color: Color(0x060F172A),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(_navItems.length, (idx) {
+                    final item = _navItems[idx];
+                    final isActive = _activeIndex == idx;
 
-                  return GestureDetector(
-                    onTap: () {
-                      if (_activeIndex != idx) {
-                        HapticFeedback.selectionClick();
-                        setState(() {
-                          _activeIndex = idx;
-                        });
-                        widget.onItemSelected?.call(idx);
-                      }
-                    },
-                    behavior: HitTestBehavior.opaque,
-                    child: AnimatedContainer(
-                      // Transisi tunggal terpadu: lebar, padding, dan warna latar bergerak harmonis 280ms
-                      duration: const Duration(milliseconds: 280),
-                      curve: Curves.easeOutCubic,
-                      width: isActive ? _activeWidth : _inactiveWidth,
-                      height: _itemHeight,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: isActive ? activePillColor : Colors.transparent,
-                        borderRadius: BorderRadius.circular(999),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: _NavButton(
+                        key: ValueKey(item.label),
+                        item: item,
+                        isActive: isActive,
+                        activePillColor: activePillColor,
+                        activeContentColor: activeContentColor,
+                        inactiveIconColor: inactiveIconColor,
+                        labelWidth: _mobileLabelWidth,
+                        onTap: () {
+                          if (_activeIndex != idx) {
+                            setState(() {
+                              _activeIndex = idx;
+                            });
+                            widget.onItemSelected?.call(idx);
+                          }
+                        },
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // 1. IKON MENU: Cross-fade murni tanpa distorsi skala
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 240),
-                              switchInCurve: Curves.easeOutCubic,
-                              switchOutCurve: Curves.easeInCubic,
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(opacity: animation, child: child);
-                              },
-                              child: Icon(
-                                isActive ? item.activeIcon : item.icon,
-                                key: ValueKey('${item.label}_$isActive'),
-                                size: 21,
-                                color: isActive ? activeContentColor : inactiveIconColor,
-                              ),
-                            ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                            // 2. TEKS LABEL: Mengalir masuk/keluar selaras penuh 280ms
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 280),
-                              curve: Curves.easeOutCubic,
-                              width: isActive ? 68.0 : 0.0,
-                              child: ClipRect(
-                                child: OverflowBox(
-                                  minWidth: 0,
-                                  maxWidth: 90,
-                                  alignment: Alignment.centerLeft,
-                                  child: AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 240),
-                                    curve: Curves.easeOutCubic,
-                                    opacity: isActive ? 1.0 : 0.0,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 6.0),
-                                      child: Text(
-                                        item.label,
-                                        maxLines: 1,
-                                        softWrap: false,
-                                        overflow: TextOverflow.clip,
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: activeContentColor,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12.0,
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+/// Tombol Navigasi individual dengan whileTap scale 0.97 dan transisi Framer Motion Spring
+class _NavButton extends StatefulWidget {
+  final NavItem item;
+  final bool isActive;
+  final VoidCallback onTap;
+  final Color activePillColor;
+  final Color activeContentColor;
+  final Color inactiveIconColor;
+  final double labelWidth;
+
+  const _NavButton({
+    super.key,
+    required this.item,
+    required this.isActive,
+    required this.onTap,
+    required this.activePillColor,
+    required this.activeContentColor,
+    required this.inactiveIconColor,
+    required this.labelWidth,
+  });
+
+  @override
+  State<_NavButton> createState() => _NavButtonState();
+}
+
+class _NavButtonState extends State<_NavButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        widget.onTap();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        // whileTap={{ scale: 0.97 }} persis Framer Motion
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        child: AnimatedContainer(
+          // transition-colors duration-200 persis Framer Motion
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          height: 40.0,
+          constraints: const BoxConstraints(minWidth: 44.0),
+          padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 8.0),
+          decoration: BoxDecoration(
+            color: widget.isActive ? widget.activePillColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Ikon: Pinned di kiri, tidak bergeser atau bergetar
+              Icon(
+                widget.isActive ? widget.item.activeIcon : widget.item.icon,
+                size: 21,
+                color: widget.isActive ? widget.activeContentColor : widget.inactiveIconColor,
+              ),
+
+              // Div Animasi Label: width spring (stiffness: 350, damping: 32), opacity & marginLeft 190ms
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 320),
+                curve: const FramerSpringCurve(),
+                width: widget.isActive ? widget.labelWidth : 0.0,
+                margin: EdgeInsets.only(left: widget.isActive ? 8.0 : 0.0),
+                child: ClipRect(
+                  child: OverflowBox(
+                    minWidth: 0,
+                    maxWidth: widget.labelWidth,
+                    alignment: Alignment.centerLeft,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 190),
+                      curve: Curves.easeOut,
+                      opacity: widget.isActive ? 1.0 : 0.0,
+                      child: Text(
+                        widget.item.label,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.clip,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: widget.activeContentColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.0,
+                          letterSpacing: -0.2,
                         ),
                       ),
                     ),
-                  );
-                }),
+                  ),
+                ),
               ),
-              ),
-            ),
+            ],
           ),
         ),
       ),
