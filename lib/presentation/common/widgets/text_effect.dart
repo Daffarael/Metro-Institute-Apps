@@ -144,6 +144,14 @@ class _TextEffectState extends State<TextEffect> with SingleTickerProviderStateM
   Widget _buildContent(double progress) {
     final effectiveStyle = widget.style ?? DefaultTextStyle.of(context).style;
 
+    if (progress >= 1.0) {
+      return Text(
+        widget.text,
+        style: effectiveStyle,
+        textAlign: widget.textAlign,
+      );
+    }
+
     if (widget.per == TextEffectPer.line) {
       final lines = widget.text.split('\n');
       return Column(

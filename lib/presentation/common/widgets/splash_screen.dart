@@ -65,7 +65,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   // Warna Brand Utama Metro Institute
   static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
 
-  double _measuredMetroWordWidth = 53.0; // Lebar perkiraan 'Metro ' pada 16.5px bold
+  double _measuredMetroWordWidth = 48.0; // Lebar perkiraan 'Metro ' pada 16.5px bold
+  double _headerTextHeight = 21.0; // Tinggi teks header onboarding
+  double _metroBigHeight = 35.7; // Tinggi 'Metro' 34px bold
+  double _instituteBigHeight = 35.7; // Tinggi 'Institute' 34px bold
 
   @override
   void didChangeDependencies() {
@@ -79,7 +82,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   void _measureTextDimensions() {
     try {
-      final tp = TextPainter(
+      // 1. Lebar kata 'Metro ' di kiri atas onboarding (16.5px bold)
+      final tpMetroSmall = TextPainter(
         text: TextSpan(
           text: 'Metro ',
           style: GoogleFonts.plusJakartaSans(
@@ -90,8 +94,57 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      if (tp.width > 20) {
-        _measuredMetroWordWidth = tp.width;
+      if (tpMetroSmall.width > 20) {
+        _measuredMetroWordWidth = tpMetroSmall.width;
+      }
+
+      // 2. Tinggi teks header onboarding 'Metro Institute' (16.5px bold)
+      final tpHeaderFull = TextPainter(
+        text: TextSpan(
+          text: 'Metro Institute',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 16.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      if (tpHeaderFull.height > 10) {
+        _headerTextHeight = tpHeaderFull.height;
+      }
+
+      // 3. Tinggi 'Metro' & 'Institute' saat 34px di tengah layar
+      final tpMetroBig = TextPainter(
+        text: TextSpan(
+          text: 'Metro',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 34,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.8,
+            height: 1.05,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      if (tpMetroBig.height > 20) {
+        _metroBigHeight = tpMetroBig.height;
+      }
+
+      final tpInstBig = TextPainter(
+        text: TextSpan(
+          text: 'Institute',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 34,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.8,
+            height: 1.05,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      if (tpInstBig.height > 20) {
+        _instituteBigHeight = tpInstBig.height;
       }
     } catch (_) {}
   }
@@ -306,18 +359,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             Curves.easeInOutCubic.transform(flightT),
           )!;
 
-          // ── Posisi & Dimensi Teks (Bergerak Bersama Perisai) ──────────────
+          // ── Posisi & Dimensi Teks (Bergerak Mulus Bersama Perisai) ─────────
           final currentFontSize = ui.lerpDouble(34.0, 16.5, flightT)!;
           final currentLetterSpacing = ui.lerpDouble(-0.8, -0.2, flightT)!;
+          final currentLineHeight = ui.lerpDouble(1.05, 1.25, flightT);
 
-          // Posisi Awal Teks (Di tengah layar di samping perisai)
+          // Total tinggi teks 2-baris di tengah layar
+          final totalBigTextHeight = _metroBigHeight + 2.0 + _instituteBigHeight;
+          final textBlockOffset = (shieldHStart - totalBigTextHeight) / 2;
+
+          // Posisi Awal Teks (Di tengah layar persis di samping perisai)
           final startTextLeft = startShieldLeft + shieldWStart + gapStart;
-          final startMetroTop = startShieldTop + (shieldHStart - 74.0) / 2;
-          final startInstituteTop = startMetroTop + 37.5;
+          final startMetroTop = startShieldTop + textBlockOffset;
+          final startInstituteTop = startMetroTop + _metroBigHeight + 2.0;
 
           // Posisi Akhir Teks (Di kiri atas onboarding sejajar horizontal)
           const endTextLeft = 66.0; // 24.0 padding + 32.0 box + 10.0 gap
-          final endTextTop = endShieldTop + (shieldHEnd - 21.0) / 2;
+          final endTextTop = endShieldTop + (shieldHEnd - _headerTextHeight) / 2;
           final endInstituteLeft = endTextLeft + _measuredMetroWordWidth;
 
           // Interpolasi Posisi 'Metro' (Melayang naik ke kiri atas bersama perisai)
@@ -327,11 +385,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           // Interpolasi Posisi 'Institute' (Melayang dari bawah naik sejajar ke samping 'Metro')
           final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
           final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
-
-          // Opacity untuk cross-fade ke teks gabungan saat mendarat di kiri atas
-          final wordsOpacity = flightT < 0.75
-              ? 1.0
-              : ((0.95 - flightT) / 0.20).clamp(0.0, 1.0);
 
           return SizedBox(
             width: screenWidth,
@@ -384,37 +437,43 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                       child: Opacity(
                         opacity: ((flightT - 0.40) / 0.60).clamp(0.0, 1.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Indikator Step di Kanan Atas
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  width: 20,
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(2),
+                        child: IgnorePointer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top Row dengan placeholder transparan 38x32 untuk mengunci posisi Spacer & elemen bawah 100% presisi identik dengan LoginScreen
+                              Row(
+                                children: [
+                                  const SizedBox(height: 38, width: 32),
+                                  const SizedBox(width: 10),
+                                  const Spacer(),
+                                  // Step Indicator di Kanan Atas
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 20,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Container(
+                                        width: 8,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.35),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(width: 5),
-                                Container(
-                                  width: 8,
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.35),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            // Headline Besar Onboarding
-                            Transform.translate(
-                              offset: Offset(0, (1.0 - flightT) * 16),
-                              child: Text(
+                                ],
+                              ),
+                              const Spacer(),
+                              // Headline Besar Onboarding (Posisi statis mulus tanpa translate yang mengejutkan)
+                              Text(
                                 'Langkah Awal Menuju\nPotensi Tanpa Batas.',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 32,
@@ -424,164 +483,96 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   letterSpacing: -0.8,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            // Subtitle Onboarding
-                            Text(
-                              'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
-                              style: const TextStyle(
-                                fontSize: 13.5,
-                                color: Color(0xFFCBD5E1),
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 52),
-                            // Tombol Continue Onboarding
-                            SizedBox(
-                              width: double.infinity,
-                              height: 54,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(28),
+                              const SizedBox(height: 12),
+                              // Subtitle Onboarding
+                              Text(
+                                'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  color: Color(0xFFCBD5E1),
+                                  height: 1.5,
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Continue',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF0D1117),
+                              ),
+                              const SizedBox(height: 52),
+                              // Tombol Continue Onboarding
+                              SizedBox(
+                                width: double.infinity,
+                                height: 54,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(28),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Continue',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF0D1117),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.arrow_forward_rounded,
-                                      size: 18,
-                                      color: Color(0xFF0F172A),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      const Icon(
+                                        Icons.arrow_forward_rounded,
+                                        size: 18,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
 
-                // ── Teks 2-Baris Tengah ("Metro\nInstitute") Saat Mengetik di Awal ──
-                if (_logoShiftProgress.value > 0.01 && flightT == 0.0)
-                  Positioned(
-                    left: startTextLeft,
-                    top: startMetroTop,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextEffect(
-                          text: 'Metro',
-                          preset: TextEffectPreset.blur,
-                          blurColor: Colors.white,
-                          per: TextEffectPer.char,
-                          overlap: 0.65,
-                          progress: _metroTypeProgress.value,
-                          curve: Curves.easeOutCubic,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.8,
-                            color: currentBrandColor,
-                            height: 1.05,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        TextEffect(
-                          text: 'Institute',
-                          preset: TextEffectPreset.blur,
-                          blurColor: Colors.white,
-                          per: TextEffectPer.char,
-                          overlap: 0.65,
-                          progress: _instituteTypeProgress.value,
-                          curve: Curves.easeOutCubic,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.8,
-                            color: currentBrandColor,
-                            height: 1.05,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // ── Kata 'Metro' yang Terbang Naik ke Kiri Atas Bersama Perisai ──
-                if (flightT > 0.0 && wordsOpacity > 0.0)
+                // ── Kata 'Metro' (Mengetik di tengah lalu terbang anggun ke kiri atas) ──
+                if (_logoShiftProgress.value > 0.01)
                   Positioned(
                     left: currentMetroLeft,
                     top: currentMetroTop,
-                    child: Opacity(
-                      opacity: wordsOpacity,
-                      child: Text(
-                        'Metro',
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.visible,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: currentFontSize,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: currentLetterSpacing,
-                          color: currentBrandColor,
-                          height: 1.05,
-                        ),
+                    child: TextEffect(
+                      text: 'Metro',
+                      preset: TextEffectPreset.blur,
+                      blurColor: Colors.white,
+                      per: TextEffectPer.char,
+                      overlap: 0.65,
+                      progress: _metroTypeProgress.value,
+                      curve: Curves.easeOutCubic,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: currentFontSize,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: currentLetterSpacing,
+                        color: currentBrandColor,
+                        height: currentLineHeight,
                       ),
                     ),
                   ),
 
-                // ── Kata 'Institute' yang Terbang Naik Sejajar ke Samping 'Metro' ──
-                if (flightT > 0.0 && wordsOpacity > 0.0)
+                // ── Kata 'Institute' (Mengetik di bawah 'Metro' lalu terbang naik sejajar ke samping 'Metro') ──
+                if (_logoShiftProgress.value > 0.01)
                   Positioned(
                     left: currentInstituteLeft,
                     top: currentInstituteTop,
-                    child: Opacity(
-                      opacity: wordsOpacity,
-                      child: Text(
-                        'Institute',
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.visible,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: currentFontSize,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: currentLetterSpacing,
-                          color: currentBrandColor,
-                          height: 1.05,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // ── Teks Header Onboarding Bersatu ("Metro Institute") ───────
-                // Mengunci presisi mendarat sempurna 1-baris di kiri atas
-                if (flightT >= 0.75)
-                  Positioned(
-                    left: endTextLeft,
-                    top: endTextTop,
-                    child: Opacity(
-                      opacity: ((flightT - 0.75) / 0.25).clamp(0.0, 1.0),
-                      child: Text(
-                        'Metro Institute',
-                        maxLines: 1,
-                        softWrap: false,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                          color: Colors.white,
-                        ),
+                    child: TextEffect(
+                      text: 'Institute',
+                      preset: TextEffectPreset.blur,
+                      blurColor: Colors.white,
+                      per: TextEffectPer.char,
+                      overlap: 0.65,
+                      progress: _instituteTypeProgress.value,
+                      curve: Curves.easeOutCubic,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: currentFontSize,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: currentLetterSpacing,
+                        color: currentBrandColor,
+                        height: currentLineHeight,
                       ),
                     ),
                   ),
