@@ -275,15 +275,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan mekar serempak saat mendarat (1800ms)
+    // 6. Flight Controller: Gerakan logo & teks ke kiri atas (1600ms dengan kurva fluid ease)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 1600),
     );
 
     _flightAnimation = CurvedAnimation(
       parent: _flightController,
-      curve: Curves.easeInOut, // Gerakan mengalir mulus tanpa perlambatan ekstrem/jeda mati di ujung
+      curve: const Cubic(0.25, 0.1, 0.25, 1.0), // Gerakan mengalir mulus, proporsional & tanpa henti di ujung
     );
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
@@ -326,7 +326,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       await _controller.forward();
 
       // Jeda sejenak untuk mengagumi logo utuh di tengah
-      await Future.delayed(const Duration(milliseconds: 450));
+      await Future.delayed(const Duration(milliseconds: 250));
       if (!mounted) return;
 
       final authRepo = sl<AuthRepository>();
@@ -347,6 +347,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         // 2. Jika belum login (Onboarding Flow):
         // Jalankan animasi pergerakan logo & teks ke kiri atas dan perubahan warna
         await _flightController.forward();
+        if (!mounted) return;
+
+        // Jeda mikro 60ms agar frame landing benar-benar dinikmati mata sebelum pergantian rute
+        await Future.delayed(const Duration(milliseconds: 60));
         if (!mounted) return;
 
         // 3. Mendarat sempurna ke halaman login / onboarding
@@ -442,31 +446,29 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
           // ── Transisi Munculnya Elemen Onboarding (Baru Muncul Penuh Tepat Saat Logo & Teks Menetap di Kiri Atas) ──
           // Background malam hari menggelap mengalir lembut seiring penerbangan (flightT 0.00 -> 1.00)
-          final bgNightOpacity = Curves.easeInOutCubic.transform(flightT);
-
-
+          final bgNightOpacity = flightT;
 
           // 1. Step Indicator di kanan atas: Mekar saat logo mendekati kiri atas (mencapai 100% di 1.0)
-          final stepIndicatorT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
-          final stepIndicatorOpacity = Curves.easeInQuad.transform(stepIndicatorT);
+          final stepIndicatorT = ((flightT - 0.40) / 0.60).clamp(0.0, 1.0);
+          final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
 
-          // 2. Headline "Langkah Awal...": Tetap samar selama logo terbang, baru mekar penuh 100% saat logo menetap di kiri atas
+          // 2. Headline "Langkah Awal...": Mengapung lembut dengan kurva perlambatan halus (easeOutCubic)
           final headlineT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
-          final headlineCurve = Curves.easeInQuad.transform(headlineT);
+          final headlineCurve = Curves.easeOutCubic.transform(headlineT);
           final headlineOpacity = headlineCurve;
-          final headlineOffsetY = (1.0 - headlineT) * 22.0;
+          final headlineOffsetY = (1.0 - headlineCurve) * 20.0;
 
-          // 3. Subtitle "Pelajari keterampilan...": Mengikuti di bawah headline dan mekar penuh 100% saat logo menetap di kiri atas
-          final subtitleT = ((flightT - 0.55) / 0.45).clamp(0.0, 1.0);
-          final subtitleCurve = Curves.easeInQuad.transform(subtitleT);
+          // 3. Subtitle "Pelajari keterampilan...": Mengikuti di bawah headline dengan lembut
+          final subtitleT = ((flightT - 0.52) / 0.48).clamp(0.0, 1.0);
+          final subtitleCurve = Curves.easeOutCubic.transform(subtitleT);
           final subtitleOpacity = subtitleCurve;
-          final subtitleOffsetY = (1.0 - subtitleT) * 18.0;
+          final subtitleOffsetY = (1.0 - subtitleCurve) * 16.0;
 
-          // 4. Tombol Continue: Naik dari bawah dan mencapai 100% penuh tepat bersamaan dengan menetapnya logo di kiri atas
-          final buttonT = ((flightT - 0.65) / 0.35).clamp(0.0, 1.0);
-          final buttonCurve = Curves.easeInQuad.transform(buttonT);
+          // 4. Tombol Continue: Naik lembut dari bawah dengan kurva perlambatan halus (easeOutCubic)
+          final buttonT = ((flightT - 0.60) / 0.40).clamp(0.0, 1.0);
+          final buttonCurve = Curves.easeOutCubic.transform(buttonT);
           final buttonOpacity = buttonCurve;
-          final buttonOffsetY = (1.0 - buttonT) * 22.0;
+          final buttonOffsetY = (1.0 - buttonCurve) * 20.0;
           final buttonScale = 0.95 + (0.05 * buttonCurve);
 
           return SizedBox(

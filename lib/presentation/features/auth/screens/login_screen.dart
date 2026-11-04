@@ -753,9 +753,9 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.55),
       sheetAnimationStyle: AnimationStyle(
-        duration: const Duration(milliseconds: 380),
-        reverseDuration: const Duration(milliseconds: 280),
-        curve: const Cubic(0.32, 0.72, 0.0, 1.0), // Apple UIKit presentation curve
+        duration: const Duration(milliseconds: 520),
+        reverseDuration: const Duration(milliseconds: 320),
+        curve: const Cubic(0.16, 1.0, 0.3, 1.0), // Apple iOS 17 fluid deceleration curve
         reverseCurve: const Cubic(0.32, 0.0, 0.67, 1.0), // Apple UIKit dismissal curve
       ),
       builder: (sheetCtx) {
@@ -1695,42 +1695,9 @@ class _AuthModalSheetWidgetState extends State<_AuthModalSheetWidget> {
     _isRegisterMode = widget.initialRegister;
     _sheetScrollController = ScrollController();
 
-    // Show close button only after the modal sheet card entrance has fully completed and settled
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final route = ModalRoute.of(context);
-      if (route?.animation != null) {
-        void statusListener(AnimationStatus status) {
-          if (status == AnimationStatus.completed) {
-            route!.animation?.removeStatusListener(statusListener);
-            // Settle delay: ensure card has fully arrived and docked before popping the close button
-            Future.delayed(const Duration(milliseconds: 180), () {
-              if (mounted) setState(() => _showCloseButton = true);
-            });
-          } else if (status == AnimationStatus.reverse) {
-            if (mounted) setState(() => _showCloseButton = false);
-          }
-        }
-
-        if (route!.animation!.isCompleted) {
-          Future.delayed(const Duration(milliseconds: 180), () {
-            if (mounted) setState(() => _showCloseButton = true);
-          });
-        } else {
-          route.animation!.addStatusListener(statusListener);
-        }
-      } else {
-        Future.delayed(const Duration(milliseconds: 560), () {
-          if (mounted) setState(() => _showCloseButton = true);
-        });
-      }
-    });
-
-    // Fallback timer ensures button displays reliably even if route animation state differs
-    Future.delayed(const Duration(milliseconds: 650), () {
-      if (mounted && !_showCloseButton) {
-        setState(() => _showCloseButton = true);
-      }
+    // Munculkan close button secara harmonis saat card memasuki docking
+    Future.delayed(const Duration(milliseconds: 260), () {
+      if (mounted) setState(() => _showCloseButton = true);
     });
   }
 
@@ -1766,14 +1733,14 @@ class _AuthModalSheetWidgetState extends State<_AuthModalSheetWidget> {
                   maxHeight: maxCardHeight,
                 ),
                 padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x20000000),
-                      blurRadius: 16,
-                      offset: Offset(0, -4),
+                      color: Colors.black.withValues(alpha: 0.16),
+                      blurRadius: 24,
+                      offset: const Offset(0, -6),
                     ),
                   ],
                 ),
@@ -1782,11 +1749,24 @@ class _AuthModalSheetWidgetState extends State<_AuthModalSheetWidget> {
                   physics: const ClampingScrollPhysics(),
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
+                    duration: const Duration(milliseconds: 300),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
                     transitionBuilder: (child, animation) {
-                      return FadeTransition(opacity: animation, child: child);
+                      final slide = Tween<Offset>(
+                        begin: const Offset(0.0, 0.035),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ));
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: slide,
+                          child: child,
+                        ),
+                      );
                     },
                     child: _isRegisterMode
                         ? widget.loginState._buildRegisterSheetForm(
