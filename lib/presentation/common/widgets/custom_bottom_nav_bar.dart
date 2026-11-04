@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NavItem {
@@ -135,6 +136,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                   return GestureDetector(
                     onTap: () {
                       if (_activeIndex != idx) {
+                        HapticFeedback.selectionClick();
                         setState(() {
                           _activeIndex = idx;
                         });
@@ -143,64 +145,81 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                     },
                     behavior: HitTestBehavior.opaque,
                     child: AnimatedContainer(
-                      // Durasi 500ms untuk transisi pergeseran lebar yang tenang dan empuk
-                      duration: const Duration(milliseconds: 500),
+                      // Durasi 320ms dengan easeInOutCubic: transisi lebar sangat mulus, responsif & stabil
+                      duration: const Duration(milliseconds: 320),
                       curve: Curves.easeInOutCubic,
                       width: isActive ? _activeWidth : _inactiveWidth,
                       height: _itemHeight,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Container(
-                        // PENTING: Menggunakan Container biasa (non-animasi) untuk warna latar kapsul.
-                        // Saat menu berpindah (isActive == false), warna cahaya LANGSUNG padam seketika di frame 0,
-                        // sehingga sama sekali TIDAK terlihat proses cahaya memudar atau menghilang di tab lama!
+                      child: AnimatedContainer(
+                        // Warna latar kapsul bertransisi lembut (fade-in & fade-out halus tanpa pop seketika)
+                        duration: const Duration(milliseconds: 280),
+                        curve: Curves.easeInOutCubic,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                           color: isActive ? activePillColor : Colors.transparent,
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: ClipRect(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // 1. IKON MENU
-                              Icon(
-                                isActive ? item.activeIcon : item.icon,
-                                size: 21,
-                                color: isActive ? activeContentColor : inactiveIconColor,
+                              // 1. IKON MENU: Cross-fade halus dengan micro-scale saat aktif/inaktif
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 240),
+                                switchInCurve: Curves.easeOutCubic,
+                                switchOutCurve: Curves.easeInCubic,
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: Tween<double>(begin: 0.88, end: 1.0).animate(animation),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  isActive ? item.activeIcon : item.icon,
+                                  key: ValueKey('${item.label}_$isActive'),
+                                  size: 21,
+                                  color: isActive ? activeContentColor : inactiveIconColor,
+                                ),
                               ),
 
-                              // 2. TEKS LABEL: Hanya tampil saat aktif, langsung lenyap saat tidak aktif
+                              // 2. TEKS LABEL: Melebar dan memudar secara kontinu (tanpa pemotongan SizedBox mendadak)
                               AnimatedContainer(
-                                duration: const Duration(milliseconds: 500),
+                                duration: const Duration(milliseconds: 320),
                                 curve: Curves.easeInOutCubic,
                                 width: isActive ? 68.0 : 0.0,
-                                child: isActive
-                                    ? OverflowBox(
-                                        minWidth: 0,
-                                        maxWidth: 90,
-                                        alignment: Alignment.centerLeft,
-                                        child: AnimatedOpacity(
-                                          duration: const Duration(milliseconds: 450),
-                                          curve: Curves.easeInOut,
-                                          opacity: 1.0,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 6.0),
-                                            child: Text(
-                                              item.label,
-                                              maxLines: 1,
-                                              softWrap: false,
-                                              style: GoogleFonts.plusJakartaSans(
-                                                color: activeContentColor,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 12.0,
-                                                letterSpacing: -0.2,
-                                              ),
-                                            ),
+                                child: ClipRect(
+                                  child: OverflowBox(
+                                    minWidth: 0,
+                                    maxWidth: 90,
+                                    alignment: Alignment.centerLeft,
+                                    child: AnimatedOpacity(
+                                      duration: Duration(milliseconds: isActive ? 260 : 160),
+                                      curve: isActive ? Curves.easeOutCubic : Curves.easeInCubic,
+                                      opacity: isActive ? 1.0 : 0.0,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 6.0),
+                                        child: Text(
+                                          item.label,
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          overflow: TextOverflow.clip,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: activeContentColor,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12.0,
+                                            letterSpacing: -0.2,
                                           ),
                                         ),
-                                      )
-                                    : const SizedBox.shrink(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
