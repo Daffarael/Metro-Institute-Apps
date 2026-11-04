@@ -158,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // 6. Flight Controller: Gerakan logo & teks dari tengah ke kiri atas menuju Onboarding (1400ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1500),
     );
 
     _flightAnimation = CurvedAnimation(
@@ -247,47 +247,36 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         builder: (context, _) {
           final flightT = _flightAnimation.value;
 
-          // ── Ukuran Awal & Akhir ──────────────────────────────────────────
-          const shieldWStart = 82.0;
-          const shieldHStart = 104.0;
-          const shieldWEnd = 32.0;
-          const shieldHEnd = 38.0;
-          const gapStart = 18.0;
-          const gapEnd = 10.0;
+          // ── Ukuran Awal & Skala Proporsional ────────────────────────────
+          const shieldW = 82.0;
+          const shieldH = 104.0;
+          const gap = 18.0;
 
-          // Lebar teks 'Institute' pada 34px bold diukur sekali untuk pergeseran perisai awal
-          const textWidthInst34 = 144.5;
-          const shiftDistance = (gapStart + textWidthInst34) / 2;
-          final initialShieldOffset = -shiftDistance * _logoShiftProgress.value;
+          // Lebar teks 'Institute' pada 34px bold
+          const textWidthInst = 144.5;
+          const shiftDistance = (gap + textWidthInst) / 2; // 81.25
+          final initialShift = -shiftDistance * _logoShiftProgress.value;
 
-          // ── Posisi Perisai: Tengah Layar -> Kiri Atas Onboarding ────────
-          final startShieldLeft = (screenWidth / 2) - (shieldWStart / 2) + initialShieldOffset;
-          final startShieldTop = (screenHeight - shieldHStart) / 2;
+          // ── Posisi Awal (Tengah Layar) & Akhir (Kiri Atas Onboarding) ───
+          // Skala di kiri atas: menjaga proporsi perisai 100% identik tanpa distorsi (tinggi 38px)
+          const targetScale = 38.0 / shieldH; // 0.3653846
+          final currentScale = ui.lerpDouble(1.0, targetScale, flightT)!;
 
-          const endShieldLeft = 24.0;
-          final endShieldTop = topPadding + 20.0;
+          final startLockupLeft = (screenWidth / 2) - (shieldW / 2) + initialShift;
+          final startLockupTop = (screenHeight - shieldH) / 2;
 
-          final currentShieldLeft = ui.lerpDouble(startShieldLeft, endShieldLeft, flightT)!;
-          final currentShieldTop = ui.lerpDouble(startShieldTop, endShieldTop, flightT)!;
-          final currentShieldWidth = ui.lerpDouble(shieldWStart, shieldWEnd, flightT)!;
-          final currentShieldHeight = ui.lerpDouble(shieldHStart, shieldHEnd, flightT)!;
+          const endLockupLeft = 24.0;
+          final endLockupTop = topPadding + 20.0;
 
-          // ── Perubahan Warna: Hijau Zamrud (#063D2A) -> Putih Murni (Colors.white) ──
+          final currentLockupLeft = ui.lerpDouble(startLockupLeft, endLockupLeft, flightT)!;
+          final currentLockupTop = ui.lerpDouble(startLockupTop, endLockupTop, flightT)!;
+
+          // ── Perubahan Warna: Cukup Warna Aja (#063D2A -> Colors.white) ──
           final currentBrandColor = Color.lerp(
             _brandColor,
             Colors.white,
             Curves.easeInOutCubic.transform(flightT),
           )!;
-
-          // ── Posisi & Skala Tipografi: 34px -> 16.5px (GPU Transform, 120 FPS) ──
-          final startTextBaseLeft = (screenWidth / 2) + initialShieldOffset + (shieldWStart / 2) + gapStart;
-          final startTextBaseTop = (screenHeight - shieldHStart) / 2 + 14.0;
-
-          const endTextBaseLeft = endShieldLeft + shieldWEnd + gapEnd; // 66.0
-          final endTextBaseTop = endShieldTop + (shieldHEnd - 20.0) / 2; // Rata tengah vertikal dengan perisai 38h
-
-          final currentTextBaseLeft = ui.lerpDouble(startTextBaseLeft, endTextBaseLeft, flightT)!;
-          final currentTextBaseTop = ui.lerpDouble(startTextBaseTop, endTextBaseTop, flightT)!;
 
           return SizedBox(
             width: screenWidth,
@@ -304,7 +293,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 if (flightT > 0.0)
                   Positioned.fill(
                     child: Opacity(
-                      opacity: Curves.easeOutCubic.transform(flightT),
+                      opacity: Curves.easeInOutCubic.transform(flightT),
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
@@ -334,12 +323,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   ),
 
                 // ── 3. Elemen Pendukung Onboarding (Muncul lembut saat logo mendarat) ──
-                if (flightT > 0.45)
+                if (flightT > 0.40)
                   SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                       child: Opacity(
-                        opacity: ((flightT - 0.45) / 0.55).clamp(0.0, 1.0),
+                        opacity: ((flightT - 0.40) / 0.60).clamp(0.0, 1.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -409,7 +398,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF0F172A),
+                                        color: const Color(0xFF0D1117),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -428,56 +417,46 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
 
-                // ── 4. Perisai yang Bergerak & Berubah Warna ──
+                // ── 4. Brand Lockup Utama (Perisai + Metro Institute) ──────
+                // BENTUKAN 100% TETAP, TIDAK BERUBAH BENTUK, CUKUP WARNA AJA
                 Positioned(
-                  left: currentShieldLeft,
-                  top: currentShieldTop,
-                  width: currentShieldWidth,
-                  height: currentShieldHeight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        if (flightT > 0.2)
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.12 * flightT),
-                            blurRadius: 14,
-                          ),
-                      ],
-                    ),
-                    child: CustomPaint(
-                      painter: _LogoCarvingPainter(
-                        outlineProgress: _outlineProgress.value,
-                        shieldFillOpacity: _shieldFillOpacity.value,
-                        dot1Carve: _dot1Carve.value,
-                        dot2Carve: _dot2Carve.value,
-                        dot3Carve: _dot3Carve.value,
-                        pillarsCarve: _pillarsCarve.value,
-                        logoColor: currentBrandColor,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ── 5. Tipografi "Metro Institute" (GPU Transform & Seamless Crossfade) ──
-                if (_logoShiftProgress.value > 0.01)
-                  Positioned(
-                    left: currentTextBaseLeft,
-                    top: currentTextBaseTop,
-                    child: Opacity(
-                      opacity: _logoShiftProgress.value.clamp(0.0, 1.0),
-                      child: Stack(
-                        clipBehavior: Clip.none,
+                  left: currentLockupLeft,
+                  top: currentLockupTop,
+                  child: Transform.scale(
+                    scale: currentScale,
+                    alignment: Alignment.topLeft,
+                    child: SizedBox(
+                      height: shieldH,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Format A: 2-Baris Vertikal ("Metro\nInstitute" 34px)
-                          // Bergerak & mengecil mulus selama awal penerbangan via GPU scale
-                          if (flightT < 0.65)
-                            Opacity(
-                              opacity: (1.0 - (flightT - 0.20) / 0.35).clamp(0.0, 1.0),
-                              child: Transform.scale(
-                                scale: ui.lerpDouble(1.0, 16.5 / 34.0, flightT)!,
-                                alignment: Alignment.topLeft,
+                          // 1. Perisai dengan Ukiran Vektor Orisinal
+                          SizedBox(
+                            width: shieldW,
+                            height: shieldH,
+                            child: CustomPaint(
+                              painter: LogoCarvingPainter(
+                                outlineProgress: _outlineProgress.value,
+                                shieldFillOpacity: _shieldFillOpacity.value,
+                                dot1Carve: _dot1Carve.value,
+                                dot2Carve: _dot2Carve.value,
+                                dot3Carve: _dot3Carve.value,
+                                pillarsCarve: _pillarsCarve.value,
+                                logoColor: currentBrandColor,
+                              ),
+                            ),
+                          ),
+
+                          // 2. Tipografi 2-Baris "Metro \n Institute" (Bentukan 100% Utuh)
+                          if (_logoShiftProgress.value > 0.01)
+                            Padding(
+                              padding: const EdgeInsets.only(left: gap),
+                              child: Opacity(
+                                opacity: _logoShiftProgress.value.clamp(0.0, 1.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     TextEffect(
@@ -517,26 +496,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                 ),
                               ),
                             ),
-
-                          // Format B: 1-Baris Horizontal ("Metro Institute" 16.5px)
-                          // Mengambil alih di udara dengan crossfade lembut dan mendarat presisi di header
-                          if (flightT > 0.25)
-                            Opacity(
-                              opacity: ((flightT - 0.25) / 0.35).clamp(0.0, 1.0),
-                              child: Text(
-                                'Metro Institute',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16.5,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                  color: currentBrandColor,
-                                ),
-                              ),
-                            ),
                         ],
                       ),
                     ),
                   ),
+                ),
               ],
             ),
           );
@@ -547,7 +511,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 }
 
 /// Custom Painter yang menggambar garis perisai dan ukiran cutouts
-class _LogoCarvingPainter extends CustomPainter {
+class LogoCarvingPainter extends CustomPainter {
   final double outlineProgress;
   final double shieldFillOpacity;
   final double dot1Carve;
@@ -740,7 +704,7 @@ class _LogoCarvingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _LogoCarvingPainter oldDelegate) {
+  bool shouldRepaint(covariant LogoCarvingPainter oldDelegate) {
     return oldDelegate.outlineProgress != outlineProgress ||
         oldDelegate.shieldFillOpacity != shieldFillOpacity ||
         oldDelegate.dot1Carve != dot1Carve ||

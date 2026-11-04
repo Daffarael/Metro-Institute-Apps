@@ -11,6 +11,7 @@ import '../../../../core/services/fcm_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../widgets/verify_email_bottom_sheet.dart';
+import '../../../common/widgets/splash_screen.dart';
 
 const String _googleSvg = '''
 <svg viewBox="0 0 24 24" width="20" height="20">
@@ -1284,6 +1285,66 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildTopBrandHeader() {
+    return Transform.scale(
+      scale: 38.0 / 104.0,
+      alignment: Alignment.topLeft,
+      child: SizedBox(
+        height: 104.0,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 82.0,
+              height: 104.0,
+              child: CustomPaint(
+                painter: LogoCarvingPainter(
+                  outlineProgress: 1.0,
+                  shieldFillOpacity: 1.0,
+                  dot1Carve: 1.0,
+                  dot2Carve: 1.0,
+                  dot3Carve: 1.0,
+                  pillarsCarve: 1.0,
+                  logoColor: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 18.0),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Metro',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.8,
+                    color: Colors.white,
+                    height: 1.05,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Institute',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.8,
+                    color: Colors.white,
+                    height: 1.05,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildIntroStep() {
     return Stack(
       fit: StackFit.expand,
@@ -1324,35 +1385,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Top Brand Lockup + Step Indicator
                 Row(
                   children: [
-                    Container(
-                      height: 38,
-                      width: 32,
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.12),
-                            blurRadius: 14,
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/images/metro_shield.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (c, e, s) => Image.asset('assets/images/logo.png'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Metro Institute',
-                      style: GoogleFonts.plusJakartaSans(
-                        textStyle: const TextStyle(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ),
+                    _buildTopBrandHeader(),
                     const Spacer(),
                     // Step Indicator (Step 1 active)
                     Row(
@@ -1513,35 +1546,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Icon(Icons.arrow_back_ios_new_rounded, size: 14, color: Colors.white),
                       ),
                     ),
-                    Container(
-                      height: 38,
-                      width: 32,
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.12),
-                            blurRadius: 14,
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/images/metro_shield.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (c, e, s) => Image.asset('assets/images/logo.png'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Metro Institute',
-                      style: GoogleFonts.plusJakartaSans(
-                        textStyle: const TextStyle(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ),
+                    _buildTopBrandHeader(),
                     const Spacer(),
                     // Step Indicator (Step 2 active)
                     Row(
