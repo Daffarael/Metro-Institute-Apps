@@ -167,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.04, 0.25, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.00, 0.25, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -825,7 +825,7 @@ class LogoCarvingPainter extends CustomPainter {
       final strokePaint = Paint()
         ..color = logoColor.withValues(alpha: (1.0 - shieldFillOpacity).clamp(0.0, 1.0))
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
+        ..strokeWidth = 2.8
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
 

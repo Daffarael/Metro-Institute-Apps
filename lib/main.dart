@@ -7,14 +7,18 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await Future.wait([
-      initializeDateFormatting('id_ID', null),
-      initializeDateFormatting('id', null),
-    ]);
-  } catch (_) {}
+
+  // Instant in-memory DI & HTTP client setup (< 5ms)
   await ApiClient.init();
   await di.init();
-  await FcmService.init();
+
+  // Launch UI immediately so the white screen is just ~1 second native startup
   runApp(const MetroInstituteApp());
+
+  // Non-blocking background initializations (run in parallel without holding the splash screen)
+  initializeDateFormatting('id_ID', null).catchError((_) {});
+  initializeDateFormatting('id', null).catchError((_) {});
+  FcmService.init().catchError((e) {
+    debugPrint('FCM init error: $e');
+  });
 }
