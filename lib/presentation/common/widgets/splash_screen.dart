@@ -386,6 +386,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
           final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
 
+          // ── Transisi Munculnya Elemen Onboarding (Sangat Halus & Berurutan) ──
+          // 1. Headline & Subtitle: Mengapung pelan ke atas & fade-in (flightT 0.18 -> 0.78)
+          final headlineT = ((flightT - 0.18) / 0.60).clamp(0.0, 1.0);
+          final headlineCurve = Curves.easeOutCubic.transform(headlineT);
+          final headlineOpacity = headlineCurve;
+          final headlineOffsetY = (1.0 - headlineCurve) * 18.0;
+
+          // 2. Tombol Continue: Menyusul mengapung lembut (flightT 0.32 -> 0.85)
+          final buttonT = ((flightT - 0.32) / 0.53).clamp(0.0, 1.0);
+          final buttonCurve = Curves.easeOutCubic.transform(buttonT);
+          final buttonOpacity = buttonCurve;
+          final buttonOffsetY = (1.0 - buttonCurve) * 18.0;
+
+          // 3. Step Indicator: Mengalir lembut di kanan atas (flightT 0.25 -> 0.75)
+          final stepIndicatorT = ((flightT - 0.25) / 0.50).clamp(0.0, 1.0);
+          final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
+
           return SizedBox(
             width: screenWidth,
             height: screenHeight,
@@ -430,25 +447,25 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
 
-                // ── Elemen Pendukung Onboarding (Muncul lembut saat logo mendarat) ──
-                if (flightT > 0.40)
+                // ── Elemen Pendukung Onboarding (Muncul sangat halus, bertahap & tanpa kejutan) ──
+                if (flightT > 0.0)
                   SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      child: Opacity(
-                        opacity: ((flightT - 0.40) / 0.60).clamp(0.0, 1.0),
-                        child: IgnorePointer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Top Row dengan placeholder transparan 38x32 untuk mengunci posisi Spacer & elemen bawah 100% presisi identik dengan LoginScreen
-                              Row(
-                                children: [
-                                  const SizedBox(height: 38, width: 32),
-                                  const SizedBox(width: 10),
-                                  const Spacer(),
-                                  // Step Indicator di Kanan Atas
-                                  Row(
+                      child: IgnorePointer(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top Row dengan placeholder transparan 38x32 untuk mengunci posisi Spacer & layout 100% identik dengan LoginScreen
+                            Row(
+                              children: [
+                                const SizedBox(height: 38, width: 32),
+                                const SizedBox(width: 10),
+                                const Spacer(),
+                                // Step Indicator di Kanan Atas (Mekar lembut seiring naiknya perisai)
+                                Opacity(
+                                  opacity: stepIndicatorOpacity,
+                                  child: Row(
                                     children: [
                                       Container(
                                         width: 20,
@@ -469,63 +486,88 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                              const Spacer(),
-                              // Headline Besar Onboarding (Posisi statis mulus tanpa translate yang mengejutkan)
-                              Text(
-                                'Langkah Awal Menuju\nPotensi Tanpa Batas.',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  height: 1.15,
-                                  letterSpacing: -0.8,
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              // Subtitle Onboarding
-                              Text(
-                                'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  color: Color(0xFFCBD5E1),
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 52),
-                              // Tombol Continue Onboarding
-                              SizedBox(
-                                width: double.infinity,
-                                height: 54,
-                                child: Container(
-                                  decoration: BoxDecoration(
+                              ],
+                            ),
+                            const Spacer(),
+
+                            // Headline Besar Onboarding (Mengapung lembut ke atas dengan fade-in yang menenangkan)
+                            Opacity(
+                              opacity: headlineOpacity,
+                              child: Transform.translate(
+                                offset: Offset(0, headlineOffsetY),
+                                child: Text(
+                                  'Langkah Awal Menuju\nPotensi Tanpa Batas.',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(28),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Continue',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF0D1117),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Icon(
-                                        Icons.arrow_forward_rounded,
-                                        size: 18,
-                                        color: Color(0xFF0F172A),
-                                      ),
-                                    ],
+                                    height: 1.15,
+                                    letterSpacing: -0.8,
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Subtitle Onboarding (Ikut mengapung lembut bersama headline)
+                            Opacity(
+                              opacity: headlineOpacity,
+                              child: Transform.translate(
+                                offset: Offset(0, headlineOffsetY),
+                                child: const Text(
+                                  'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    color: Color(0xFFCBD5E1),
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 52),
+
+                            // Tombol Continue Onboarding (Mengapung lembut menyusul headline, 100% identik dengan LoginScreen)
+                            Opacity(
+                              opacity: buttonOpacity,
+                              child: Transform.translate(
+                                offset: Offset(0, buttonOffsetY),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 54,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(28),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Continue',
+                                          style: TextStyle(
+                                            fontSize: 15.5,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.2,
+                                            color: Color(0xFF0D1117),
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 17,
+                                          color: Color(0xFF0D1117),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Ruang bawah 24px persis sama dengan LoginScreen agar tidak ada loncatan
+                            const SizedBox(height: 24),
+                          ],
                         ),
                       ),
                     ),
