@@ -520,7 +520,7 @@ class LogoCarvingPainter extends CustomPainter {
   final double pillarsCarve;
   final Color logoColor;
 
-  _LogoCarvingPainter({
+  LogoCarvingPainter({
     required this.outlineProgress,
     required this.shieldFillOpacity,
     required this.dot1Carve,

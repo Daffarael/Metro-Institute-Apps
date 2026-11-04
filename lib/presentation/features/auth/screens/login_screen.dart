@@ -1286,12 +1286,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildTopBrandHeader() {
-    return Transform.scale(
-      scale: 38.0 / 104.0,
-      alignment: Alignment.topLeft,
-      child: SizedBox(
-        height: 104.0,
-        child: Row(
+    return SizedBox(
+      width: 90.0,
+      height: 38.0,
+      child: Transform.scale(
+        scale: 38.0 / 104.0,
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          height: 104.0,
+          child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -1341,6 +1344,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
