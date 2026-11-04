@@ -247,36 +247,49 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         builder: (context, _) {
           final flightT = _flightAnimation.value;
 
-          // ── Ukuran Awal & Skala Proporsional ────────────────────────────
-          const shieldW = 82.0;
-          const shieldH = 104.0;
-          const gap = 18.0;
+          // ── 1. Geometri Perisai (Proporsi 100% Terkunci 82:104, Anti-Penyek) ──
+          const shieldWStart = 82.0;
+          const shieldHStart = 104.0;
+          const shieldAspect = shieldWStart / shieldHStart; // 0.78846
 
-          // Lebar teks 'Institute' pada 34px bold
+          const shieldHEnd = 38.0;
+          const shieldWEnd = shieldHEnd * shieldAspect; // 29.96px (~30px, tepat di dalam container 32px)
+
+          const gapStart = 18.0;
+          const gapEnd = 10.0;
+
+          // Lebar teks 2-baris di tengah layar
           const textWidthInst = 144.5;
-          const shiftDistance = (gap + textWidthInst) / 2; // 81.25
+          const shiftDistance = (gapStart + textWidthInst) / 2; // 81.25
           final initialShift = -shiftDistance * _logoShiftProgress.value;
 
-          // ── Posisi Awal (Tengah Layar) & Akhir (Kiri Atas Onboarding) ───
-          // Skala di kiri atas: menjaga proporsi perisai 100% identik tanpa distorsi (tinggi 38px)
-          const targetScale = 38.0 / shieldH; // 0.3653846
-          final currentScale = ui.lerpDouble(1.0, targetScale, flightT)!;
+          // Posisi Awal (Tengah Layar) & Posisi Akhir (Kiri Atas Onboarding)
+          final startShieldLeft = (screenWidth / 2) - (shieldWStart / 2) + initialShift;
+          final startShieldTop = (screenHeight - shieldHStart) / 2;
 
-          final startLockupLeft = (screenWidth / 2) - (shieldW / 2) + initialShift;
-          final startLockupTop = (screenHeight - shieldH) / 2;
+          const endShieldLeft = 25.0; // 24.0 padding + 1.0 margin
+          final endShieldTop = topPadding + 20.0;
 
-          const endLockupLeft = 24.0;
-          final endLockupTop = topPadding + 20.0;
+          // Interpolasi posisi & ukuran perisai (selalu proporsional, tanpa peregangan)
+          final currentShieldLeft = ui.lerpDouble(startShieldLeft, endShieldLeft, flightT)!;
+          final currentShieldTop = ui.lerpDouble(startShieldTop, endShieldTop, flightT)!;
+          final currentShieldHeight = ui.lerpDouble(shieldHStart, shieldHEnd, flightT)!;
+          final currentShieldWidth = currentShieldHeight * shieldAspect;
 
-          final currentLockupLeft = ui.lerpDouble(startLockupLeft, endLockupLeft, flightT)!;
-          final currentLockupTop = ui.lerpDouble(startLockupTop, endLockupTop, flightT)!;
-
-          // ── Perubahan Warna: Cukup Warna Aja (#063D2A -> Colors.white) ──
+          // Warna: mengalir lembut dari hijau zamrud (#063D2A) ke putih murni (Colors.white)
           final currentBrandColor = Color.lerp(
             _brandColor,
             Colors.white,
             Curves.easeInOutCubic.transform(flightT),
           )!;
+
+          // Posisi teks 2-baris di tengah
+          final centerTextLeft = startShieldLeft + shieldWStart + gapStart;
+          final centerTextTop = startShieldTop + (shieldHStart - 76.0) / 2; // Vertikal sentral
+
+          // Posisi teks 1-baris onboarding di kiri atas
+          const endTextLeft = 66.0; // 24.0 + 32.0 + 10.0
+          final endTextTop = endShieldTop + (shieldHEnd - 20.0) / 2;
 
           return SizedBox(
             width: screenWidth,
@@ -284,12 +297,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // ── 1. Latar Belakang Putih Awal ──
+                // ── Latar Belakang Putih Awal ──
                 Positioned.fill(
                   child: Container(color: Colors.white),
                 ),
 
-                // ── 2. Latar Belakang Onboarding Malam Hari (Fade-in saat terbang) ──
+                // ── Latar Belakang Onboarding Malam Hari (Fade-in saat terbang) ──
                 if (flightT > 0.0)
                   Positioned.fill(
                     child: Opacity(
@@ -322,7 +335,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
 
-                // ── 3. Elemen Pendukung Onboarding (Muncul lembut saat logo mendarat) ──
+                // ── Elemen Pendukung Onboarding (Muncul lembut saat logo mendarat) ──
                 if (flightT > 0.40)
                   SafeArea(
                     child: Padding(
@@ -417,86 +430,102 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
 
-                // ── 4. Brand Lockup Utama (Perisai + Metro Institute) ──────
-                // BENTUKAN 100% TETAP, TIDAK BERUBAH BENTUK, CUKUP WARNA AJA
-                Positioned(
-                  left: currentLockupLeft,
-                  top: currentLockupTop,
-                  child: Transform.scale(
-                    scale: currentScale,
-                    alignment: Alignment.topLeft,
-                    child: SizedBox(
-                      height: shieldH,
-                      child: Row(
+                // ── Teks 2-Baris Tengah ("Metro\nInstitute") ───────────────
+                // Mengetik di tengah layar & melarut lembut saat penerbangan dimulai
+                if (_logoShiftProgress.value > 0.01 && flightT < 0.50)
+                  Positioned(
+                    left: centerTextLeft,
+                    top: centerTextTop,
+                    child: Opacity(
+                      opacity: (_logoShiftProgress.value * (1.0 - flightT * 2.0)).clamp(0.0, 1.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // 1. Perisai dengan Ukiran Vektor Orisinal
-                          SizedBox(
-                            width: shieldW,
-                            height: shieldH,
-                            child: CustomPaint(
-                              painter: LogoCarvingPainter(
-                                outlineProgress: _outlineProgress.value,
-                                shieldFillOpacity: _shieldFillOpacity.value,
-                                dot1Carve: _dot1Carve.value,
-                                dot2Carve: _dot2Carve.value,
-                                dot3Carve: _dot3Carve.value,
-                                pillarsCarve: _pillarsCarve.value,
-                                logoColor: currentBrandColor,
-                              ),
+                          TextEffect(
+                            text: 'Metro',
+                            preset: TextEffectPreset.blur,
+                            blurColor: Colors.white,
+                            per: TextEffectPer.char,
+                            overlap: 0.65,
+                            progress: _metroTypeProgress.value,
+                            curve: Curves.easeOutCubic,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.8,
+                              color: currentBrandColor,
+                              height: 1.05,
                             ),
                           ),
-
-                          // 2. Tipografi 2-Baris "Metro \n Institute" (Bentukan 100% Utuh)
-                          if (_logoShiftProgress.value > 0.01)
-                            Padding(
-                              padding: const EdgeInsets.only(left: gap),
-                              child: Opacity(
-                                opacity: _logoShiftProgress.value.clamp(0.0, 1.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TextEffect(
-                                      text: 'Metro',
-                                      preset: TextEffectPreset.blur,
-                                      blurColor: Colors.white,
-                                      per: TextEffectPer.char,
-                                      overlap: 0.65,
-                                      progress: _metroTypeProgress.value,
-                                      curve: Curves.easeOutCubic,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 34,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -0.8,
-                                        color: currentBrandColor,
-                                        height: 1.05,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    TextEffect(
-                                      text: 'Institute',
-                                      preset: TextEffectPreset.blur,
-                                      blurColor: Colors.white,
-                                      per: TextEffectPer.char,
-                                      overlap: 0.65,
-                                      progress: _instituteTypeProgress.value,
-                                      curve: Curves.easeOutCubic,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 34,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -0.8,
-                                        color: currentBrandColor,
-                                        height: 1.05,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                          const SizedBox(height: 2),
+                          TextEffect(
+                            text: 'Institute',
+                            preset: TextEffectPreset.blur,
+                            blurColor: Colors.white,
+                            per: TextEffectPer.char,
+                            overlap: 0.65,
+                            progress: _instituteTypeProgress.value,
+                            curve: Curves.easeOutCubic,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.8,
+                              color: currentBrandColor,
+                              height: 1.05,
                             ),
+                          ),
                         ],
+                      ),
+                    ),
+                  ),
+
+                // ── Teks 1-Baris Header Onboarding ("Metro Institute") ───────
+                // Muncul anggun di samping perisai saat mendekati posisi mendarat di kiri atas
+                if (flightT > 0.35)
+                  Positioned(
+                    left: endTextLeft,
+                    top: endTextTop,
+                    child: Opacity(
+                      opacity: ((flightT - 0.35) / 0.65).clamp(0.0, 1.0),
+                      child: Text(
+                        'Metro Institute',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // ── Perisai Vektor Orisinal (Bergerak & Berubah Warna Murni) ─
+                // Rasio 82:104 terkunci 100%, kurva orisinal utuh, tidak pernah gepeng
+                Positioned(
+                  left: currentShieldLeft,
+                  top: currentShieldTop,
+                  width: currentShieldWidth,
+                  height: currentShieldHeight,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        if (flightT > 0.2)
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.12 * flightT),
+                            blurRadius: 14,
+                          ),
+                      ],
+                    ),
+                    child: CustomPaint(
+                      painter: LogoCarvingPainter(
+                        outlineProgress: _outlineProgress.value,
+                        shieldFillOpacity: _shieldFillOpacity.value,
+                        dot1Carve: _dot1Carve.value,
+                        dot2Carve: _dot2Carve.value,
+                        dot3Carve: _dot3Carve.value,
+                        pillarsCarve: _pillarsCarve.value,
+                        logoColor: currentBrandColor,
                       ),
                     ),
                   ),
