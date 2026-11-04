@@ -65,6 +65,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   bool _hasTriggeredCarveHaptic = false;
   int _lastMetroChars = 0;
   int _lastInstituteChars = 0;
+  Future<bool>? _isLoggedInFuture;
 
   // Warna Brand Utama Metro Institute
   static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
@@ -82,7 +83,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   void _measureTextDimensions() {
     try {
-      // Ukur teks header penuh 'Metro Institute' (16.5px bold)
+      // Ukur teks header penuh 'Metro Institute' (16.5px bold, height 1.15)
       final tpHeaderFull = TextPainter(
         text: TextSpan(
           text: 'Metro Institute',
@@ -90,6 +91,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             fontSize: 16.5,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
+            height: 1.15,
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -114,6 +116,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               fontSize: 16.5,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
+              height: 1.15,
             ),
           ),
           textDirection: TextDirection.ltr,
@@ -169,6 +172,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   Future<void> _startOrchestratedAnimation() async {
+    // 0. Pre-fetch status auth di background agar tidak ada jeda disk I/O sebelum penerbangan logo
+    try {
+      _isLoggedInFuture = sl<AuthRepository>().isLoggedIn();
+    } catch (_) {}
+
     // 1. Tunggu frame pertama benar-benar selesai di-rasterisasi oleh GPU ke layar HP
     final rasterizedFuture = WidgetsBinding.instance.waitUntilFirstFrameRasterized;
     if (rasterizedFuture != null) {
@@ -267,15 +275,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan mekar serempak saat mendarat (2200ms)
+    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan mekar serempak saat mendarat (1800ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 1800),
     );
 
     _flightAnimation = CurvedAnimation(
       parent: _flightController,
-      curve: Curves.easeInOutCubic, // Gerakan fluida sinematik orisinal (tanpa perubahan curve)
+      curve: Curves.easeInOut, // Gerakan mengalir mulus tanpa perlambatan ekstrem/jeda mati di ujung
     );
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
@@ -322,7 +330,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       if (!mounted) return;
 
       final authRepo = sl<AuthRepository>();
-      final loggedIn = await authRepo.isLoggedIn();
+      final loggedIn = await (_isLoggedInFuture ?? authRepo.isLoggedIn());
       if (!mounted) return;
 
       if (loggedIn) {
@@ -377,10 +385,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           const shieldAspect = shieldWStart / shieldHStart; // 0.78846
 
           const shieldHEnd = 38.0;
-          const shieldWEnd = shieldHEnd * shieldAspect; // 29.96px (~30px, tepat di dalam container 32px)
-
           const gapStart = 18.0;
-          const gapEnd = 10.0;
 
           // Lebar teks 2-baris di tengah layar
           const textWidthInst = 144.5;
@@ -391,26 +396,27 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           final startShieldLeft = (screenWidth / 2) - (shieldWStart / 2) + initialShift;
           final startShieldTop = (screenHeight - shieldHStart) / 2;
 
-          const endShieldLeft = 25.0; // 24.0 padding + 1.0 margin
-          final endShieldTop = topPadding + 20.0;
+          // Geometri Shield Box (Container 32x38 di LoginScreen)
+          const endShieldBoxLeft = 24.0; // Persis horizontal padding 24px LoginScreen
+          final endShieldTop = topPadding + 20.0; // Persis vertical padding 20px LoginScreen
 
-          // Interpolasi posisi & ukuran perisai (selalu proporsional, tanpa peregangan)
-          final currentShieldLeft = ui.lerpDouble(startShieldLeft, endShieldLeft, flightT)!;
+          // Interpolasi posisi & ukuran box perisai (selalu proporsional, tanpa peregangan)
+          final currentShieldBoxLeft = ui.lerpDouble(startShieldLeft, endShieldBoxLeft, flightT)!;
           final currentShieldTop = ui.lerpDouble(startShieldTop, endShieldTop, flightT)!;
+          final currentShieldBoxWidth = ui.lerpDouble(shieldWStart, 32.0, flightT)!;
           final currentShieldHeight = ui.lerpDouble(shieldHStart, shieldHEnd, flightT)!;
-          final currentShieldWidth = currentShieldHeight * shieldAspect;
 
           // Warna: mengalir lembut dari hijau zamrud (#063D2A) ke putih murni (Colors.white)
           final currentBrandColor = Color.lerp(
             _brandColor,
             Colors.white,
-            Curves.easeInOutCubic.transform(flightT),
+            flightT,
           )!;
 
           // ── Posisi & Dimensi Teks (Bergerak Mulus Bersama Perisai) ─────────
           final currentFontSize = ui.lerpDouble(34.0, 16.5, flightT)!;
           final currentLetterSpacing = ui.lerpDouble(-0.8, -0.2, flightT)!;
-          final currentLineHeight = flightT < 0.92 ? ui.lerpDouble(1.05, 1.15, flightT) : null;
+          final currentLineHeight = ui.lerpDouble(1.05, 1.15, flightT);
 
           // Total tinggi teks 2-baris di tengah layar
           final totalBigTextHeight = _metroBigHeight + 2.0 + _instituteBigHeight;
@@ -474,11 +480,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   child: Container(color: Colors.white),
                 ),
 
-                // ── Latar Belakang Onboarding Malam Hari (Fade-in saat terbang) ──
-                if (flightT > 0.0)
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: bgNightOpacity,
+                // ── Latar Belakang Onboarding Malam Hari (Pre-inflated, fade-in mulus saat terbang) ──
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: bgNightOpacity,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
@@ -507,9 +512,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
 
-                // ── Elemen Pendukung Onboarding (Muncul sangat halus, bertahap & tanpa kejutan) ──
-                if (flightT > 0.0)
-                  SafeArea(
+                // ── Elemen Pendukung Onboarding (Pre-inflated, zero frame-drop on flight start) ──
+                SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                       child: IgnorePointer(
@@ -640,22 +644,33 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   Positioned(
                     left: currentMetroLeft,
                     top: currentMetroTop,
-                    child: TextEffect(
-                      text: 'Metro',
-                      preset: TextEffectPreset.blur,
-                      blurColor: Colors.white,
-                      per: TextEffectPer.char,
-                      overlap: 0.65,
-                      progress: _metroTypeProgress.value,
-                      curve: Curves.easeOutCubic,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: currentFontSize,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: currentLetterSpacing,
-                        color: currentBrandColor,
-                        height: currentLineHeight,
-                      ),
-                    ),
+                    child: flightT > 0.0
+                        ? Text(
+                            'Metro',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: currentFontSize,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: currentLetterSpacing,
+                              color: currentBrandColor,
+                              height: currentLineHeight,
+                            ),
+                          )
+                        : TextEffect(
+                            text: 'Metro',
+                            preset: TextEffectPreset.blur,
+                            blurColor: Colors.white,
+                            per: TextEffectPer.char,
+                            overlap: 0.65,
+                            progress: _metroTypeProgress.value,
+                            curve: Curves.easeOutCubic,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: currentFontSize,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: currentLetterSpacing,
+                              color: currentBrandColor,
+                              height: currentLineHeight,
+                            ),
+                          ),
                   ),
 
                 // ── Kata 'Institute' (Mengetik di bawah 'Metro' lalu terbang naik sejajar ke samping 'Metro') ──
@@ -663,50 +678,67 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   Positioned(
                     left: currentInstituteLeft,
                     top: currentInstituteTop,
-                    child: TextEffect(
-                      text: 'Institute',
-                      preset: TextEffectPreset.blur,
-                      blurColor: Colors.white,
-                      per: TextEffectPer.char,
-                      overlap: 0.65,
-                      progress: _instituteTypeProgress.value,
-                      curve: Curves.easeOutCubic,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: currentFontSize,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: currentLetterSpacing,
-                        color: currentBrandColor,
-                        height: currentLineHeight,
-                      ),
-                    ),
+                    child: flightT > 0.0
+                        ? Text(
+                            'Institute',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: currentFontSize,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: currentLetterSpacing,
+                              color: currentBrandColor,
+                              height: currentLineHeight,
+                            ),
+                          )
+                        : TextEffect(
+                            text: 'Institute',
+                            preset: TextEffectPreset.blur,
+                            blurColor: Colors.white,
+                            per: TextEffectPer.char,
+                            overlap: 0.65,
+                            progress: _instituteTypeProgress.value,
+                            curve: Curves.easeOutCubic,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: currentFontSize,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: currentLetterSpacing,
+                              color: currentBrandColor,
+                              height: currentLineHeight,
+                            ),
+                          ),
                   ),
 
                 // ── Perisai Vektor Orisinal (Bergerak & Berubah Warna Murni) ─
-                // Rasio 82:104 terkunci 100%, kurva orisinal utuh, tidak pernah gepeng
+                // Rasio 82:104 terkunci 100%, kurva orisinal utuh, mendarat presisi di box 32x38
                 Positioned(
-                  left: currentShieldLeft,
+                  left: currentShieldBoxLeft,
                   top: currentShieldTop,
-                  width: currentShieldWidth,
+                  width: currentShieldBoxWidth,
                   height: currentShieldHeight,
                   child: Container(
                     decoration: BoxDecoration(
                       boxShadow: [
-                        if (flightT > 0.2)
+                        if (flightT > 0.0)
                           BoxShadow(
                             color: Colors.white.withValues(alpha: 0.12 * flightT),
                             blurRadius: 14,
                           ),
                       ],
                     ),
-                    child: CustomPaint(
-                      painter: LogoCarvingPainter(
-                        outlineProgress: _outlineProgress.value,
-                        shieldFillOpacity: _shieldFillOpacity.value,
-                        dot1Carve: _dot1Carve.value,
-                        dot2Carve: _dot2Carve.value,
-                        dot3Carve: _dot3Carve.value,
-                        pillarsCarve: _pillarsCarve.value,
-                        logoColor: currentBrandColor,
+                    child: Center(
+                      child: SizedBox(
+                        width: currentShieldHeight * shieldAspect,
+                        height: currentShieldHeight,
+                        child: CustomPaint(
+                          painter: LogoCarvingPainter(
+                            outlineProgress: _outlineProgress.value,
+                            shieldFillOpacity: _shieldFillOpacity.value,
+                            dot1Carve: _dot1Carve.value,
+                            dot2Carve: _dot2Carve.value,
+                            dot3Carve: _dot3Carve.value,
+                            pillarsCarve: _pillarsCarve.value,
+                            logoColor: currentBrandColor,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -914,6 +946,11 @@ class LogoCarvingPainter extends CustomPainter {
       path.lineTo(points[i].dx * w, points[i].dy * h);
     }
     path.close();
+
+    // Bypass operasi boolean Path.combine yang berat jika ukiran pilar sudah selesai 100%
+    if (progress >= 1.0) {
+      return path;
+    }
 
     final clipPath = Path()..addRect(Rect.fromLTRB(0, minY - 2, w, currentCutBottom));
     return Path.combine(PathOperation.intersect, path, clipPath);
