@@ -231,10 +231,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan sangat pelan onboarding (3200ms)
+    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan tersinkronisasi penuh (2500ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3200),
+      duration: const Duration(milliseconds: 2500),
     );
 
     _flightAnimation = CurvedAnimation(
@@ -386,28 +386,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
           final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
 
-          // ── Transisi Munculnya Elemen Onboarding (Ekstra Pelan, Bertahap & Anggun) ──
-          // Background malam hari menggelap lembut sejak awal (flightT 0.00 -> 0.50)
-          final bgNightOpacity = Curves.easeInOutCubic.transform((flightT / 0.55).clamp(0.0, 1.0));
+          // ── Transisi Munculnya Elemen Onboarding (Mencapai 100% Full Tepat Bersamaan dengan Mendaratnya Logo) ──
+          // Background malam hari menggelap mengalir lembut hingga 100% penuh di flightT = 1.0
+          final bgNightOpacity = Curves.easeInOutCubic.transform(flightT);
 
-          // 1. Step Indicator di kanan atas: Mulai mekar pelan (flightT 0.20 -> 0.55) (~1.1 detik)
-          final stepIndicatorT = ((flightT - 0.20) / 0.35).clamp(0.0, 1.0);
+          // 1. Step Indicator di kanan atas: Mulai mekar pelan dan mencapai 100% di flightT = 1.0
+          final stepIndicatorT = ((flightT - 0.25) / 0.75).clamp(0.0, 1.0);
           final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
 
-          // 2. Headline "Langkah Awal...": Muncul ekstra pelan mengapung santai (flightT 0.15 -> 0.60) (~1.44 detik)
-          final headlineT = ((flightT - 0.15) / 0.45).clamp(0.0, 1.0);
+          // 2. Headline "Langkah Awal...": Mulai mengapung santai dari 0.18 dan mencapai 100% penuh di flightT = 1.0
+          final headlineT = ((flightT - 0.18) / 0.82).clamp(0.0, 1.0);
           final headlineCurve = Curves.easeOutCubic.transform(headlineT);
           final headlineOpacity = headlineCurve;
           final headlineOffsetY = (1.0 - headlineCurve) * 24.0;
 
-          // 3. Subtitle "Pelajari keterampilan...": Menyusul pelan di bawah headline (flightT 0.40 -> 0.80) (~1.28 detik)
-          final subtitleT = ((flightT - 0.40) / 0.40).clamp(0.0, 1.0);
+          // 3. Subtitle "Pelajari keterampilan...": Menyusul dari 0.36 dan mencapai 100% penuh di flightT = 1.0
+          final subtitleT = ((flightT - 0.36) / 0.64).clamp(0.0, 1.0);
           final subtitleCurve = Curves.easeOutCubic.transform(subtitleT);
           final subtitleOpacity = subtitleCurve;
           final subtitleOffsetY = (1.0 - subtitleCurve) * 20.0;
 
-          // 4. Tombol Continue: Terakhir naik pelan dari bawah (flightT 0.60 -> 0.94) (~1.08 detik)
-          final buttonT = ((flightT - 0.60) / 0.34).clamp(0.0, 1.0);
+          // 4. Tombol Continue: Naik dari bawah dari 0.52 dan mencapai 100% penuh di flightT = 1.0
+          final buttonT = ((flightT - 0.52) / 0.48).clamp(0.0, 1.0);
           final buttonCurve = Curves.easeOutCubic.transform(buttonT);
           final buttonOpacity = buttonCurve;
           final buttonOffsetY = (1.0 - buttonCurve) * 24.0;
