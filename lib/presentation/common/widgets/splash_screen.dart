@@ -231,10 +231,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks dari tengah ke kiri atas menuju Onboarding (1400ms)
+    // 6. Flight Controller: Gerakan logo & teks dari tengah ke kiri atas & kemunculan bertahap onboarding (2200ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2200),
     );
 
     _flightAnimation = CurvedAnimation(
@@ -386,22 +386,29 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
           final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
 
-          // ── Transisi Munculnya Elemen Onboarding (Sangat Halus & Berurutan) ──
-          // 1. Headline & Subtitle: Mengapung pelan ke atas & fade-in (flightT 0.18 -> 0.78)
-          final headlineT = ((flightT - 0.18) / 0.60).clamp(0.0, 1.0);
+          // ── Transisi Munculnya Elemen Onboarding (Perlahan, Bertahap & Sangat Halus) ──
+          // 1. Step Indicator di kanan atas: Mulai mekar lembut (flightT 0.20 -> 0.60)
+          final stepIndicatorT = ((flightT - 0.20) / 0.40).clamp(0.0, 1.0);
+          final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
+
+          // 2. Headline "Langkah Awal...": Ditampilkan perlahan mengapung ke atas & fade-in (flightT 0.15 -> 0.58)
+          final headlineT = ((flightT - 0.15) / 0.43).clamp(0.0, 1.0);
           final headlineCurve = Curves.easeOutCubic.transform(headlineT);
           final headlineOpacity = headlineCurve;
-          final headlineOffsetY = (1.0 - headlineCurve) * 18.0;
+          final headlineOffsetY = (1.0 - headlineCurve) * 20.0;
 
-          // 2. Tombol Continue: Menyusul mengapung lembut (flightT 0.32 -> 0.85)
-          final buttonT = ((flightT - 0.32) / 0.53).clamp(0.0, 1.0);
+          // 3. Subtitle "Pelajari keterampilan...": Menyusul perlahan di bawah headline (flightT 0.38 -> 0.78)
+          final subtitleT = ((flightT - 0.38) / 0.40).clamp(0.0, 1.0);
+          final subtitleCurve = Curves.easeOutCubic.transform(subtitleT);
+          final subtitleOpacity = subtitleCurve;
+          final subtitleOffsetY = (1.0 - subtitleCurve) * 16.0;
+
+          // 4. Tombol Continue: Terakhir muncul mengapung perlahan dari bawah (flightT 0.58 -> 0.92)
+          final buttonT = ((flightT - 0.58) / 0.34).clamp(0.0, 1.0);
           final buttonCurve = Curves.easeOutCubic.transform(buttonT);
           final buttonOpacity = buttonCurve;
-          final buttonOffsetY = (1.0 - buttonCurve) * 18.0;
-
-          // 3. Step Indicator: Mengalir lembut di kanan atas (flightT 0.25 -> 0.75)
-          final stepIndicatorT = ((flightT - 0.25) / 0.50).clamp(0.0, 1.0);
-          final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
+          final buttonOffsetY = (1.0 - buttonCurve) * 20.0;
+          final buttonScale = 0.95 + (0.05 * buttonCurve);
 
           return SizedBox(
             width: screenWidth,
@@ -510,11 +517,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
                             const SizedBox(height: 12),
 
-                            // Subtitle Onboarding (Ikut mengapung lembut bersama headline)
+                            // Subtitle Onboarding: Muncul perlahan secara bertahap setelah headline
                             Opacity(
-                              opacity: headlineOpacity,
+                              opacity: subtitleOpacity,
                               child: Transform.translate(
-                                offset: Offset(0, headlineOffsetY),
+                                offset: Offset(0, subtitleOffsetY),
                                 child: const Text(
                                   'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
                                   style: TextStyle(
@@ -527,38 +534,41 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
                             const SizedBox(height: 52),
 
-                            // Tombol Continue Onboarding (Mengapung lembut menyusul headline, 100% identik dengan LoginScreen)
+                            // Tombol Continue Onboarding: Muncul perlahan dari bawah setelah subtitle (100% identik dengan LoginScreen)
                             Opacity(
                               opacity: buttonOpacity,
                               child: Transform.translate(
                                 offset: Offset(0, buttonOffsetY),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 54,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(28),
-                                    ),
-                                    child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Continue',
-                                          style: TextStyle(
-                                            fontSize: 15.5,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.2,
+                                child: Transform.scale(
+                                  scale: buttonScale,
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 54,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(28),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Continue',
+                                            style: TextStyle(
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.2,
+                                              color: Color(0xFF0D1117),
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Icon(
+                                            Icons.arrow_forward_rounded,
+                                            size: 17,
                                             color: Color(0xFF0D1117),
                                           ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Icon(
-                                          Icons.arrow_forward_rounded,
-                                          size: 17,
-                                          color: Color(0xFF0D1117),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
