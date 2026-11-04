@@ -73,11 +73,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Pre-cache aset latar belakang & logo agar 120 FPS tanpa frame drop saat terbang
-    precacheImage(const AssetImage('assets/images/onboarding_intro.jpg'), context);
-    precacheImage(const AssetImage('assets/images/metro_shield.png'), context);
-
-    _measureTextDimensions();
   }
 
   void _measureTextDimensions() {
@@ -153,7 +148,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
     _initAnimations();
-    _runAnimationSequence();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      precacheImage(const AssetImage('assets/images/onboarding_intro.jpg'), context);
+      precacheImage(const AssetImage('assets/images/metro_shield.png'), context);
+      _measureTextDimensions();
+      _runAnimationSequence();
+    });
   }
 
   void _initAnimations() {
@@ -167,7 +168,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.00, 0.25, curve: Curves.easeOutCubic),
+        curve: const Interval(0.00, 0.25, curve: Curves.easeInOutCubic),
       ),
     );
 

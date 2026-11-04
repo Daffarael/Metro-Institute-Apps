@@ -5,3 +5,4 @@
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/launch_splash_empty</item>
     </style>
 </resources>
+
