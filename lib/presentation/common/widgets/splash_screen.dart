@@ -148,13 +148,31 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
     _initAnimations();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _startOrchestratedAnimation();
+  }
+
+  Future<void> _startOrchestratedAnimation() async {
+    // 1. Tunggu frame pertama benar-benar selesai di-rasterisasi oleh GPU ke layar HP
+    final rasterizedFuture = WidgetsBinding.instance.waitUntilFirstFrameRasterized;
+    if (rasterizedFuture != null) {
+      await rasterizedFuture;
+    }
+    if (!mounted) return;
+
+    // 2. Jeda sangat singkat (60ms) agar mata pengguna siap
+    await Future.delayed(const Duration(milliseconds: 60));
+    if (!mounted) return;
+
+    // 3. Pre-cache gambar ditunda di background agar Frame 1 sama sekali tidak lag
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
       precacheImage(const AssetImage('assets/images/onboarding_intro.jpg'), context);
       precacheImage(const AssetImage('assets/images/metro_shield.png'), context);
       _measureTextDimensions();
-      _runAnimationSequence();
     });
+
+    // 4. Mulai perakitan logo — garis bingkai dijamin 100% terlihat digambar dari 0%
+    _runAnimationSequence();
   }
 
   void _initAnimations() {
