@@ -65,12 +65,35 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   // Warna Brand Utama Metro Institute
   static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
 
+  double _measuredMetroWordWidth = 53.0; // Lebar perkiraan 'Metro ' pada 16.5px bold
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Pre-cache aset latar belakang & logo agar 120 FPS tanpa frame drop saat terbang
     precacheImage(const AssetImage('assets/images/onboarding_intro.jpg'), context);
     precacheImage(const AssetImage('assets/images/metro_shield.png'), context);
+
+    _measureTextDimensions();
+  }
+
+  void _measureTextDimensions() {
+    try {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: 'Metro ',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 16.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      if (tp.width > 20) {
+        _measuredMetroWordWidth = tp.width;
+      }
+    } catch (_) {}
   }
 
   @override
@@ -283,13 +306,32 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             Curves.easeInOutCubic.transform(flightT),
           )!;
 
-          // Posisi teks 2-baris di tengah
-          final centerTextLeft = startShieldLeft + shieldWStart + gapStart;
-          final centerTextTop = startShieldTop + (shieldHStart - 76.0) / 2; // Vertikal sentral
+          // ── Posisi & Dimensi Teks (Bergerak Bersama Perisai) ──────────────
+          final currentFontSize = ui.lerpDouble(34.0, 16.5, flightT)!;
+          final currentLetterSpacing = ui.lerpDouble(-0.8, -0.2, flightT)!;
 
-          // Posisi teks 1-baris onboarding di kiri atas
-          const endTextLeft = 66.0; // 24.0 + 32.0 + 10.0
-          final endTextTop = endShieldTop + (shieldHEnd - 20.0) / 2;
+          // Posisi Awal Teks (Di tengah layar di samping perisai)
+          final startTextLeft = startShieldLeft + shieldWStart + gapStart;
+          final startMetroTop = startShieldTop + (shieldHStart - 74.0) / 2;
+          final startInstituteTop = startMetroTop + 37.5;
+
+          // Posisi Akhir Teks (Di kiri atas onboarding sejajar horizontal)
+          const endTextLeft = 66.0; // 24.0 padding + 32.0 box + 10.0 gap
+          final endTextTop = endShieldTop + (shieldHEnd - 21.0) / 2;
+          final endInstituteLeft = endTextLeft + _measuredMetroWordWidth;
+
+          // Interpolasi Posisi 'Metro' (Melayang naik ke kiri atas bersama perisai)
+          final currentMetroLeft = ui.lerpDouble(startTextLeft, endTextLeft, flightT)!;
+          final currentMetroTop = ui.lerpDouble(startMetroTop, endTextTop, flightT)!;
+
+          // Interpolasi Posisi 'Institute' (Melayang dari bawah naik sejajar ke samping 'Metro')
+          final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
+          final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
+
+          // Opacity untuk cross-fade ke teks gabungan saat mendarat di kiri atas
+          final wordsOpacity = flightT < 0.75
+              ? 1.0
+              : ((0.95 - flightT) / 0.20).clamp(0.0, 1.0);
 
           return SizedBox(
             width: screenWidth,
@@ -430,66 +472,110 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                   ),
 
-                // ── Teks 2-Baris Tengah ("Metro\nInstitute") ───────────────
-                // Mengetik di tengah layar & melarut lembut saat penerbangan dimulai
-                if (_logoShiftProgress.value > 0.01 && flightT < 0.50)
+                // ── Teks 2-Baris Tengah ("Metro\nInstitute") Saat Mengetik di Awal ──
+                if (_logoShiftProgress.value > 0.01 && flightT == 0.0)
                   Positioned(
-                    left: centerTextLeft,
-                    top: centerTextTop,
+                    left: startTextLeft,
+                    top: startMetroTop,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextEffect(
+                          text: 'Metro',
+                          preset: TextEffectPreset.blur,
+                          blurColor: Colors.white,
+                          per: TextEffectPer.char,
+                          overlap: 0.65,
+                          progress: _metroTypeProgress.value,
+                          curve: Curves.easeOutCubic,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.8,
+                            color: currentBrandColor,
+                            height: 1.05,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        TextEffect(
+                          text: 'Institute',
+                          preset: TextEffectPreset.blur,
+                          blurColor: Colors.white,
+                          per: TextEffectPer.char,
+                          overlap: 0.65,
+                          progress: _instituteTypeProgress.value,
+                          curve: Curves.easeOutCubic,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.8,
+                            color: currentBrandColor,
+                            height: 1.05,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // ── Kata 'Metro' yang Terbang Naik ke Kiri Atas Bersama Perisai ──
+                if (flightT > 0.0 && wordsOpacity > 0.0)
+                  Positioned(
+                    left: currentMetroLeft,
+                    top: currentMetroTop,
                     child: Opacity(
-                      opacity: (_logoShiftProgress.value * (1.0 - flightT * 2.0)).clamp(0.0, 1.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextEffect(
-                            text: 'Metro',
-                            preset: TextEffectPreset.blur,
-                            blurColor: Colors.white,
-                            per: TextEffectPer.char,
-                            overlap: 0.65,
-                            progress: _metroTypeProgress.value,
-                            curve: Curves.easeOutCubic,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.8,
-                              color: currentBrandColor,
-                              height: 1.05,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          TextEffect(
-                            text: 'Institute',
-                            preset: TextEffectPreset.blur,
-                            blurColor: Colors.white,
-                            per: TextEffectPer.char,
-                            overlap: 0.65,
-                            progress: _instituteTypeProgress.value,
-                            curve: Curves.easeOutCubic,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.8,
-                              color: currentBrandColor,
-                              height: 1.05,
-                            ),
-                          ),
-                        ],
+                      opacity: wordsOpacity,
+                      child: Text(
+                        'Metro',
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.visible,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: currentFontSize,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: currentLetterSpacing,
+                          color: currentBrandColor,
+                          height: 1.05,
+                        ),
                       ),
                     ),
                   ),
 
-                // ── Teks 1-Baris Header Onboarding ("Metro Institute") ───────
-                // Muncul anggun di samping perisai saat mendekati posisi mendarat di kiri atas
-                if (flightT > 0.35)
+                // ── Kata 'Institute' yang Terbang Naik Sejajar ke Samping 'Metro' ──
+                if (flightT > 0.0 && wordsOpacity > 0.0)
+                  Positioned(
+                    left: currentInstituteLeft,
+                    top: currentInstituteTop,
+                    child: Opacity(
+                      opacity: wordsOpacity,
+                      child: Text(
+                        'Institute',
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.visible,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: currentFontSize,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: currentLetterSpacing,
+                          color: currentBrandColor,
+                          height: 1.05,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // ── Teks Header Onboarding Bersatu ("Metro Institute") ───────
+                // Mengunci presisi mendarat sempurna 1-baris di kiri atas
+                if (flightT >= 0.75)
                   Positioned(
                     left: endTextLeft,
                     top: endTextTop,
                     child: Opacity(
-                      opacity: ((flightT - 0.35) / 0.65).clamp(0.0, 1.0),
+                      opacity: ((flightT - 0.75) / 0.25).clamp(0.0, 1.0),
                       child: Text(
                         'Metro Institute',
+                        maxLines: 1,
+                        softWrap: false,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16.5,
                           fontWeight: FontWeight.w700,
