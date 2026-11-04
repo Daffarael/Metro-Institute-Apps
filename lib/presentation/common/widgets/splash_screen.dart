@@ -160,14 +160,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // 7600ms: Durasi sinematik logo assembly & typing
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 7600),
+      duration: const Duration(milliseconds: 3400),
     );
 
     // 1. Tracing Outline: Garis perisai digambar melingkar sangat halus (300ms – 1900ms)
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.04, 0.25, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.00, 0.22, curve: Curves.easeOutQuad),
       ),
     );
 
@@ -175,7 +175,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.25, 0.36, curve: Curves.easeOutCubic),
+        curve: const Interval(0.20, 0.33, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -183,19 +183,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.36, 0.43, curve: Curves.easeOutCubic),
+        curve: const Interval(0.33, 0.40, curve: Curves.easeOutCubic),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.40, 0.47, curve: Curves.easeOutCubic),
+        curve: const Interval(0.37, 0.44, curve: Curves.easeOutCubic),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.44, 0.51, curve: Curves.easeOutCubic),
+        curve: const Interval(0.41, 0.48, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -203,7 +203,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.42, 0.52, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.38, 0.49, curve: Curves.easeInOutCubic),
       ),
     );
 
@@ -211,7 +211,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _logoShiftProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.52, 0.60, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.49, 0.57, curve: Curves.easeInOutCubic),
       ),
     );
 
@@ -219,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.60, 0.77, curve: Curves.linear),
+        curve: const Interval(0.57, 0.74, curve: Curves.linear),
       ),
     );
 
@@ -227,14 +227,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.75, 0.95, curve: Curves.linear),
+        curve: const Interval(0.72, 0.92, curve: Curves.linear),
       ),
     );
 
     // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan mekar serempak saat mendarat (2200ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 1300),
     );
 
     _flightAnimation = CurvedAnimation(
@@ -244,7 +244,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
     _controller.addListener(() {
-      if (_controller.value >= 0.52 && !_hasTriggeredCarveHaptic) {
+      if (_controller.value >= 0.49 && !_hasTriggeredCarveHaptic) {
         _hasTriggeredCarveHaptic = true;
         HapticFeedback.lightImpact();
       }
@@ -270,7 +270,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       await _controller.forward();
 
       // Jeda sejenak untuk mengagumi logo utuh di tengah
-      await Future.delayed(const Duration(milliseconds: 450));
+      await Future.delayed(const Duration(milliseconds: 250));
       if (!mounted) return;
 
       final authRepo = sl<AuthRepository>();
@@ -825,7 +825,7 @@ class LogoCarvingPainter extends CustomPainter {
       final strokePaint = Paint()
         ..color = logoColor.withValues(alpha: (1.0 - shieldFillOpacity).clamp(0.0, 1.0))
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
+        ..strokeWidth = 2.8
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
 
