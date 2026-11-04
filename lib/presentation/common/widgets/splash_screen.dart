@@ -231,10 +231,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan tersinkronisasi penuh (2500ms)
+    // 6. Flight Controller: Gerakan logo & teks ke kiri atas & kemunculan mekar serempak saat mendarat (2200ms)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 2200),
     );
 
     _flightAnimation = CurvedAnimation(
@@ -386,31 +386,31 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
           final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
 
-          // ── Transisi Munculnya Elemen Onboarding (Mencapai 100% Full Tepat Bersamaan dengan Mendaratnya Logo) ──
-          // Background malam hari menggelap mengalir lembut hingga 100% penuh di flightT = 1.0
+          // ── Transisi Munculnya Elemen Onboarding (Baru Muncul Penuh Tepat Saat Logo & Teks Menetap di Kiri Atas) ──
+          // Background malam hari menggelap mengalir lembut seiring penerbangan (flightT 0.00 -> 1.00)
           final bgNightOpacity = Curves.easeInOutCubic.transform(flightT);
 
-          // 1. Step Indicator di kanan atas: Mulai mekar pelan dan mencapai 100% di flightT = 1.0
-          final stepIndicatorT = ((flightT - 0.25) / 0.75).clamp(0.0, 1.0);
-          final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
+          // 1. Step Indicator di kanan atas: Mekar saat logo mendekati kiri atas (mencapai 100% di 1.0)
+          final stepIndicatorT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
+          final stepIndicatorOpacity = Curves.easeInQuad.transform(stepIndicatorT);
 
-          // 2. Headline "Langkah Awal...": Mulai mengapung santai dari 0.18 dan mencapai 100% penuh di flightT = 1.0
-          final headlineT = ((flightT - 0.18) / 0.82).clamp(0.0, 1.0);
-          final headlineCurve = Curves.easeOutCubic.transform(headlineT);
+          // 2. Headline "Langkah Awal...": Tetap samar selama logo terbang, baru mekar penuh 100% saat logo menetap di kiri atas
+          final headlineT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
+          final headlineCurve = Curves.easeInQuad.transform(headlineT);
           final headlineOpacity = headlineCurve;
-          final headlineOffsetY = (1.0 - headlineCurve) * 24.0;
+          final headlineOffsetY = (1.0 - headlineT) * 22.0;
 
-          // 3. Subtitle "Pelajari keterampilan...": Menyusul dari 0.36 dan mencapai 100% penuh di flightT = 1.0
-          final subtitleT = ((flightT - 0.36) / 0.64).clamp(0.0, 1.0);
-          final subtitleCurve = Curves.easeOutCubic.transform(subtitleT);
+          // 3. Subtitle "Pelajari keterampilan...": Mengikuti di bawah headline dan mekar penuh 100% saat logo menetap di kiri atas
+          final subtitleT = ((flightT - 0.55) / 0.45).clamp(0.0, 1.0);
+          final subtitleCurve = Curves.easeInQuad.transform(subtitleT);
           final subtitleOpacity = subtitleCurve;
-          final subtitleOffsetY = (1.0 - subtitleCurve) * 20.0;
+          final subtitleOffsetY = (1.0 - subtitleT) * 18.0;
 
-          // 4. Tombol Continue: Naik dari bawah dari 0.52 dan mencapai 100% penuh di flightT = 1.0
-          final buttonT = ((flightT - 0.52) / 0.48).clamp(0.0, 1.0);
-          final buttonCurve = Curves.easeOutCubic.transform(buttonT);
+          // 4. Tombol Continue: Naik dari bawah dan mencapai 100% penuh tepat bersamaan dengan menetapnya logo di kiri atas
+          final buttonT = ((flightT - 0.65) / 0.35).clamp(0.0, 1.0);
+          final buttonCurve = Curves.easeInQuad.transform(buttonT);
           final buttonOpacity = buttonCurve;
-          final buttonOffsetY = (1.0 - buttonCurve) * 24.0;
+          final buttonOffsetY = (1.0 - buttonT) * 22.0;
           final buttonScale = 0.95 + (0.05 * buttonCurve);
 
           return SizedBox(
