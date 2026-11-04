@@ -258,7 +258,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _flightAnimation = CurvedAnimation(
       parent: _flightController,
-      curve: Curves.easeInOutCubic, // Gerakan fluida sinematik dengan akselerasi & deselerasi lembut
+      curve: Curves.easeOutCubic, // Gerakan mengalir mulus kontinu tanpa jeda macet di ujung
     );
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
@@ -409,6 +409,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           // Background malam hari menggelap mengalir lembut seiring penerbangan (flightT 0.00 -> 1.00)
           final bgNightOpacity = Curves.easeInOutCubic.transform(flightT);
 
+          // Docking blend: Pada 14% terakhir penerbangan (flightT 0.86 -> 1.00),
+          // elemen terbang menyatu mulus ke widget header login yang sesungguhnya (zero jerk / anti-loncat)
+          final dockT = ((flightT - 0.86) / 0.14).clamp(0.0, 1.0);
+          final dockCurve = Curves.easeInOut.transform(dockT);
+          final flightElementsOpacity = (1.0 - dockCurve).clamp(0.0, 1.0);
+
           // 1. Step Indicator di kanan atas: Mekar saat logo mendekati kiri atas (mencapai 100% di 1.0)
           final stepIndicatorT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
           final stepIndicatorOpacity = Curves.easeInQuad.transform(stepIndicatorT);
@@ -485,11 +491,46 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Top Row dengan placeholder transparan 38x32 untuk mengunci posisi Spacer & layout 100% identik dengan LoginScreen
+                            // Top Row dengan brand lockup resmi 100% identik LoginScreen (docking mulus tanpa sentakan)
                             Row(
                               children: [
-                                const SizedBox(height: 38, width: 32),
-                                const SizedBox(width: 10),
+                                Opacity(
+                                  opacity: dockCurve,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        height: 38,
+                                        width: 32,
+                                        decoration: BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.white.withValues(alpha: 0.12),
+                                              blurRadius: 14,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Image.asset(
+                                          'assets/images/metro_shield.png',
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (c, e, s) => Image.asset('assets/images/logo.png'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Metro Institute',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          textStyle: const TextStyle(
+                                            fontSize: 16.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            letterSpacing: -0.2,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 const Spacer(),
                                 // Step Indicator di Kanan Atas (Mekar lembut seiring naiknya perisai)
                                 Opacity(
@@ -604,83 +645,92 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       ),
                     ),
                   ),
-
                 // ── Kata 'Metro' (Mengetik di tengah lalu terbang anggun ke kiri atas) ──
-                if (_logoShiftProgress.value > 0.01)
+                if (_logoShiftProgress.value > 0.01 && flightElementsOpacity > 0.001)
                   Positioned(
                     left: currentMetroLeft,
                     top: currentMetroTop,
-                    child: TextEffect(
-                      text: 'Metro',
-                      preset: TextEffectPreset.blur,
-                      blurColor: Colors.white,
-                      per: TextEffectPer.char,
-                      overlap: 0.65,
-                      progress: _metroTypeProgress.value,
-                      curve: Curves.easeOutCubic,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: currentFontSize,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: currentLetterSpacing,
-                        color: currentBrandColor,
-                        height: currentLineHeight,
+                    child: Opacity(
+                      opacity: flightElementsOpacity,
+                      child: TextEffect(
+                        text: 'Metro',
+                        preset: TextEffectPreset.blur,
+                        blurColor: Colors.white,
+                        per: TextEffectPer.char,
+                        overlap: 0.65,
+                        progress: _metroTypeProgress.value,
+                        curve: Curves.easeOutCubic,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: currentFontSize,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: currentLetterSpacing,
+                          color: currentBrandColor,
+                          height: currentLineHeight,
+                        ),
                       ),
                     ),
                   ),
 
                 // ── Kata 'Institute' (Mengetik di bawah 'Metro' lalu terbang naik sejajar ke samping 'Metro') ──
-                if (_logoShiftProgress.value > 0.01)
+                if (_logoShiftProgress.value > 0.01 && flightElementsOpacity > 0.001)
                   Positioned(
                     left: currentInstituteLeft,
                     top: currentInstituteTop,
-                    child: TextEffect(
-                      text: 'Institute',
-                      preset: TextEffectPreset.blur,
-                      blurColor: Colors.white,
-                      per: TextEffectPer.char,
-                      overlap: 0.65,
-                      progress: _instituteTypeProgress.value,
-                      curve: Curves.easeOutCubic,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: currentFontSize,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: currentLetterSpacing,
-                        color: currentBrandColor,
-                        height: currentLineHeight,
+                    child: Opacity(
+                      opacity: flightElementsOpacity,
+                      child: TextEffect(
+                        text: 'Institute',
+                        preset: TextEffectPreset.blur,
+                        blurColor: Colors.white,
+                        per: TextEffectPer.char,
+                        overlap: 0.65,
+                        progress: _instituteTypeProgress.value,
+                        curve: Curves.easeOutCubic,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: currentFontSize,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: currentLetterSpacing,
+                          color: currentBrandColor,
+                          height: currentLineHeight,
+                        ),
                       ),
                     ),
                   ),
 
                 // ── Perisai Vektor Orisinal (Bergerak & Berubah Warna Murni) ─
                 // Rasio 82:104 terkunci 100%, kurva orisinal utuh, tidak pernah gepeng
-                Positioned(
-                  left: currentShieldLeft,
-                  top: currentShieldTop,
-                  width: currentShieldWidth,
-                  height: currentShieldHeight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        if (flightT > 0.2)
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.12 * flightT),
-                            blurRadius: 14,
+                if (flightElementsOpacity > 0.001)
+                  Positioned(
+                    left: currentShieldLeft,
+                    top: currentShieldTop,
+                    width: currentShieldWidth,
+                    height: currentShieldHeight,
+                    child: Opacity(
+                      opacity: flightElementsOpacity,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            if (flightT > 0.2)
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.12 * flightT),
+                                blurRadius: 14,
+                              ),
+                          ],
+                        ),
+                        child: CustomPaint(
+                          painter: LogoCarvingPainter(
+                            outlineProgress: _outlineProgress.value,
+                            shieldFillOpacity: _shieldFillOpacity.value,
+                            dot1Carve: _dot1Carve.value,
+                            dot2Carve: _dot2Carve.value,
+                            dot3Carve: _dot3Carve.value,
+                            pillarsCarve: _pillarsCarve.value,
+                            logoColor: currentBrandColor,
                           ),
-                      ],
-                    ),
-                    child: CustomPaint(
-                      painter: LogoCarvingPainter(
-                        outlineProgress: _outlineProgress.value,
-                        shieldFillOpacity: _shieldFillOpacity.value,
-                        dot1Carve: _dot1Carve.value,
-                        dot2Carve: _dot2Carve.value,
-                        dot3Carve: _dot3Carve.value,
-                        pillarsCarve: _pillarsCarve.value,
-                        logoColor: currentBrandColor,
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           );
