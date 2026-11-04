@@ -85,9 +85,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   void didUpdateWidget(covariant CustomBottomNavBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.defaultIndex != oldWidget.defaultIndex) {
-      setState(() {
-        _activeIndex = widget.defaultIndex;
-      });
+      if (_activeIndex != widget.defaultIndex) {
+        setState(() {
+          _activeIndex = widget.defaultIndex;
+        });
+      }
     }
   }
 
@@ -105,9 +107,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
         padding: const EdgeInsets.only(bottom: 16.0, left: 12.0, right: 12.0),
         child: Align(
           alignment: Alignment.bottomCenter,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Container(
+          child: RepaintBoundary(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Container(
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               decoration: BoxDecoration(
@@ -145,89 +148,79 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                     },
                     behavior: HitTestBehavior.opaque,
                     child: AnimatedContainer(
-                      // Durasi 320ms dengan easeInOutCubic: transisi lebar sangat mulus, responsif & stabil
-                      duration: const Duration(milliseconds: 320),
-                      curve: Curves.easeInOutCubic,
+                      // Transisi tunggal terpadu: lebar, padding, dan warna latar bergerak harmonis 280ms
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
                       width: isActive ? _activeWidth : _inactiveWidth,
                       height: _itemHeight,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
-                      child: AnimatedContainer(
-                        // Warna latar kapsul bertransisi lembut (fade-in & fade-out halus tanpa pop seketika)
-                        duration: const Duration(milliseconds: 280),
-                        curve: Curves.easeInOutCubic,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: isActive ? activePillColor : Colors.transparent,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // 1. IKON MENU: Cross-fade halus dengan micro-scale saat aktif/inaktif
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 240),
-                                switchInCurve: Curves.easeOutCubic,
-                                switchOutCurve: Curves.easeInCubic,
-                                transitionBuilder: (child, animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale: Tween<double>(begin: 0.88, end: 1.0).animate(animation),
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: Icon(
-                                  isActive ? item.activeIcon : item.icon,
-                                  key: ValueKey('${item.label}_$isActive'),
-                                  size: 21,
-                                  color: isActive ? activeContentColor : inactiveIconColor,
-                                ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: isActive ? activePillColor : Colors.transparent,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // 1. IKON MENU: Cross-fade murni tanpa distorsi skala
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 240),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(opacity: animation, child: child);
+                              },
+                              child: Icon(
+                                isActive ? item.activeIcon : item.icon,
+                                key: ValueKey('${item.label}_$isActive'),
+                                size: 21,
+                                color: isActive ? activeContentColor : inactiveIconColor,
                               ),
+                            ),
 
-                              // 2. TEKS LABEL: Melebar dan memudar secara kontinu (tanpa pemotongan SizedBox mendadak)
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 320),
-                                curve: Curves.easeInOutCubic,
-                                width: isActive ? 68.0 : 0.0,
-                                child: ClipRect(
-                                  child: OverflowBox(
-                                    minWidth: 0,
-                                    maxWidth: 90,
-                                    alignment: Alignment.centerLeft,
-                                    child: AnimatedOpacity(
-                                      duration: Duration(milliseconds: isActive ? 260 : 160),
-                                      curve: isActive ? Curves.easeOutCubic : Curves.easeInCubic,
-                                      opacity: isActive ? 1.0 : 0.0,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 6.0),
-                                        child: Text(
-                                          item.label,
-                                          maxLines: 1,
-                                          softWrap: false,
-                                          overflow: TextOverflow.clip,
-                                          style: GoogleFonts.plusJakartaSans(
-                                            color: activeContentColor,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 12.0,
-                                            letterSpacing: -0.2,
-                                          ),
+                            // 2. TEKS LABEL: Mengalir masuk/keluar selaras penuh 280ms
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 280),
+                              curve: Curves.easeOutCubic,
+                              width: isActive ? 68.0 : 0.0,
+                              child: ClipRect(
+                                child: OverflowBox(
+                                  minWidth: 0,
+                                  maxWidth: 90,
+                                  alignment: Alignment.centerLeft,
+                                  child: AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 240),
+                                    curve: Curves.easeOutCubic,
+                                    opacity: isActive ? 1.0 : 0.0,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 6.0),
+                                      child: Text(
+                                        item.label,
+                                        maxLines: 1,
+                                        softWrap: false,
+                                        overflow: TextOverflow.clip,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: activeContentColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.0,
+                                          letterSpacing: -0.2,
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   );
                 }),
+              ),
               ),
             ),
           ),
