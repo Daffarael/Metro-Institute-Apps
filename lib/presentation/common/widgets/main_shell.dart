@@ -115,7 +115,8 @@ class _MainShellState extends State<MainShell> {
           ? PageView(
               controller: _pageController,
               onPageChanged: _onPageChanged,
-              physics: const ClampingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
+                allowImplicitScrolling: true,
               children: const [
                 _KeepAliveTab(child: BasecampScreen()),
                 _KeepAliveTab(child: LearnScreen()),
