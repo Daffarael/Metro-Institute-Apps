@@ -1466,67 +1466,73 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // SEGMENTED TAB BAR (Description vs Lessons, matching reference design)
+  // SEGMENTED TAB BAR (Description vs Lessons, matching reference design 100%)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSegmentedTabBar() {
-    return Row(
-      children: [
-        // Tab 0: Description
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              if (_selectedTab != 0) setState(() => _selectedTab = 0);
-            },
-            behavior: HitTestBehavior.opaque,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeInOutCubic,
-              height: 48,
-              decoration: BoxDecoration(
-                color: _selectedTab == 0 ? const Color(0xFFE2C4F0) : const Color(0xFFEBE8E3),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Description',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.5,
-                  fontWeight: _selectedTab == 0 ? FontWeight.w800 : FontWeight.w600,
-                  color: const Color(0xFF1E1B18),
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBE8E3),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Row(
+        children: [
+          // Tab 0: Description
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (_selectedTab != 0) setState(() => _selectedTab = 0);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOutCubic,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: _selectedTab == 0 ? const Color(0xFFE2C4F0) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Description',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14.5,
+                    fontWeight: _selectedTab == 0 ? FontWeight.w800 : FontWeight.w600,
+                    color: const Color(0xFF1E1B18),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        // Tab 1: Lessons
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              if (_selectedTab != 1) setState(() => _selectedTab = 1);
-            },
-            behavior: HitTestBehavior.opaque,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeInOutCubic,
-              height: 48,
-              decoration: BoxDecoration(
-                color: _selectedTab == 1 ? const Color(0xFFE2C4F0) : const Color(0xFFEBE8E3),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Lessons',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.5,
-                  fontWeight: _selectedTab == 1 ? FontWeight.w800 : FontWeight.w600,
-                  color: const Color(0xFF1E1B18),
+          // Tab 1: Lessons
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (_selectedTab != 1) setState(() => _selectedTab = 1);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOutCubic,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: _selectedTab == 1 ? const Color(0xFFE2C4F0) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Lessons',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14.5,
+                    fontWeight: _selectedTab == 1 ? FontWeight.w800 : FontWeight.w600,
+                    color: const Color(0xFF1E1B18),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1933,7 +1939,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final isLocked = !canPlay;
     final isPlayingSession = _activeSession?['id']?.toString() == session['id']?.toString() && _isPlaying;
 
-    // Duration & Points
+    // Duration & Points (matching exact bold text from reference)
     final durSec = (session['videoDuration'] as num?)?.toInt() ??
         (session['duration'] as num?)?.toInt() ??
         0;
@@ -1944,33 +1950,33 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
     // 4 Pastel Themes from Reference Design (Lavender, Peach, Mint, Sky)
     const badgeThemes = [
-      (badgeBg: Color(0xFFEADBFA), starColor: Color(0xFF8B3FD7)),
-      (badgeBg: Color(0xFFFCE1CE), starColor: Color(0xFFE67E22)),
-      (badgeBg: Color(0xFFD7F5E5), starColor: Color(0xFF10B981)),
+      (badgeBg: Color(0xFFE8D4F5), starColor: Color(0xFF8922A6)),
+      (badgeBg: Color(0xFFFBE2D0), starColor: Color(0xFFD95A11)),
+      (badgeBg: Color(0xFFD7F5E5), starColor: Color(0xFF059669)),
       (badgeBg: Color(0xFFD8EEFD), starColor: Color(0xFF2563EB)),
     ];
     final theme = badgeThemes[globalIndex % badgeThemes.length];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isPlayingSession ? const Color(0xFF143E26) : const Color(0xFFEFECE6),
+          color: isPlayingSession ? const Color(0xFF143E26) : const Color(0xFFEBE6DF),
           width: isPlayingSession ? 1.6 : 1.2,
         ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
-            blurRadius: 10,
-            offset: Offset(0, 3),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         child: InkWell(
           onTap: () {
             if (canPlay) {
@@ -1979,36 +1985,42 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               _promptUnlockCourse(price);
             }
           },
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             child: Row(
               children: [
                 // 1. Squircle Pastel Badge with 3D Rounded Star
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: theme.badgeBg,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(
-                    Icons.star_rounded,
-                    color: theme.starColor,
-                    size: 28,
-                    shadows: [
-                      Shadow(
-                        color: theme.starColor.withValues(alpha: 0.35),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Transform.translate(
+                        offset: const Offset(0, 2.5),
+                        child: Icon(
+                          Icons.star_rounded,
+                          color: theme.starColor.withValues(alpha: 0.35),
+                          size: 30,
+                        ),
+                      ),
+                      Icon(
+                        Icons.star_rounded,
+                        color: theme.starColor,
+                        size: 30,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 14),
 
-                // 2. Title and "+20 points" Subtitle
+                // 2. Title and Bold "+20 points" Subtitle
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2017,7 +2029,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       Text(
                         sessionTitle,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF1E1B18),
                           height: 1.25,
@@ -2025,27 +2037,27 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 5),
                       Text(
                         subtitleText,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF7A736B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E1B18),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
 
                 // 3. Black Squircle Action Box (Checkmark or Lock)
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF181818),
-                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFF141414),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
                   child: Icon(
@@ -2053,7 +2065,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         ? Icons.lock_rounded
                         : (isPlayingSession ? Icons.play_arrow_rounded : Icons.check_rounded),
                     color: Colors.white,
-                    size: isLocked ? 16 : 19,
+                    size: isLocked ? 17 : 22,
                   ),
                 ),
               ],
