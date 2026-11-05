@@ -950,8 +950,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
     if (totalLessons == 0) totalLessons = chapters.isNotEmpty ? chapters.length : 1;
 
-    // Full, immersive height for video container (~40% of screen height)
-    final mediaHeight = MediaQuery.of(context).size.height * 0.40;
+    // Precise calculated height for 100% uncropped 16:9 video + comfortable safe area & controls
+    final topPadding = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final videoHeight = screenWidth * (9 / 16);
+    const topBarHeight = 52.0;
+    const bottomControlsHeight = 64.0;
+    final mediaHeight = topPadding + topBarHeight + videoHeight + bottomControlsHeight;
 
     return Stack(
       children: [
@@ -1054,6 +1059,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // 1. TOP VIDEO CONTAINER (Thumbnail follows card size, Play starts video)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildTopVideoPlayer(double height, String thumbnail, bool isEnrolled, int price) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final videoHeight = screenWidth * (9 / 16);
+    const topBarHeight = 52.0;
+
     // Current duration calculations
     final currentPos = _videoController?.value.position ?? Duration.zero;
     Duration totalDur = _videoController?.value.duration ?? Duration.zero;
@@ -1071,263 +1081,265 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       height: height,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFF231F1C),
+        color: Color(0xFF1E1B18),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ── LAYER 1: VIDEO OR THUMBNAIL (Fills card completely) ─────────────
-          if (_isPlaying) ...[
-            if (_isWebEmbed && _webViewController != null)
-              SizedBox.expand(
-                child: WebViewWidget(controller: _webViewController!),
-              )
-            else if (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized)
-              SizedBox.expand(
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  clipBehavior: Clip.antiAlias,
-                  child: SizedBox(
-                    width: _videoController!.value.size.width,
-                    height: _videoController!.value.size.height,
-                    child: VideoPlayer(_videoController!),
-                  ),
-                ),
-              )
-            else
-              const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              ),
-          ] else ...[
-            // Thumbnail image strictly follows the size of the video card container
-            if (thumbnail.isNotEmpty)
-              CachedNetworkImage(
-                imageUrl: thumbnail,
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(color: const Color(0xFF2B2622)),
-                errorWidget: (context, url, error) => Container(color: const Color(0xFF2B2622)),
-              )
-            else
-              Container(
-                color: const Color(0xFF2B2622),
-                child: const Center(
-                  child: Icon(Icons.play_circle_fill_rounded, color: Colors.white24, size: 64),
-                ),
-              ),
-
-            // Gradient Overlay for readability of buttons and play icon
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [0.0, 0.4, 0.65, 1.0],
-                  colors: [
-                    Color(0x88000000),
-                    Colors.transparent,
-                    Color(0x22000000),
-                    Color(0x99000000),
-                  ],
-                ),
-              ),
-            ),
-
-            // Center Play / Lock Button (Click to start playing or unlock)
-            Center(
-              child: GestureDetector(
-                onTap: () {
-                  if (canPlay) {
-                    _startPlaying();
-                  } else {
-                    _openCheckout(price);
-                  }
-                },
-                child: Container(
-                  width: 66,
-                  height: 66,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.90),
-                    shape: BoxShape.circle,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x33000000),
-                        blurRadius: 20,
-                        offset: Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      canPlay ? Icons.play_arrow_rounded : Icons.lock_outline_rounded,
-                      color: const Color(0xFF1E1B18),
-                      size: canPlay ? 42 : 30,
-                    ),
+          // ── LAYER 0: AMBIENT ATMOSPHERIC BACKDROP (Subtle blur filling background) ──
+          if (thumbnail.isNotEmpty)
+            Positioned.fill(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                child: Opacity(
+                  opacity: 0.35,
+                  child: CachedNetworkImage(
+                    imageUrl: thumbnail,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
             ),
 
-            if (!isEnrolled)
-              Positioned(
-                bottom: 60,
-                left: 20,
-                child: GestureDetector(
-                  onTap: () => _openCheckout(price),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white24, width: 0.8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isSessionFree ? Icons.visibility_outlined : Icons.lock_outline_rounded,
-                          size: 13,
-                          color: isSessionFree ? const Color(0xFF4ADE80) : const Color(0xFFFBBF24),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          isSessionFree ? 'Preview Sesi Gratis' : 'Akses Penuh Terkunci',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Dynamic Timestamp on bottom right (e.g. "12:18 / 28:00")
-            Positioned(
-              bottom: 64,
-              right: 20,
-              child: Text(
-                timestampStr,
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  shadows: const [
-                    Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1)),
-                  ],
-                ),
-              ),
-            ),
-
-            // Floating Frosted Glass Control Pill (Speed, Seekbar, Fullscreen)
-            Positioned(
-              bottom: 12,
-              left: 16,
-              right: 16,
-              child: _buildFrostedControlPill(currentPos, totalDur),
-            ),
-          ],
-
-          // ── LAYER 2: OVERLAY NAVIGATION (Back, Transactions & Bookmark) ─────
+          // ── LAYER 1: TOP NAVIGATION BAR (Comfortably below phone status bar) ───────
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            top: topPadding + 4,
+            left: 16,
+            right: 16,
+            height: topBarHeight - 4,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Back Button
+                InkWell(
+                  onTap: () {
+                    if (_isPlaying) {
+                      setState(() => _isPlaying = false);
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.42),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                    ),
+                    child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Back Button
+                    // Riwayat Transaksi button
                     InkWell(
-                      onTap: () {
-                        if (_isPlaying) {
-                          setState(() => _isPlaying = false);
-                        } else {
-                          Navigator.of(context).pop();
-                        }
-                      },
+                      onTap: () => context.push(AppRoutes.transactions),
                       borderRadius: BorderRadius.circular(24),
                       child: Container(
-                        width: 44,
-                        height: 44,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.38),
+                          color: Colors.black.withValues(alpha: 0.42),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                         ),
-                        child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+                        child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 19),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Bookmark or Fullscreen if playing
+                    if (_isPlaying)
+                      InkWell(
+                        onTap: _playAndEnterLandscape,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.42),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                          ),
+                          child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 22),
+                        ),
+                      )
+                    else
+                      InkWell(
+                        onTap: _toggleWishlist,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.42),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                          ),
+                          child: Icon(
+                            _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                            color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ── LAYER 2: 16:9 VIDEO / THUMBNAIL FRAME (100% visible, uncropped) ─────
+          Positioned(
+            top: topPadding + topBarHeight,
+            left: 0,
+            right: 0,
+            height: videoHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (_isPlaying) ...[
+                  if (_isWebEmbed && _webViewController != null)
+                    WebViewWidget(controller: _webViewController!)
+                  else if (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized)
+                    Center(
+                      child: AspectRatio(
+                        aspectRatio: _videoController!.value.aspectRatio,
+                        child: VideoPlayer(_videoController!),
+                      ),
+                    )
+                  else
+                    const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                ] else ...[
+                  // Crisp 100% fully visible thumbnail — zero cropping!
+                  if (thumbnail.isNotEmpty)
+                    CachedNetworkImage(
+                      imageUrl: thumbnail,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.center,
+                      placeholder: (context, url) => Container(color: Colors.transparent),
+                      errorWidget: (context, url, error) => Container(color: Colors.transparent),
+                    )
+                  else
+                    Container(
+                      color: Colors.transparent,
+                      child: const Center(
+                        child: Icon(Icons.play_circle_fill_rounded, color: Colors.white24, size: 64),
                       ),
                     ),
 
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Riwayat Transaksi button
-                        InkWell(
-                          onTap: () => context.push(AppRoutes.transactions),
-                          borderRadius: BorderRadius.circular(24),
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.38),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  // Center Play / Lock Button (Click to start playing or unlock)
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (canPlay) {
+                          _startPlaying();
+                        } else {
+                          _openCheckout(price);
+                        }
+                      },
+                      child: Container(
+                        width: 62,
+                        height: 62,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.92),
+                          shape: BoxShape.circle,
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x38000000),
+                              blurRadius: 18,
+                              offset: Offset(0, 5),
                             ),
-                            child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 20),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            canPlay ? Icons.play_arrow_rounded : Icons.lock_outline_rounded,
+                            color: const Color(0xFF1E1B18),
+                            size: canPlay ? 38 : 28,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
 
-                        // Bookmark or Fullscreen if playing
-                        if (_isPlaying)
-                          InkWell(
-                            onTap: _playAndEnterLandscape,
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.38),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                              ),
-                              child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 22),
-                            ),
-                          )
-                        else
-                          InkWell(
-                            onTap: _toggleWishlist,
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.38),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                              ),
-                              child: Icon(
-                                _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                                color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
-                                size: 20,
-                              ),
+          // ── LAYER 3: STATUS BADGES (Akses Penuh Terkunci & Timestamp) ────────
+          Positioned(
+            bottom: 54,
+            left: 18,
+            right: 18,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (!isEnrolled)
+                  GestureDetector(
+                    onTap: () => _openCheckout(price),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.65),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white24, width: 0.8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isSessionFree ? Icons.visibility_outlined : Icons.lock_outline_rounded,
+                            size: 13,
+                            color: isSessionFree ? const Color(0xFF4ADE80) : const Color(0xFFFBBF24),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            isSessionFree ? 'Preview Sesi Gratis' : 'Akses Penuh Terkunci',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ],
+                  )
+                else
+                  const SizedBox.shrink(),
+
+                Text(
+                  timestampStr,
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    shadows: const [
+                      Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1)),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
+          ),
+
+          // ── LAYER 4: FLOATING FROSTED CONTROL PILL (Speed, Seekbar, Fullscreen) ─
+          Positioned(
+            bottom: 12,
+            left: 16,
+            right: 16,
+            child: _buildFrostedControlPill(currentPos, totalDur),
           ),
         ],
       ),
