@@ -950,13 +950,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
     if (totalLessons == 0) totalLessons = chapters.isNotEmpty ? chapters.length : 1;
 
-    // Precise calculated height for 100% uncropped 16:9 video + comfortable safe area & controls
+    // Full-bleed seamless 16:9 video container + safe status bar area & bottom curve
     final topPadding = MediaQuery.of(context).padding.top;
     final screenWidth = MediaQuery.of(context).size.width;
     final videoHeight = screenWidth * (9 / 16);
-    const topBarHeight = 52.0;
-    const bottomControlsHeight = 64.0;
-    final mediaHeight = topPadding + topBarHeight + videoHeight + bottomControlsHeight;
+    final mediaHeight = topPadding + videoHeight + 16.0;
 
     return Stack(
       children: [
@@ -1062,7 +1060,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final topPadding = MediaQuery.of(context).padding.top;
     final screenWidth = MediaQuery.of(context).size.width;
     final videoHeight = screenWidth * (9 / 16);
-    const topBarHeight = 52.0;
 
     // Current duration calculations
     final currentPos = _videoController?.value.position ?? Duration.zero;
@@ -1081,20 +1078,20 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       height: height,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFF1E1B18),
+        color: Color(0xFF143E26),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ── LAYER 0: AMBIENT ATMOSPHERIC BACKDROP (Subtle blur filling background) ──
+          // ── LAYER 0: AMBIENT FULL-BLEED ARTWORK (Seamless atmospheric glow) ────
           if (thumbnail.isNotEmpty)
             Positioned.fill(
               child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Opacity(
-                  opacity: 0.35,
+                  opacity: 0.70,
                   child: CachedNetworkImage(
                     imageUrl: thumbnail,
                     fit: BoxFit.cover,
@@ -1103,101 +1100,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ),
 
-          // ── LAYER 1: TOP NAVIGATION BAR (Comfortably below phone status bar) ───────
+          // ── LAYER 1: CRISP 16:9 BANNER ARTWORK (Edge-to-edge, 100% visible) ────
           Positioned(
-            top: topPadding + 4,
-            left: 16,
-            right: 16,
-            height: topBarHeight - 4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back Button
-                InkWell(
-                  onTap: () {
-                    if (_isPlaying) {
-                      setState(() => _isPlaying = false);
-                    } else {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.42),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                    ),
-                    child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
-                  ),
-                ),
-
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Riwayat Transaksi button
-                    InkWell(
-                      onTap: () => context.push(AppRoutes.transactions),
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.42),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                        ),
-                        child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 19),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Bookmark or Fullscreen if playing
-                    if (_isPlaying)
-                      InkWell(
-                        onTap: _playAndEnterLandscape,
-                        borderRadius: BorderRadius.circular(24),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.42),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                          ),
-                          child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 22),
-                        ),
-                      )
-                    else
-                      InkWell(
-                        onTap: _toggleWishlist,
-                        borderRadius: BorderRadius.circular(24),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.42),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                          ),
-                          child: Icon(
-                            _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                            color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // ── LAYER 2: 16:9 VIDEO / THUMBNAIL FRAME (100% visible, uncropped) ─────
-          Positioned(
-            top: topPadding + topBarHeight,
+            top: topPadding,
             left: 0,
             right: 0,
             height: videoHeight,
@@ -1219,7 +1124,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
                 ] else ...[
-                  // Crisp 100% fully visible thumbnail — zero cropping!
+                  // Crisp 100% fully visible thumbnail — zero cropping on left/right!
                   if (thumbnail.isNotEmpty)
                     CachedNetworkImage(
                       imageUrl: thumbnail,
@@ -1277,7 +1182,140 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
           ),
 
-          // ── LAYER 3: STATUS BADGES (Akses Penuh Terkunci & Timestamp) ────────
+          // ── LAYER 2: CINEMATIC GRADIENT VIGNETTES (Seamless top & bottom blends) ─
+          // Top status bar readability vignette
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topPadding + 64,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x99000000),
+                    Color(0x33000000),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Bottom controls readability vignette
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 96,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Color(0x33000000),
+                    Color(0x88000000),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── LAYER 3: TOP NAVIGATION BAR (Sitting elegantly below status bar) ───
+          Positioned(
+            top: topPadding + 6,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Back Button
+                InkWell(
+                  onTap: () {
+                    if (_isPlaying) {
+                      setState(() => _isPlaying = false);
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.38),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                    ),
+                    child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Riwayat Transaksi button
+                    InkWell(
+                      onTap: () => context.push(AppRoutes.transactions),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.38),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                        ),
+                        child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 19),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Bookmark or Fullscreen if playing
+                    if (_isPlaying)
+                      InkWell(
+                        onTap: _playAndEnterLandscape,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.38),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                          ),
+                          child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 22),
+                        ),
+                      )
+                    else
+                      InkWell(
+                        onTap: _toggleWishlist,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.38),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                          ),
+                          child: Icon(
+                            _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                            color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ── LAYER 4: STATUS BADGES (Akses Penuh Terkunci & Timestamp) ────────
           Positioned(
             bottom: 54,
             left: 18,
@@ -1334,7 +1372,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
           ),
 
-          // ── LAYER 4: FLOATING FROSTED CONTROL PILL (Speed, Seekbar, Fullscreen) ─
+          // ── LAYER 5: FLOATING FROSTED CONTROL PILL (Speed, Seekbar, Fullscreen) ─
           Positioned(
             bottom: 12,
             left: 16,
@@ -1349,7 +1387,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // ───────────────────────────────────────────────────────────────────────────
   // Floating Frosted Glass Control Pill
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildFrostedControlPill(Duration currentPos, Duration totalDur) {
+    Widget _buildFrostedControlPill(Duration currentPos, Duration totalDur) {
     final speedLabel = _playbackSpeed == 1.0 ? '1x' : '${_playbackSpeed.toString()}x';
 
     final maxMs = totalDur.inMilliseconds > 0 ? totalDur.inMilliseconds.toDouble() : 1.0;
