@@ -19,6 +19,7 @@ import '../../presentation/features/profile/screens/change_password_screen.dart'
 import '../../presentation/features/notification/screens/notification_screen.dart';
 import '../../presentation/features/leaderboard/screens/leaderboard_screen.dart';
 import '../../presentation/features/webinar/screens/webinar_screen.dart';
+import '../../presentation/features/webinar/screens/inspire_talk_detail_screen.dart';
 import '../../presentation/features/wishlist/screens/wishlist_screen.dart';
 import '../../presentation/features/my_courses/screens/my_courses_screen.dart';
 import '../../presentation/common/widgets/main_shell.dart';
@@ -178,6 +179,26 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.webinar,
         builder: (context, state) => const WebinarScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.webinarDetail,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra as Map<String, dynamic>? ?? {'id': id};
+          return InspireTalkDetailScreen(
+            item: extra,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.inspireTalkDetail,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra as Map<String, dynamic>? ?? {'id': id};
+          return InspireTalkDetailScreen(
+            item: extra,
+          );
+        },
       ),
 
       // ── Wishlist ──────────────────────────────────────────────────────────

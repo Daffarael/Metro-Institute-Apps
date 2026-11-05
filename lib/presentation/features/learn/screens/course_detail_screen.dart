@@ -1537,15 +1537,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           if (willExpand) {
             // Smoothly auto-scroll to focus on the opened lesson & its contents
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              Future.delayed(const Duration(milliseconds: 140), () {
+              Future.delayed(const Duration(milliseconds: 240), () {
                 if (!mounted) return;
                 final currentCtx = chapterKey.currentContext;
                 if (currentCtx != null) {
                   Scrollable.ensureVisible(
                     currentCtx,
-                    duration: const Duration(milliseconds: 400),
+                    duration: const Duration(milliseconds: 450),
                     curve: Curves.easeOutCubic,
-                    alignment: 0.08,
+                    alignment: 0.05,
                   );
                 }
               });

@@ -47,6 +47,8 @@ class AppRoutes {
 
   // ── Webinar ───────────────────────────────────────────────────────────────
   static const String webinar = '/webinar';
+  static const String webinarDetail = '/webinars/:id';
+  static const String inspireTalkDetail = '/inspire-talk/:id';
 
   // ── Rating ────────────────────────────────────────────────────────────────
   static const String ratingReview = '/rating/:courseId';

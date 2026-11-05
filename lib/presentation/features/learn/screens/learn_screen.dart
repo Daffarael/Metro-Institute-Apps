@@ -339,13 +339,25 @@ class _LearnScreenState extends State<LearnScreen> {
     _loadMyClasses();
   }
 
+  bool _isWebinarItem(Map<String, dynamic> item) {
+    if (item['itemType'] == 'WEBINAR' || item['itemType'] == 'INSPIRE_TALK') return true;
+    if (item['scheduledAt'] != null || item['speakerName'] != null || item['eventDate'] != null) return true;
+    final title = (item['title'] ?? '').toString().toLowerCase();
+    final thumb = (item['thumbnailUrl'] ?? item['bannerUrl'] ?? item['thumbnail'] ?? item['image'] ?? '').toString().toLowerCase();
+    if (title.contains('inspire talk') || title.contains('webinar') || thumb.contains('inspire') || thumb.contains('webinar')) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _isBootcampItem(Map<String, dynamic> item) {
+    if (_isWebinarItem(item)) return false;
+    return item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
+  }
+
   void _openItemDetail(Map<String, dynamic> item) {
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' ||
-        item['itemType'] == 'INSPIRE_TALK' ||
-        item['scheduledAt'] != null ||
-        item['speakerName'] != null ||
-        item['eventDate'] != null;
+    final isWebinar = _isWebinarItem(item);
+    final isBootcamp = _isBootcampItem(item);
     if (isWebinar) {
       _openWebinarDetail(item);
     } else if (isBootcamp) {
@@ -1087,12 +1099,8 @@ class _LearnScreenState extends State<LearnScreen> {
 
   Widget _buildSecondaryCardListItem(Map<String, dynamic> item) {
     final title = (item['title'] ?? 'Program').toString();
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' ||
-        item['itemType'] == 'INSPIRE_TALK' ||
-        item['scheduledAt'] != null ||
-        item['speakerName'] != null ||
-        item['eventDate'] != null;
+    final isWebinar = _isWebinarItem(item);
+    final isBootcamp = _isBootcampItem(item);
     final thumbnail = _getItemImage(item);
     final price = _parseItemPrice(item);
     final priceStr = price == 0 ? 'GRATIS' : _formatRupiah(price);
@@ -1260,11 +1268,18 @@ class _LearnScreenState extends State<LearnScreen> {
     // 1. Filter active items based on selected program
     List<dynamic> activeItems = [];
     if (_selectedProgram == 'Mini Course') {
-      activeItems = List.from(_courses);
+      activeItems = _courses.where((it) {
+        final map = it as Map<String, dynamic>;
+        return !_isWebinarItem(map) && !_isBootcampItem(map);
+      }).toList();
     } else if (_selectedProgram == 'Bootcamp') {
-      activeItems = List.from(_bootcamps);
+      activeItems = _bootcamps.where((it) => _isBootcampItem(it as Map<String, dynamic>)).toList();
     } else if (_selectedProgram == 'Inspire Talk' || _selectedProgram == 'Webinar') {
-      activeItems = List.from(_webinars);
+      final webinarsAndCourses = [
+        ..._webinars,
+        ..._courses.where((c) => _isWebinarItem(c as Map<String, dynamic>)),
+      ];
+      activeItems = webinarsAndCourses;
     } else if (_selectedProgram == 'Kelas Saya') {
       activeItems = List.from(_myClasses);
     } else {
@@ -1748,12 +1763,8 @@ class _LearnScreenState extends State<LearnScreen> {
     final rawDesc = (item['shortDescription'] ?? item['description'] ?? '').toString();
     final cleanDesc = rawDesc.replaceAll(RegExp(r'<[^>]*>'), '').trim();
     final field = (item['field'] ?? 'DEVELOPMENT').toString().replaceAll('_', ' ');
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' ||
-        item['itemType'] == 'INSPIRE_TALK' ||
-        item['scheduledAt'] != null ||
-        item['speakerName'] != null ||
-        item['eventDate'] != null;
+    final isWebinar = _isWebinarItem(item);
+    final isBootcamp = _isBootcampItem(item);
     final programType = isWebinar ? 'Inspire Talk' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
     final thumbnail = _getItemImage(item);
     final rating = _parseItemRating(item);
@@ -1905,16 +1916,19 @@ class _LearnScreenState extends State<LearnScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
+                            color: isWebinar ? const Color(0xFFE6F4EA) : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                            border: Border.all(
+                              color: isWebinar ? const Color(0xFFB7E1CD) : const Color(0xFFE2E8F0),
+                              width: 1,
+                            ),
                           ),
                           child: Text(
                             programType.toUpperCase(),
                             style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFF64748B),
+                              color: isWebinar ? const Color(0xFF00584B) : const Color(0xFF64748B),
                               fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: isWebinar ? FontWeight.w800 : FontWeight.w600,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -2110,12 +2124,8 @@ class _LearnScreenState extends State<LearnScreen> {
   Widget _buildSecondaryCard(Map<String, dynamic> item) {
     final title = (item['title'] ?? 'Program Rekomendasi').toString();
     final field = (item['field'] ?? 'DEVELOPMENT').toString().replaceAll('_', ' ');
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' ||
-        item['itemType'] == 'INSPIRE_TALK' ||
-        item['scheduledAt'] != null ||
-        item['speakerName'] != null ||
-        item['eventDate'] != null;
+    final isWebinar = _isWebinarItem(item);
+    final isBootcamp = _isBootcampItem(item);
     final programType = isWebinar ? 'Inspire Talk' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
     final thumbnail = _getItemImage(item);
     final price = _parseItemPrice(item);
