@@ -1009,109 +1009,167 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
                   _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
 
-                  // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons)
+                  // 2. WHITE CONTENT SHEET WITH SIGNATURE HANDLE (Matches reference screenshot 100%)
                   Transform.translate(
-                    offset: const Offset(0, -22),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildStatsCard(timeDisplay, lessonsDisplay, onTapLessons: () => setState(() => _selectedTab = 1)),
-                    ),
-                  ),
-
-                  // 3. COURSE INFO & TABS (Description vs Lessons)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 2, 20, 120),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title Row: "Literature" -> Course / Bootcamp Title + Action Button
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                title,
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: const Color(0xFF1E1B18),
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.4,
-                                  height: 1.25,
+                    offset: const Offset(0, -16),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x0A000000),
+                            blurRadius: 16,
+                            offset: Offset(0, -4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── TOP HANDLE NOTCH (Capsule pill with dark center bar) ──
+                          Center(
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 14, bottom: 10),
+                              width: 62,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE8E3),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              alignment: Alignment.center,
+                              child: Container(
+                                width: 28,
+                                height: 3.5,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4F4D50),
+                                  borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3EFEA),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFE8E3DC)),
-                              ),
-                              child: const Icon(
-                                Icons.calendar_today_rounded,
-                                color: Color(0xFF1E1B18),
-                                size: 19,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
+                          ),
 
-                        // Segmented Tab Bar: "Description" vs "Lessons"
-                        _buildSegmentedTabBar(),
-                        const SizedBox(height: 20),
-
-                        // TAB CONTENT: Description vs Lessons
-                        if (_selectedTab == 0) ...[
-                          // Description text
-                          Text(
-                            description,
-                            style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFF6B655F),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              height: 1.6,
+                          // ── TITLE ROW ("Literature" -> Title + Calendar Icon Button) ──
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    title,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFF1E1B18),
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.4,
+                                      height: 1.25,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                InkWell(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Jadwal belajar fleksibel, dapat diakses kapan saja!',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        backgroundColor: const Color(0xFF1E1B18),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF3EFEA),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.calendar_today_outlined,
+                                      color: Color(0xFF1E1B18),
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 24),
 
-                          // Mentor & Rating Row
-                          _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
-                          const SizedBox(height: 24),
+                          // ── SEGMENTED TAB BAR ("Description" vs "Lessons") ──
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _buildSegmentedTabBar(),
+                          ),
+                          const SizedBox(height: 20),
 
-                          // Course Benefits / Highlights Card
-                          _buildCourseHighlightsCard(),
-                        ] else ...[
-                          // Chapter / Lessons Capsule Cards
-                          if (chapters.isEmpty)
-                            _buildEmptyLessonsPlaceholder()
-                          else
-                            ...chapters.asMap().entries.map((entry) {
-                              final chIndex = entry.key;
-                              final chapter = entry.value as Map<String, dynamic>;
-                              return _buildChapterCapsule(chIndex, chapter, isEnrolled, price);
-                            }),
+                          // ── TAB CONTENT: Description vs Lessons ──
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                            child: _selectedTab == 0
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // 1. STATS CARD: Time & Lessons
+                                      _buildStatsCard(
+                                        timeDisplay,
+                                        lessonsDisplay,
+                                        onTapLessons: () => setState(() => _selectedTab = 1),
+                                      ),
+                                      const SizedBox(height: 20),
+
+                                      // 2. Description text
+                                      Text(
+                                        description,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: const Color(0xFF6B655F),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          height: 1.6,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+
+                                      // 3. Mentor & Rating Row
+                                      _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
+                                      const SizedBox(height: 24),
+
+                                      // 4. Course Benefits / Highlights Card
+                                      _buildCourseHighlightsCard(),
+                                    ],
+                                  )
+                                : _buildLessonsList(chapters, isEnrolled, price),
+                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
 
-      // ── STICKY BOTTOM BAR (Action CTA) ───────────────────────────────────
-      Positioned(
-        bottom: 0,
-        left: 0,
-        right: 0,
-        child: _buildStickyBottomBar(priceStr, price, isEnrolled, chapters),
+          // ── STICKY BOTTOM BAR (Action CTA) ───────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildStickyBottomBar(priceStr, price, isEnrolled, chapters),
+          ),
+        ],
       ),
-    ],
-  ),
-);
+    );
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -1406,89 +1464,64 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // SEGMENTED TAB BAR (Description vs Lessons, matching reference design)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSegmentedTabBar() {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3EFEA),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFEBE6DF)),
-      ),
-      child: Row(
-        children: [
-          // Tab 0: Description
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (_selectedTab != 0) setState(() => _selectedTab = 0);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 240),
-                curve: Curves.easeInOutCubic,
-                decoration: BoxDecoration(
-                  color: _selectedTab == 0 ? const Color(0xFF143E26) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: _selectedTab == 0
-                      ? const [
-                          BoxShadow(
-                            color: Color(0x1F000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Description',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: _selectedTab == 0 ? FontWeight.w700 : FontWeight.w600,
-                    color: _selectedTab == 0 ? Colors.white : const Color(0xFF7A736B),
-                  ),
+    return Row(
+      children: [
+        // Tab 0: Description
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              if (_selectedTab != 0) setState(() => _selectedTab = 0);
+            },
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOutCubic,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _selectedTab == 0 ? const Color(0xFFE2C4F0) : const Color(0xFFEBE8E3),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Description',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.5,
+                  fontWeight: _selectedTab == 0 ? FontWeight.w800 : FontWeight.w600,
+                  color: const Color(0xFF1E1B18),
                 ),
               ),
             ),
           ),
-
-          // Tab 1: Lessons
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (_selectedTab != 1) setState(() => _selectedTab = 1);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 240),
-                curve: Curves.easeInOutCubic,
-                decoration: BoxDecoration(
-                  color: _selectedTab == 1 ? const Color(0xFF143E26) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: _selectedTab == 1
-                      ? const [
-                          BoxShadow(
-                            color: Color(0x1F000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Lessons',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: _selectedTab == 1 ? FontWeight.w700 : FontWeight.w600,
-                    color: _selectedTab == 1 ? Colors.white : const Color(0xFF7A736B),
-                  ),
+        ),
+        const SizedBox(width: 10),
+        // Tab 1: Lessons
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              if (_selectedTab != 1) setState(() => _selectedTab = 1);
+            },
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOutCubic,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _selectedTab == 1 ? const Color(0xFFE2C4F0) : const Color(0xFFEBE8E3),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Lessons',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.5,
+                  fontWeight: _selectedTab == 1 ? FontWeight.w800 : FontWeight.w600,
+                  color: const Color(0xFF1E1B18),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1797,6 +1830,235 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────────────
+  // LESSONS LIST & SQUIRCLE STAR CARDS (Matches reference design 100%)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildLessonsList(List chapters, bool isEnrolled, int price) {
+    if (chapters.isEmpty) {
+      return _buildEmptyLessonsPlaceholder();
+    }
+
+    int globalIndex = 0;
+    final List<Widget> items = [];
+
+    for (int chIndex = 0; chIndex < chapters.length; chIndex++) {
+      final chapter = chapters[chIndex] as Map<String, dynamic>;
+      final chTitle = (chapter['title'] as String?) ?? 'Bab ${chIndex + 1}';
+      final sessions = (chapter['sessions'] as List?) ?? [];
+
+      if (chapters.length > 1) {
+        items.add(
+          Padding(
+            padding: EdgeInsets.only(top: chIndex == 0 ? 0 : 18, bottom: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1E1B18),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    chTitle.toUpperCase(),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF8C827A),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      if (sessions.isEmpty) {
+        items.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Belum ada materi untuk bab ini.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: const Color(0xFF8C827A),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        );
+      }
+
+      for (int sIndex = 0; sIndex < sessions.length; sIndex++) {
+        final session = sessions[sIndex] as Map<String, dynamic>;
+        final currentIndex = globalIndex++;
+        items.add(
+          _buildLessonCard(
+            globalIndex: currentIndex,
+            session: session,
+            isEnrolled: isEnrolled,
+            price: price,
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items,
+    );
+  }
+
+  Widget _buildLessonCard({
+    required int globalIndex,
+    required Map<String, dynamic> session,
+    required bool isEnrolled,
+    required int price,
+  }) {
+    final sessionTitle = (session['title'] as String?)?.trim().isNotEmpty == true
+        ? session['title'] as String
+        : 'Sesi Belajar';
+    final isFree = session['isFreePreview'] == true;
+    final canPlay = isEnrolled || isFree;
+    final isLocked = !canPlay;
+    final isPlayingSession = _activeSession?['id']?.toString() == session['id']?.toString() && _isPlaying;
+
+    // Duration & Points
+    final durSec = (session['videoDuration'] as num?)?.toInt() ??
+        (session['duration'] as num?)?.toInt() ??
+        0;
+    String subtitleText = '+20 points';
+    if (durSec > 0) {
+      subtitleText = '+20 points • ${_formatDuration(Duration(seconds: durSec))}';
+    }
+
+    // 4 Pastel Themes from Reference Design (Lavender, Peach, Mint, Sky)
+    const badgeThemes = [
+      (badgeBg: Color(0xFFEADBFA), starColor: Color(0xFF8B3FD7)),
+      (badgeBg: Color(0xFFFCE1CE), starColor: Color(0xFFE67E22)),
+      (badgeBg: Color(0xFFD7F5E5), starColor: Color(0xFF10B981)),
+      (badgeBg: Color(0xFFD8EEFD), starColor: Color(0xFF2563EB)),
+    ];
+    final theme = badgeThemes[globalIndex % badgeThemes.length];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isPlayingSession ? const Color(0xFF143E26) : const Color(0xFFEFECE6),
+          width: isPlayingSession ? 1.6 : 1.2,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: () {
+            if (canPlay) {
+              _openLearningPlayer(session);
+            } else {
+              _promptUnlockCourse(price);
+            }
+          },
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                // 1. Squircle Pastel Badge with 3D Rounded Star
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: theme.badgeBg,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.star_rounded,
+                    color: theme.starColor,
+                    size: 28,
+                    shadows: [
+                      Shadow(
+                        color: theme.starColor.withValues(alpha: 0.35),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // 2. Title and "+20 points" Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        sessionTitle,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E1B18),
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitleText,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF7A736B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // 3. Black Squircle Action Box (Checkmark or Lock)
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF181818),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    isLocked
+                        ? Icons.lock_rounded
+                        : (isPlayingSession ? Icons.play_arrow_rounded : Icons.check_rounded),
+                    color: Colors.white,
+                    size: isLocked ? 16 : 19,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
   // 3. CHAPTER / LESSONS CAPSULE CARD (ActivityDropdown with smooth animations)
   // ───────────────────────────────────────────────────────────────────────────
