@@ -944,11 +944,42 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
     final chapters = ((_detail?['chapters'] ?? widget.item['chapters']) as List?) ?? [];
     int totalLessons = 0;
+    int totalSec = 0;
     for (final ch in chapters) {
       final sList = (ch['sessions'] as List?) ?? [];
       totalLessons += sList.length;
+      for (final s in sList) {
+        if (s is Map) {
+          final sec = s['videoDuration'];
+          if (sec is num) totalSec += sec.toInt();
+        }
+      }
     }
     if (totalLessons == 0) totalLessons = chapters.isNotEmpty ? chapters.length : 1;
+
+    String timeDisplay = '';
+    final rawDuration = _detail?['duration'] ?? widget.item['duration'];
+    if (rawDuration != null && rawDuration.toString().trim().isNotEmpty) {
+      timeDisplay = rawDuration.toString().trim();
+    } else if (totalSec > 0) {
+      if (totalSec >= 3600) {
+        final hours = totalSec / 3600;
+        timeDisplay = hours >= 10
+            ? '${hours.round()}h'
+            : '${hours.toStringAsFixed(hours.truncateToDouble() == hours ? 0 : 1)}h';
+      } else {
+        timeDisplay = '${(totalSec / 60).round()}m';
+      }
+    } else {
+      final estMinutes = totalLessons * 15;
+      if (estMinutes >= 60) {
+        final h = estMinutes / 60;
+        timeDisplay = '${h.toStringAsFixed(h.truncateToDouble() == h ? 0 : 1)}h';
+      } else {
+        timeDisplay = '${estMinutes}m';
+      }
+    }
+    final lessonsDisplay = '$totalLessons';
 
     // Exact 16:9 video container size (matches thumbnail size)
     final screenWidth = MediaQuery.of(context).size.width;
@@ -975,13 +1006,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
                   _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
 
-              // 2. COURSE INFO & LESSONS (Warm Cream Theme)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 22, 20, 120),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Course Title
+                  // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons)
+                  Transform.translate(
+                    offset: const Offset(0, -22),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildStatsCard(timeDisplay, lessonsDisplay),
+                    ),
+                  ),
+
+                  // 3. COURSE INFO & LESSONS (Warm Cream Theme)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 2, 20, 120),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Course Title
                     Text(
                       title,
                       style: GoogleFonts.plusJakartaSans(
@@ -1347,6 +1387,149 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STATS CAPSULE CARD (Time & Lessons from reference design)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildStatsCard(String timeStr, String lessonsStr) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFEBE6DF), width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0C000000),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // ── LEFT: TIME ─────────────────────────────────────────────────────
+          Expanded(
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/icons/ic_time_alarm.png',
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.alarm_rounded, color: Color(0xFF2E7D32), size: 26),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Time',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6B655F),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        timeStr,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1E1B18),
+                          letterSpacing: -0.6,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── VERTICAL DIVIDER ───────────────────────────────────────────────
+          Container(
+            width: 1,
+            height: 44,
+            color: const Color(0xFFEFECE6),
+            margin: const EdgeInsets.symmetric(horizontal: 10),
+          ),
+
+          // ── RIGHT: LESSONS ──────────────────────────────────────────────────
+          Expanded(
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/icons/ic_lessons_book.png',
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.auto_stories_rounded, color: Color(0xFFE65100), size: 26),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Lessons',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6B655F),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        lessonsStr,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1E1B18),
+                          letterSpacing: -0.6,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
