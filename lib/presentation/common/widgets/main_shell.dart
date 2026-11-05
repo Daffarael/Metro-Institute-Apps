@@ -73,7 +73,7 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _onBottomNavTapped(int index) {
-    if (index >= 0 && index < _routes.length && index != _currentIndex) {
+    if (index >= 0 && index < _routes.length && index != _currentIndex && !_isAnimating) {
       _isAnimating = true;
       setState(() {
         _currentIndex = index;

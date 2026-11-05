@@ -108,7 +108,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
   }
 
   void _selectTab(int newIndex, {bool notify = true}) {
-    if (newIndex == _activeIndex && _animController.isCompleted) return;
+    // Jika tab sudah aktif, abaikan sepenuhnya (tidak ada glitch / reload saat diklik berulang kali)
+    if (newIndex == _activeIndex) return;
+    // Cegah spam klik saat animasi transisi antar tab masih berjalan
+    if (_animController.isAnimating) return;
+
     setState(() {
       _previousIndex = _activeIndex;
       _activeIndex = newIndex;
