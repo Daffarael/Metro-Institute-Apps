@@ -950,22 +950,30 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
     if (totalLessons == 0) totalLessons = chapters.isNotEmpty ? chapters.length : 1;
 
-    // Full-bleed seamless 16:9 video container + safe status bar area & bottom curve
-    final topPadding = MediaQuery.of(context).padding.top;
+    // Exact 16:9 video container size (matches thumbnail size)
     final screenWidth = MediaQuery.of(context).size.width;
     final videoHeight = screenWidth * (9 / 16);
-    final mediaHeight = topPadding + videoHeight + 16.0;
+    final mediaHeight = videoHeight;
 
-    return Stack(
-      children: [
-        // ── Main Scroll View ─────────────────────────────────────────────────
-        SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
-              _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Stack(
+        children: [
+          // ── Main Scroll View ─────────────────────────────────────────────────
+          SafeArea(
+            top: true,
+            bottom: false,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
+                  _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
 
               // 2. COURSE INFO & LESSONS (Warm Cream Theme)
               Padding(
@@ -1041,26 +1049,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ],
           ),
         ),
+      ),
 
-        // ── STICKY BOTTOM BAR (Action CTA) ───────────────────────────────────
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: _buildStickyBottomBar(priceStr, price, isEnrolled, chapters),
-        ),
-      ],
-    );
+      // ── STICKY BOTTOM BAR (Action CTA) ───────────────────────────────────
+      Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: _buildStickyBottomBar(priceStr, price, isEnrolled, chapters),
+      ),
+    ],
+  ),
+);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 1. TOP VIDEO CONTAINER (Thumbnail follows card size, Play starts video)
+  // 1. TOP VIDEO CONTAINER (Exact 16:9 thumbnail size, with signature bottom curve)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildTopVideoPlayer(double height, String thumbnail, bool isEnrolled, int price) {
-    final topPadding = MediaQuery.of(context).padding.top;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final videoHeight = screenWidth * (9 / 16);
-
     // Current duration calculations
     final currentPos = _videoController?.value.position ?? Duration.zero;
     Duration totalDur = _videoController?.value.duration ?? Duration.zero;
@@ -1085,130 +1091,63 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ── LAYER 0: AMBIENT FULL-BLEED ARTWORK (Seamless atmospheric glow) ────
-          if (thumbnail.isNotEmpty)
-            Positioned.fill(
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Opacity(
-                  opacity: 0.70,
-                  child: CachedNetworkImage(
-                    imageUrl: thumbnail,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-
-          // ── LAYER 1: CRISP 16:9 BANNER ARTWORK (Edge-to-edge, 100% visible) ────
-          Positioned(
-            top: topPadding,
-            left: 0,
-            right: 0,
-            height: videoHeight,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (_isPlaying) ...[
-                  if (_isWebEmbed && _webViewController != null)
-                    WebViewWidget(controller: _webViewController!)
-                  else if (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized)
-                    Center(
-                      child: AspectRatio(
-                        aspectRatio: _videoController!.value.aspectRatio,
-                        child: VideoPlayer(_videoController!),
-                      ),
-                    )
-                  else
-                    const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
-                ] else ...[
-                  // Crisp 100% fully visible thumbnail — zero cropping on left/right!
-                  if (thumbnail.isNotEmpty)
-                    CachedNetworkImage(
-                      imageUrl: thumbnail,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.contain,
-                      alignment: Alignment.center,
-                      placeholder: (context, url) => Container(color: Colors.transparent),
-                      errorWidget: (context, url, error) => Container(color: Colors.transparent),
-                    )
-                  else
-                    Container(
-                      color: Colors.transparent,
-                      child: const Center(
-                        child: Icon(Icons.play_circle_fill_rounded, color: Colors.white24, size: 64),
-                      ),
-                    ),
-
-                  // Center Play / Lock Button (Click to start playing or unlock)
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (canPlay) {
-                          _startPlaying();
-                        } else {
-                          _openCheckout(price);
-                        }
-                      },
-                      child: Container(
-                        width: 62,
-                        height: 62,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.92),
-                          shape: BoxShape.circle,
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x38000000),
-                              blurRadius: 18,
-                              offset: Offset(0, 5),
+          // ── LAYER 0: CRISP 16:9 BANNER / VIDEO (100% full-bleed, bottom corners clipped by curve) ──
+          Positioned.fill(
+            child: _isPlaying
+                ? (_isWebEmbed && _webViewController != null
+                    ? WebViewWidget(controller: _webViewController!)
+                    : (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized
+                        ? Center(
+                            child: AspectRatio(
+                              aspectRatio: _videoController!.value.aspectRatio,
+                              child: VideoPlayer(_videoController!),
                             ),
-                          ],
+                          )
+                        : const Center(
+                            child: CircularProgressIndicator(color: Colors.white),
+                          )))
+                : (thumbnail.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: thumbnail,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        placeholder: (context, url) => Container(color: const Color(0xFF143E26)),
+                        errorWidget: (context, url, error) => Container(color: const Color(0xFF143E26)),
+                      )
+                    : Container(
+                        color: const Color(0xFF143E26),
+                        child: const Center(
+                          child: Icon(Icons.play_circle_fill_rounded, color: Colors.white24, size: 64),
                         ),
-                        child: Center(
-                          child: Icon(
-                            canPlay ? Icons.play_arrow_rounded : Icons.lock_outline_rounded,
-                            color: const Color(0xFF1E1B18),
-                            size: canPlay ? 38 : 28,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+                      )),
           ),
 
-          // ── LAYER 2: CINEMATIC GRADIENT VIGNETTES (Seamless top & bottom blends) ─
-          // Top status bar readability vignette
+          // ── LAYER 1: CINEMATIC GRADIENT VIGNETTES ──
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: topPadding + 64,
+            height: 52,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0x99000000),
-                    Color(0x33000000),
+                    Color(0x88000000),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-          // Bottom controls readability vignette
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            height: 96,
+            height: 72,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -1216,19 +1155,54 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Color(0x33000000),
-                    Color(0x88000000),
+                    Color(0x99000000),
                   ],
                 ),
               ),
             ),
           ),
 
-          // ── LAYER 3: TOP NAVIGATION BAR (Sitting elegantly below status bar) ───
+          // ── LAYER 2: CENTER PLAY / LOCK BUTTON ──
+          if (!_isPlaying)
+            Center(
+              child: GestureDetector(
+                onTap: () {
+                  if (canPlay) {
+                    _startPlaying();
+                  } else {
+                    _openCheckout(price);
+                  }
+                },
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    shape: BoxShape.circle,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x38000000),
+                        blurRadius: 18,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      canPlay ? Icons.play_arrow_rounded : Icons.lock_outline_rounded,
+                      color: const Color(0xFF1E1B18),
+                      size: canPlay ? 36 : 26,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // ── LAYER 3: TOP NAVIGATION BAR ──
           Positioned(
-            top: topPadding + 6,
-            left: 16,
-            right: 16,
+            top: 10,
+            left: 14,
+            right: 14,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1241,16 +1215,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       Navigator.of(context).pop();
                     }
                   },
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    width: 42,
-                    height: 42,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.38),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                     ),
-                    child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+                    child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 19),
                   ),
                 ),
 
@@ -1260,16 +1234,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     // Riwayat Transaksi button
                     InkWell(
                       onTap: () => context.push(AppRoutes.transactions),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        width: 42,
-                        height: 42,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.38),
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                         ),
-                        child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 19),
+                        child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 18),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1278,25 +1252,25 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     if (_isPlaying)
                       InkWell(
                         onTap: _playAndEnterLandscape,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(20),
                         child: Container(
-                          width: 42,
-                          height: 42,
+                          width: 38,
+                          height: 38,
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.38),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                           ),
-                          child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 22),
+                          child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 20),
                         ),
                       )
                     else
                       InkWell(
                         onTap: _toggleWishlist,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(20),
                         child: Container(
-                          width: 42,
-                          height: 42,
+                          width: 38,
+                          height: 38,
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.38),
                             shape: BoxShape.circle,
@@ -1305,7 +1279,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           child: Icon(
                             _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
                             color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
-                            size: 20,
+                            size: 19,
                           ),
                         ),
                       ),
@@ -1315,11 +1289,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
           ),
 
-          // ── LAYER 4: STATUS BADGES (Akses Penuh Terkunci & Timestamp) ────────
+          // ── LAYER 4: STATUS BADGES (Akses Penuh Terkunci & Timestamp) ──
           Positioned(
-            bottom: 54,
-            left: 18,
-            right: 18,
+            bottom: 46,
+            left: 16,
+            right: 16,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1327,7 +1301,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   GestureDetector(
                     onTap: () => _openCheckout(price),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.65),
                         borderRadius: BorderRadius.circular(20),
@@ -1338,14 +1312,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         children: [
                           Icon(
                             isSessionFree ? Icons.visibility_outlined : Icons.lock_outline_rounded,
-                            size: 13,
+                            size: 12,
                             color: isSessionFree ? const Color(0xFF4ADE80) : const Color(0xFFFBBF24),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 4),
                           Text(
                             isSessionFree ? 'Preview Sesi Gratis' : 'Akses Penuh Terkunci',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -1361,7 +1335,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   timestampStr,
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 11.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     shadows: const [
                       Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1)),
@@ -1372,11 +1346,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
           ),
 
-          // ── LAYER 5: FLOATING FROSTED CONTROL PILL (Speed, Seekbar, Fullscreen) ─
+          // ── LAYER 5: FLOATING FROSTED CONTROL PILL (Speed, Seekbar, Fullscreen) ──
           Positioned(
-            bottom: 12,
-            left: 16,
-            right: 16,
+            bottom: 10,
+            left: 14,
+            right: 14,
             child: _buildFrostedControlPill(currentPos, totalDur),
           ),
         ],
