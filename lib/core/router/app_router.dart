@@ -36,24 +36,15 @@ class AppRouter {
     return CustomTransitionPage(
       key: key,
       child: child,
-      transitionDuration: const Duration(milliseconds: 320),
-      reverseTransitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: const Duration(milliseconds: 160),
+      reverseTransitionDuration: const Duration(milliseconds: 140),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final curve = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
-        );
-
         return FadeTransition(
-          opacity: curve,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.0, 0.02),
-              end: Offset.zero,
-            ).animate(curve),
-            child: child,
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
           ),
+          child: child,
         );
       },
     );

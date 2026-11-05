@@ -2,7 +2,7 @@
 // File: custom_bottom_nav_bar.dart
 // Deskripsi: Floating Bottom Navigation Bar dengan fisika Framer Motion Spring
 //            (stiffness: 350, damping: 32), whileTap scale 0.97, dock putih bersih,
-//            dan kapsul aktif abu-abu minimalis super clean.
+//            dan transisi matematis konstan (zero jitter, zero layout wobble).
 // ============================================================================
 
 import 'dart:math' as math;
@@ -25,7 +25,7 @@ class FramerSpringCurve extends Curve {
     const omegaD = 9.6961; // omega0 * sqrt(1 - zeta^2)
     final envelope = math.exp(-zeta * omega0 * timeSec);
     final term = math.cos(omegaD * timeSec) + (zeta * omega0 / omegaD) * math.sin(omegaD * timeSec);
-    return 1.0 - envelope * term;
+    return (1.0 - envelope * term).clamp(0.0, 1.0);
   }
 }
 
@@ -57,8 +57,13 @@ class CustomBottomNavBar extends StatefulWidget {
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
 }
 
-class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
+class _CustomBottomNavBarState extends State<CustomBottomNavBar>
+    with SingleTickerProviderStateMixin {
   late int _activeIndex;
+  late int _previousIndex;
+
+  late final AnimationController _animController;
+  late final Animation<double> _springAnimation;
 
   // Lebar maksimal label animasi sesuai acuan Framer Motion MOBILE_LABEL_WIDTH = 72
   static const double _mobileLabelWidth = 72.0;
@@ -98,17 +103,42 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   void initState() {
     super.initState();
     _activeIndex = widget.defaultIndex;
+    _previousIndex = widget.defaultIndex;
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+    _springAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: const FramerSpringCurve(),
+    );
+    _animController.value = 1.0; // Mulai dalam posisi settled
   }
 
   @override
   void didUpdateWidget(covariant CustomBottomNavBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.defaultIndex != oldWidget.defaultIndex) {
-      if (_activeIndex != widget.defaultIndex) {
-        setState(() {
-          _activeIndex = widget.defaultIndex;
-        });
-      }
+    if (widget.defaultIndex != oldWidget.defaultIndex &&
+        widget.defaultIndex != _activeIndex) {
+      _selectTab(widget.defaultIndex, notify: false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _selectTab(int newIndex, {bool notify = true}) {
+    if (newIndex == _activeIndex && _animController.isCompleted) return;
+    setState(() {
+      _previousIndex = _activeIndex;
+      _activeIndex = newIndex;
+    });
+    _animController.forward(from: 0.0);
+    if (notify) {
+      widget.onItemSelected?.call(newIndex);
     }
   }
 
@@ -127,56 +157,96 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
         child: Align(
           alignment: Alignment.bottomCenter,
           child: RepaintBoundary(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Container(
-                height: 54,
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                decoration: BoxDecoration(
-                  color: navBgColor,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: borderColor, width: 1),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x140F172A),
-                      blurRadius: 20,
-                      offset: Offset(0, 6),
-                    ),
-                    BoxShadow(
-                      color: Color(0x060F172A),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(_navItems.length, (idx) {
-                    final item = _navItems[idx];
-                    final isActive = _activeIndex == idx;
+            child: Container(
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              decoration: BoxDecoration(
+                color: navBgColor,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: borderColor, width: 1),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x140F172A),
+                    blurRadius: 20,
+                    offset: Offset(0, 6),
+                  ),
+                  BoxShadow(
+                    color: Color(0x060F172A),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: AnimatedBuilder(
+                animation: _animController,
+                builder: (context, _) {
+                  final t = _springAnimation.value;
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: _NavButton(
-                        key: ValueKey(item.label),
-                        item: item,
-                        isActive: isActive,
-                        activePillColor: activePillColor,
-                        activeContentColor: activeContentColor,
-                        inactiveIconColor: inactiveIconColor,
-                        labelWidth: _mobileLabelWidth,
-                        onTap: () {
-                          if (_activeIndex != idx) {
-                            setState(() {
-                              _activeIndex = idx;
-                            });
-                            widget.onItemSelected?.call(idx);
-                          }
-                        },
-                      ),
-                    );
-                  }),
-                ),
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(_navItems.length, (idx) {
+                      final item = _navItems[idx];
+
+                      // Hitung nilai progress matematis (0.0 sampai 1.0)
+                      // untuk tab ini secara sinkron:
+                      double progress;
+                      if (_animController.isCompleted) {
+                        progress = (idx == _activeIndex) ? 1.0 : 0.0;
+                      } else {
+                        if (idx == _activeIndex) {
+                          progress = t; // Membuka dengan Framer Spring
+                        } else if (idx == _previousIndex) {
+                          progress = 1.0 - t; // Menutup dengan invers presisi
+                        } else {
+                          progress = 0.0; // Diam tidak aktif
+                        }
+                      }
+
+                      // Lebar dinamis label & margin:
+                      // Jumlah lebar tab_membuka + tab_menutup = _mobileLabelWidth konstan sempurna!
+                      final double dynamicLabelWidth =
+                          (_mobileLabelWidth * progress).clamp(0.0, _mobileLabelWidth);
+                      final double dynamicMarginLeft =
+                          (8.0 * progress).clamp(0.0, 8.0);
+
+                      // Opasitas teks: sesuai Framer Motion duration 0.19 (190ms / 320ms = ~0.59)
+                      final double textOpacity;
+                      if (idx == _activeIndex) {
+                        textOpacity = Curves.easeOut
+                            .transform((progress / 0.59).clamp(0.0, 1.0));
+                      } else if (idx == _previousIndex) {
+                        textOpacity = Curves.easeIn
+                            .transform(((progress - 0.41) / 0.59).clamp(0.0, 1.0));
+                      } else {
+                        textOpacity = 0.0;
+                      }
+
+                      // Warna kapsul latar belakang & konten:
+                      final Color pillBgColor = Color.lerp(
+                          Colors.transparent, activePillColor, progress)!;
+                      final Color contentColor = Color.lerp(
+                          inactiveIconColor, activeContentColor, progress)!;
+                      final IconData iconData =
+                          progress >= 0.5 ? item.activeIcon : item.icon;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                        child: _NavButton(
+                          key: ValueKey(item.label),
+                          label: item.label,
+                          icon: iconData,
+                          pillBgColor: pillBgColor,
+                          contentColor: contentColor,
+                          activeContentColor: activeContentColor,
+                          dynamicLabelWidth: dynamicLabelWidth,
+                          dynamicMarginLeft: dynamicMarginLeft,
+                          textOpacity: textOpacity,
+                          onTap: () => _selectTab(idx),
+                        ),
+                      );
+                    }),
+                  );
+                },
               ),
             ),
           ),
@@ -186,89 +256,111 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   }
 }
 
-/// Tombol Navigasi individual dengan whileTap scale 0.97 dan transisi Framer Motion Spring
+/// Tombol Navigasi individual dengan whileTap scale 0.97
 class _NavButton extends StatefulWidget {
-  final NavItem item;
-  final bool isActive;
-  final VoidCallback onTap;
-  final Color activePillColor;
+  final String label;
+  final IconData icon;
+  final Color pillBgColor;
+  final Color contentColor;
   final Color activeContentColor;
-  final Color inactiveIconColor;
-  final double labelWidth;
+  final double dynamicLabelWidth;
+  final double dynamicMarginLeft;
+  final double textOpacity;
+  final VoidCallback onTap;
 
   const _NavButton({
     super.key,
-    required this.item,
-    required this.isActive,
-    required this.onTap,
-    required this.activePillColor,
+    required this.label,
+    required this.icon,
+    required this.pillBgColor,
+    required this.contentColor,
     required this.activeContentColor,
-    required this.inactiveIconColor,
-    required this.labelWidth,
+    required this.dynamicLabelWidth,
+    required this.dynamicMarginLeft,
+    required this.textOpacity,
+    required this.onTap,
   });
 
   @override
   State<_NavButton> createState() => _NavButtonState();
 }
 
-class _NavButtonState extends State<_NavButton> {
-  bool _isPressed = false;
+class _NavButtonState extends State<_NavButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _scaleController;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // whileTap: scale 0.97 halus dan membal natural
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 90),
+      reverseDuration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
+      CurvedAnimation(
+        parent: _scaleController,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
+      onTapDown: (_) => _scaleController.forward(),
+      onTapUp: (_) => _scaleController.reverse(),
+      onTapCancel: () => _scaleController.reverse(),
       onTap: () {
         HapticFeedback.selectionClick();
         widget.onTap();
       },
       behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        // whileTap={{ scale: 0.97 }} persis Framer Motion
-        scale: _isPressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOutCubic,
-        child: AnimatedContainer(
-          // transition-colors duration-200 persis Framer Motion
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
           height: 40.0,
           constraints: const BoxConstraints(minWidth: 44.0),
           padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: widget.isActive ? widget.activePillColor : Colors.transparent,
+            color: widget.pillBgColor,
             borderRadius: BorderRadius.circular(999),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Ikon: Pinned di kiri, tidak bergeser atau bergetar
+              // Ikon: Pinned di posisi awal, tidak bergeser
               Icon(
-                widget.isActive ? widget.item.activeIcon : widget.item.icon,
+                widget.icon,
                 size: 21,
-                color: widget.isActive ? widget.activeContentColor : widget.inactiveIconColor,
+                color: widget.contentColor,
               ),
 
-              // Div Animasi Label: width spring (stiffness: 350, damping: 32), opacity & marginLeft 190ms
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 320),
-                curve: const FramerSpringCurve(),
-                width: widget.isActive ? widget.labelWidth : 0.0,
-                margin: EdgeInsets.only(left: widget.isActive ? 8.0 : 0.0),
-                child: ClipRect(
+              // Margin dinamis antara ikon dan label (0px ke 8px)
+              SizedBox(width: widget.dynamicMarginLeft),
+
+              // Wadah Label animasi dengan kliping rapi (0px ke 72px)
+              ClipRect(
+                child: SizedBox(
+                  width: widget.dynamicLabelWidth,
                   child: OverflowBox(
                     minWidth: 0,
-                    maxWidth: widget.labelWidth,
+                    maxWidth: 72.0,
                     alignment: Alignment.centerLeft,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 190),
-                      curve: Curves.easeOut,
-                      opacity: widget.isActive ? 1.0 : 0.0,
+                    child: Opacity(
+                      opacity: widget.textOpacity,
                       child: Text(
-                        widget.item.label,
+                        widget.label,
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.clip,

@@ -5,7 +5,7 @@ import 'custom_bottom_nav_bar.dart';
 
 /// MainShell — Persistent bottom navigation shell for Metro Institute Mobile.
 /// Uses CustomBottomNavBar (Clean White Floating Pill with minimalist neutral grey
-/// active focus, fixed active width, and calm smooth text animation).
+/// active focus, fixed active width, dan transisi Framer Motion spring halus).
 class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.child});
 
@@ -38,7 +38,11 @@ class MainShell extends StatelessWidget {
         defaultIndex: currentIndex,
         onItemSelected: (index) {
           if (index >= 0 && index < _routes.length) {
-            context.go(_routes[index]);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                context.go(_routes[index]);
+              }
+            });
           }
         },
       ),
