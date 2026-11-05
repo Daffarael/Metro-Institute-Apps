@@ -39,6 +39,76 @@ class CourseDetailScreen extends StatefulWidget {
   State<CourseDetailScreen> createState() => _CourseDetailScreenState();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SCOOPED NOTCH CARD DECORATION & PAINTER (Matches reference screenshot 100%)
+// ─────────────────────────────────────────────────────────────────────────────
+class ScoopedCardDecoration extends StatelessWidget {
+  final Widget child;
+
+  const ScoopedCardDecoration({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _ScoopedCardPainter(),
+      child: child,
+    );
+  }
+}
+
+class _ScoopedCardPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    const r = 32.0;
+    const nw = 84.0;
+    const nd = 16.0;
+    const sr = 14.0;
+    final cx = w / 2;
+
+    final path = Path()
+      ..moveTo(0, r)
+      ..arcToPoint(const Offset(r, 0), radius: const Radius.circular(r))
+      ..lineTo(cx - nw / 2 - sr, 0)
+      ..cubicTo(
+        cx - nw / 2, 0,
+        cx - nw / 2, nd,
+        cx - nw / 2 + sr, nd,
+      )
+      ..lineTo(cx + nw / 2 - sr, nd)
+      ..cubicTo(
+        cx + nw / 2, nd,
+        cx + nw / 2, 0,
+        cx + nw / 2 + sr, 0,
+      )
+      ..lineTo(w - r, 0)
+      ..arcToPoint(Offset(w, r), radius: const Radius.circular(r))
+      ..lineTo(w, h)
+      ..lineTo(0, h)
+      ..close();
+
+    // 1. Soft Shadow
+    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.08), 8.0, false);
+
+    // 2. White Fill
+    final fillPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(path, fillPaint);
+
+    // 3. Subtle Border
+    final borderPaint = Paint()
+      ..color = const Color(0xFFEBE6DF)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(path, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
   final CourseRemoteDataSource _courseDs = sl<CourseRemoteDataSource>();
   final BootcampRemoteDataSource _bootcampDs = sl<BootcampRemoteDataSource>();
@@ -1022,47 +1092,37 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     ),
                   ),
 
-                  // 3. WHITE CONTENT SHEET WITH DRAGGABLE HANDLE NOTCH ("fitur yang menandakan bisa naik turun")
+                  // 3. WHITE CONTENT SHEET WITH SIGNATURE SCOOPED NOTCH HANDLE & LESSONS
                   Transform.translate(
                     offset: const Offset(0, -10),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x0A000000),
-                            blurRadius: 18,
-                            offset: Offset(0, -4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ── TOP DRAG HANDLE PILL ("fitur yang menandakan bisa naik turun" - matches media_1793919982640_791e013f.png) ──
-                          Center(
-                            child: Container(
-                              margin: const EdgeInsets.only(top: 14, bottom: 8),
-                              width: 60,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEDE8E3),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFE4DFD8), width: 0.8),
-                              ),
-                              alignment: Alignment.center,
+                    child: ScoopedCardDecoration(
+                      child: Container(
+                        width: double.infinity,
+                        color: Colors.transparent,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ── TOP HANDLE NOTCH (Nestled in the scooped dip) ──
+                            Center(
                               child: Container(
-                                width: 26,
-                                height: 3.5,
+                                margin: const EdgeInsets.only(top: 8, bottom: 8),
+                                width: 60,
+                                height: 16,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF4F4D50),
-                                  borderRadius: BorderRadius.circular(2),
+                                  color: const Color(0xFFEDE8E3),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                alignment: Alignment.center,
+                                child: Container(
+                                  width: 26,
+                                  height: 3.5,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4F4D50),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
                           // ── TITLE ROW ("Literature" -> Title + Calendar Icon Button) ──
                           Padding(
@@ -1161,6 +1221,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       ),
                     ),
                   ),
+                ),
                 ],
               ),
             ),
@@ -1467,18 +1528,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // SEGMENTED TAB BAR (Productivity vs Daily Plan, matching reference design 100%)
+  // SEGMENTED TAB BAR (Description vs Lessons, matching reference design 100%)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSegmentedTabBar() {
     return Container(
-      height: 50,
+      height: 52,
       decoration: BoxDecoration(
         color: const Color(0xFFEBE8E3),
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(26),
       ),
       child: Row(
         children: [
-          // Tab 0: Productivity (Description)
+          // Tab 0: Description
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -1488,14 +1549,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeInOutCubic,
-                height: 50,
+                height: 52,
                 decoration: BoxDecoration(
                   color: _selectedTab == 0 ? const Color(0xFFE2C4F0) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(26),
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'Productivity',
+                  'Description',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14.5,
                     fontWeight: _selectedTab == 0 ? FontWeight.w800 : FontWeight.w600,
@@ -1505,7 +1566,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ),
           ),
-          // Tab 1: Daily Plan (Lessons)
+          // Tab 1: Lessons
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -1515,14 +1576,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeInOutCubic,
-                height: 50,
+                height: 52,
                 decoration: BoxDecoration(
                   color: _selectedTab == 1 ? const Color(0xFFE2C4F0) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(26),
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'Daily Plan',
+                  'Lessons',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14.5,
                     fontWeight: _selectedTab == 1 ? FontWeight.w800 : FontWeight.w600,
