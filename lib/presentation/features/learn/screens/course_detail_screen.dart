@@ -59,6 +59,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
 
+  // Selected Tab: 0 = Description, 1 = Lessons
+  int _selectedTab = 0;
+
   // Track expanded chapters
   final Set<int> _expandedChapters = {0};
   // Chapter GlobalKeys for auto-scroll and focus
@@ -1011,81 +1014,89 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     offset: const Offset(0, -22),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildStatsCard(timeDisplay, lessonsDisplay),
+                      child: _buildStatsCard(timeDisplay, lessonsDisplay, onTapLessons: () => setState(() => _selectedTab = 1)),
                     ),
                   ),
 
-                  // 3. COURSE INFO & LESSONS (Warm Cream Theme)
+                  // 3. COURSE INFO & TABS (Description vs Lessons)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 2, 20, 120),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Course Title
-                    Text(
-                      title,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: const Color(0xFF1E1B18),
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.4,
-                        height: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Course Description
-                    Text(
-                      description,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: const Color(0xFF6B655F),
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w400,
-                        height: 1.55,
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    // Mentor & Rating Row
-                    _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
-                    const SizedBox(height: 28),
-
-                    // Lessons Header Row (Left: "Lessons", Right: total count e.g. "14")
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Lessons',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF1E1B18),
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        // Title Row: "Literature" -> Course / Bootcamp Title + Action Button
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: const Color(0xFF1E1B18),
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.4,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3EFEA),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE8E3DC)),
+                              ),
+                              child: const Icon(
+                                Icons.calendar_today_rounded,
+                                color: Color(0xFF1E1B18),
+                                size: 19,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          '$totalLessons',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF9E948A),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(height: 18),
+
+                        // Segmented Tab Bar: "Description" vs "Lessons"
+                        _buildSegmentedTabBar(),
+                        const SizedBox(height: 20),
+
+                        // TAB CONTENT: Description vs Lessons
+                        if (_selectedTab == 0) ...[
+                          // Description text
+                          Text(
+                            description,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(0xFF6B655F),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              height: 1.6,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 24),
+
+                          // Mentor & Rating Row
+                          _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
+                          const SizedBox(height: 24),
+
+                          // Course Benefits / Highlights Card
+                          _buildCourseHighlightsCard(),
+                        ] else ...[
+                          // Chapter / Lessons Capsule Cards
+                          if (chapters.isEmpty)
+                            _buildEmptyLessonsPlaceholder()
+                          else
+                            ...chapters.asMap().entries.map((entry) {
+                              final chIndex = entry.key;
+                              final chapter = entry.value as Map<String, dynamic>;
+                              return _buildChapterCapsule(chIndex, chapter, isEnrolled, price);
+                            }),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 14),
-
-                    // Chapter / Lessons Capsule Cards
-                    if (chapters.isEmpty)
-                      _buildEmptyLessonsPlaceholder()
-                    else
-                      ...chapters.asMap().entries.map((entry) {
-                        final chIndex = entry.key;
-                        final chapter = entry.value as Map<String, dynamic>;
-                        return _buildChapterCapsule(chIndex, chapter, isEnrolled, price);
-                      }),
-                  ],
-                ),
-              ),
+                  ),
             ],
           ),
         ),
@@ -1392,9 +1403,166 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
+  // SEGMENTED TAB BAR (Description vs Lessons, matching reference design)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildSegmentedTabBar() {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EFEA),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFEBE6DF)),
+      ),
+      child: Row(
+        children: [
+          // Tab 0: Description
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (_selectedTab != 0) setState(() => _selectedTab = 0);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeInOutCubic,
+                decoration: BoxDecoration(
+                  color: _selectedTab == 0 ? const Color(0xFF143E26) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: _selectedTab == 0
+                      ? const [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Description',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: _selectedTab == 0 ? FontWeight.w700 : FontWeight.w600,
+                    color: _selectedTab == 0 ? Colors.white : const Color(0xFF7A736B),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Tab 1: Lessons
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (_selectedTab != 1) setState(() => _selectedTab = 1);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeInOutCubic,
+                decoration: BoxDecoration(
+                  color: _selectedTab == 1 ? const Color(0xFF143E26) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: _selectedTab == 1
+                      ? const [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Lessons',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: _selectedTab == 1 ? FontWeight.w700 : FontWeight.w600,
+                    color: _selectedTab == 1 ? Colors.white : const Color(0xFF7A736B),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // COURSE HIGHLIGHTS / BENEFITS (Shown inside Description Tab)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildCourseHighlightsCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEBE6DF)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Keunggulan Program',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1E1B18),
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildHighlightItem(Icons.all_inclusive_rounded, 'Akses materi selamanya tanpa batas'),
+          const SizedBox(height: 10),
+          _buildHighlightItem(Icons.verified_rounded, 'Sertifikat resmi kelulusan Metro Institute'),
+          const SizedBox(height: 10),
+          _buildHighlightItem(Icons.forum_rounded, 'Grup diskusi komunitas belajar & mentoring'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlightItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF143E26), size: 18),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF4A453E),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
   // STATS CAPSULE CARD (Time & Lessons from reference design)
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildStatsCard(String timeStr, String lessonsStr) {
+  Widget _buildStatsCard(String timeStr, String lessonsStr, {VoidCallback? onTapLessons}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -1479,9 +1647,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
           // ── RIGHT: LESSONS ──────────────────────────────────────────────────
           Expanded(
-            child: Row(
-              children: [
-                Image.asset(
+            child: GestureDetector(
+              onTap: onTapLessons,
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                children: [
+                  Image.asset(
                   'assets/icons/ic_lessons_book.png',
                   width: 44,
                   height: 44,
@@ -1529,9 +1700,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ],
             ),
           ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+  );
   }
 
   // ───────────────────────────────────────────────────────────────────────────
