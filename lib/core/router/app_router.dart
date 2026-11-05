@@ -33,20 +33,9 @@ class AppRouter {
     required LocalKey key,
     required Widget child,
   }) {
-    return CustomTransitionPage(
+    return NoTransitionPage(
       key: key,
       child: child,
-      transitionDuration: const Duration(milliseconds: 160),
-      reverseTransitionDuration: const Duration(milliseconds: 140),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOut,
-          ),
-          child: child,
-        );
-      },
     );
   }
 
