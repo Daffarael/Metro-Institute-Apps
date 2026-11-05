@@ -100,7 +100,7 @@ class _WebinarScreenState extends State<WebinarScreen>
                     children: [
                       const SizedBox(height: 20),
                       Text(
-                        'Webinar & Workshop',
+                        'Inspire Talk',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -110,7 +110,7 @@ class _WebinarScreenState extends State<WebinarScreen>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Sesi live interaktif bersama pakar industri',
+                        'Sesi live interaktif bersama praktisi industri',
                         style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
                       ),
                     ],
@@ -150,8 +150,8 @@ class _WebinarScreenState extends State<WebinarScreen>
                   indicatorColor: AppColors.primary,
                   indicatorWeight: 2.5,
                   tabs: [
-                    const Tab(text: 'Jelajahi Webinar'),
-                    Tab(text: 'Webinar Saya (${_myWebinars.length})'),
+                    const Tab(text: 'Jelajahi Inspire Talk'),
+                    Tab(text: 'Inspire Talk Saya (${_myWebinars.length})'),
                   ],
                 ),
               ),

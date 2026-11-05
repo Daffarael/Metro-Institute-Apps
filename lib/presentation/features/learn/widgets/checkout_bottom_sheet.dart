@@ -115,7 +115,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       case 'BOOTCAMP':
         return 'BOOTCAMP INTENSIF';
       case 'WEBINAR':
-        return 'WEBINAR SPESIAL';
+        return 'INSPIRE TALK';
       default:
         return 'MINI COURSE';
     }

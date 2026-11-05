@@ -12,6 +12,7 @@ import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
 import '../../../../data/datasources/remote/wishlist_remote_datasource.dart';
 import 'course_detail_screen.dart';
 import '../widgets/clean_combobox.dart';
+import '../widgets/checkout_bottom_sheet.dart';
 
 /// LearnScreen — Ruang Belajar Discovery page:
 /// • Clean Search Bar with dark charcoal cursor (NO green color)
@@ -66,7 +67,7 @@ class _LearnScreenState extends State<LearnScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String? _selectedField; // null or 'ALL' = Semua
-  String _selectedProgram = 'Semua'; // 'Semua', 'Mini Course', 'Bootcamp', 'Webinar', 'Kelas Saya'
+  String _selectedProgram = 'Semua'; // 'Semua', 'Mini Course', 'Bootcamp', 'Inspire Talk', 'Kelas Saya'
   String? _activeSortFilter; // null, 'rating', 'price_high', 'price_low'
   double _minRating = 0.0; // Slider: 0.0 to 5.0 (0.0 = Semua)
   RangeValues? _priceRange; // RangeSlider: min to max (null = rentang penuh)
@@ -119,10 +120,11 @@ class _LearnScreenState extends State<LearnScreen> {
     if (_cachedCourses == null) setState(() => _isLoading = true);
     try {
       final list = await _courseDs.getCourses(field: _selectedField);
-      _cachedCourses = list;
+      final mapped = list.map((c) => {...(c as Map<String, dynamic>), 'itemType': 'MINI_COURSE'}).toList();
+      _cachedCourses = mapped;
       if (!mounted) return;
       setState(() {
-        _courses = list;
+        _courses = mapped;
         _isLoading = false;
       });
     } catch (_) {
@@ -134,10 +136,11 @@ class _LearnScreenState extends State<LearnScreen> {
     if (_cachedBootcamps == null) setState(() => _isLoading = true);
     try {
       final list = await _bootcampDs.getBootcamps(field: _selectedField);
-      _cachedBootcamps = list;
+      final mapped = list.map((b) => {...(b as Map<String, dynamic>), 'itemType': 'BOOTCAMP'}).toList();
+      _cachedBootcamps = mapped;
       if (!mounted) return;
       setState(() {
-        _bootcamps = list;
+        _bootcamps = mapped;
         _isLoading = false;
       });
     } catch (_) {
@@ -149,10 +152,11 @@ class _LearnScreenState extends State<LearnScreen> {
     if (_cachedWebinars == null) setState(() => _isLoading = true);
     try {
       final list = await _webinarDs.getWebinars();
-      _cachedWebinars = list;
+      final mapped = list.map((w) => {...(w as Map<String, dynamic>), 'itemType': 'WEBINAR'}).toList();
+      _cachedWebinars = mapped;
       if (!mounted) return;
       setState(() {
-        _webinars = list;
+        _webinars = mapped;
         _isLoading = false;
       });
     } catch (_) {
@@ -320,12 +324,35 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   void _openItemDetail(Map<String, dynamic> item) {
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' || item['eventDate'] != null;
+    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
+    final isWebinar = item['itemType'] == 'WEBINAR' ||
+        item['itemType'] == 'INSPIRE_TALK' ||
+        item['scheduledAt'] != null ||
+        item['speakerName'] != null ||
+        item['eventDate'] != null;
     if (isWebinar) {
       final wid = item['id']?.toString() ?? '';
-      final wtitle = item['title']?.toString() ?? 'Webinar';
-      _openWebinarAttendanceDialog(wid, wtitle);
+      final wtitle = item['title']?.toString() ?? 'Inspire Talk';
+      if (_isItemEnrolled(item)) {
+        _openWebinarAttendanceDialog(wid, wtitle);
+      } else {
+        final price = _parseItemPrice(item);
+        final thumbnail = _getItemImage(item);
+        final speakerName = item['speakerName'] as String?;
+        CheckoutBottomSheet.show(
+          context,
+          title: wtitle,
+          price: price,
+          productType: 'WEBINAR',
+          productId: wid,
+          thumbnailUrl: thumbnail,
+          subtitle: speakerName != null ? 'Pembicara: $speakerName' : null,
+          onSuccess: () {
+            _loadWebinars();
+            _loadMyClasses();
+          },
+        );
+      }
     } else if (isBootcamp) {
       _openBootcampDetail(item);
     } else {
@@ -465,7 +492,7 @@ class _LearnScreenState extends State<LearnScreen> {
       return _courses;
     } else if (_selectedProgram == 'Bootcamp') {
       return _bootcamps;
-    } else if (_selectedProgram == 'Webinar') {
+    } else if (_selectedProgram == 'Inspire Talk' || _selectedProgram == 'Webinar') {
       return _webinars;
     } else if (_selectedProgram == 'Kelas Saya') {
       return _myClasses;
@@ -1065,14 +1092,18 @@ class _LearnScreenState extends State<LearnScreen> {
 
   Widget _buildSecondaryCardListItem(Map<String, dynamic> item) {
     final title = (item['title'] ?? 'Program').toString();
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' || item['eventDate'] != null;
+    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
+    final isWebinar = item['itemType'] == 'WEBINAR' ||
+        item['itemType'] == 'INSPIRE_TALK' ||
+        item['scheduledAt'] != null ||
+        item['speakerName'] != null ||
+        item['eventDate'] != null;
     final thumbnail = _getItemImage(item);
     final price = _parseItemPrice(item);
     final priceStr = price == 0 ? 'GRATIS' : _formatRupiah(price);
     final rating = _parseItemRating(item);
     final reviewCount = (item['reviewCount'] ?? 12).toString();
-    final duration = isWebinar ? 'Webinar Live' : (isBootcamp ? '8 Minggu' : '12 Materi');
+    final duration = isWebinar ? 'Live Session' : (isBootcamp ? '8 Minggu' : '12 Materi');
     final isEnrolled = _isItemEnrolled(item);
 
     return GestureDetector(
@@ -1237,7 +1268,7 @@ class _LearnScreenState extends State<LearnScreen> {
       activeItems = List.from(_courses);
     } else if (_selectedProgram == 'Bootcamp') {
       activeItems = List.from(_bootcamps);
-    } else if (_selectedProgram == 'Webinar') {
+    } else if (_selectedProgram == 'Inspire Talk' || _selectedProgram == 'Webinar') {
       activeItems = List.from(_webinars);
     } else if (_selectedProgram == 'Kelas Saya') {
       activeItems = List.from(_myClasses);
@@ -1490,7 +1521,7 @@ class _LearnScreenState extends State<LearnScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: [
-                        // Program Combobox (Semua, Mini Course, Bootcamp, Webinar, Kelas Saya)
+                        // Program Combobox (Semua, Mini Course, Bootcamp, Inspire Talk, Kelas Saya)
                         Expanded(
                           child: CleanCombobox(
                             value: _selectedProgram,
@@ -1499,7 +1530,7 @@ class _LearnScreenState extends State<LearnScreen> {
                               ComboboxOption(value: 'Semua', label: 'Semua Program'),
                               ComboboxOption(value: 'Mini Course', label: 'Mini Course'),
                               ComboboxOption(value: 'Bootcamp', label: 'Bootcamp'),
-                              ComboboxOption(value: 'Webinar', label: 'Webinar'),
+                              ComboboxOption(value: 'Inspire Talk', label: 'Inspire Talk'),
                               ComboboxOption(value: 'Kelas Saya', label: 'Kelas Saya'),
                             ],
                             onChanged: (val) {
@@ -1722,9 +1753,13 @@ class _LearnScreenState extends State<LearnScreen> {
     final rawDesc = (item['shortDescription'] ?? item['description'] ?? '').toString();
     final cleanDesc = rawDesc.replaceAll(RegExp(r'<[^>]*>'), '').trim();
     final field = (item['field'] ?? 'DEVELOPMENT').toString().replaceAll('_', ' ');
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' || item['eventDate'] != null;
-    final programType = isWebinar ? 'Webinar' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
+    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
+    final isWebinar = item['itemType'] == 'WEBINAR' ||
+        item['itemType'] == 'INSPIRE_TALK' ||
+        item['scheduledAt'] != null ||
+        item['speakerName'] != null ||
+        item['eventDate'] != null;
+    final programType = isWebinar ? 'Inspire Talk' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
     final thumbnail = _getItemImage(item);
     final rating = _parseItemRating(item);
     final reviewCount = (item['reviewCount'] ?? 143).toString();
@@ -1733,7 +1768,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final isEnrolled = _isItemEnrolled(item);
     final price = _parseItemPrice(item);
     final priceStr = price == 0 ? 'Gratis' : _formatRupiah(price);
-    final duration = isWebinar ? 'Webinar Live' : (isBootcamp ? '8 Minggu' : '12 Materi');
+    final duration = isWebinar ? 'Live Session' : (isBootcamp ? '8 Minggu' : '12 Materi');
 
     return GestureDetector(
       onTap: () => _openItemDetail(item),
@@ -2078,15 +2113,19 @@ class _LearnScreenState extends State<LearnScreen> {
   Widget _buildSecondaryCard(Map<String, dynamic> item) {
     final title = (item['title'] ?? 'Program Rekomendasi').toString();
     final field = (item['field'] ?? 'DEVELOPMENT').toString().replaceAll('_', ' ');
-    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null;
-    final isWebinar = item['itemType'] == 'WEBINAR' || item['eventDate'] != null;
-    final programType = isWebinar ? 'Webinar' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
+    final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
+    final isWebinar = item['itemType'] == 'WEBINAR' ||
+        item['itemType'] == 'INSPIRE_TALK' ||
+        item['scheduledAt'] != null ||
+        item['speakerName'] != null ||
+        item['eventDate'] != null;
+    final programType = isWebinar ? 'Inspire Talk' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
     final thumbnail = _getItemImage(item);
     final price = _parseItemPrice(item);
     final priceStr = price == 0 ? 'Gratis' : _formatRupiah(price);
     final rating = _parseItemRating(item);
     final reviewCount = (item['reviewCount'] ?? 56).toString();
-    final duration = isWebinar ? 'Webinar Live' : (isBootcamp ? '8 Minggu' : '12 Materi');
+    final duration = isWebinar ? 'Live Session' : (isBootcamp ? '8 Minggu' : '12 Materi');
     final id = item['id']?.toString() ?? '';
     final isWishlisted = _wishlistIds.contains(id);
     final isEnrolled = _isItemEnrolled(item);

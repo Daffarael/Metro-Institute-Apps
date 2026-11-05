@@ -61,6 +61,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   // Track expanded chapters
   final Set<int> _expandedChapters = {0};
+  // Chapter GlobalKeys for auto-scroll and focus
+  final Map<int, GlobalKey> _chapterKeys = {};
 
   // Fullscreen Landscape Controls
   bool _showLandscapeControls = true;
@@ -433,29 +435,200 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void _promptUnlockCourse(int price) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
+    final priceStr = price == 0
+        ? 'Gratis'
+        : 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).padding.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 10),
-            const Expanded(
+            // Drag indicator handle
+            Container(
+              width: 44,
+              height: 4.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            // Lock Icon with premium gold / emerald container
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFEF3C7), width: 2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x12D97706),
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.lock_rounded,
+                  color: Color(0xFFD97706),
+                  size: 32,
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Title
+            Text(
+              'Materi Ini Terkunci',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A),
+                letterSpacing: -0.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+
+            // Subtitle
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                'Materi ini terkunci. Beli kelas untuk akses seluruh materi & sertifikat.',
-                style: TextStyle(fontSize: 12.5),
+                'Sesi ini adalah materi premium. Beli kelas untuk membuka seluruh video pembelajaran, kuis evaluasi, studi kasus, serta sertifikat resmi.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  color: const Color(0xFF64748B),
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Benefit Checklist (Metro Institute Card)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+              ),
+              child: Column(
+                children: [
+                  _buildLockPerkRow(Icons.play_circle_outline_rounded, 'Akses penuh ke semua video & modul praktikum'),
+                  const SizedBox(height: 10),
+                  _buildLockPerkRow(Icons.quiz_outlined, 'Latihan kuis interaktif & studi kasus terstruktur'),
+                  const SizedBox(height: 10),
+                  _buildLockPerkRow(Icons.verified_outlined, 'Sertifikat resmi kelulusan Metro Institute'),
+                  const SizedBox(height: 10),
+                  _buildLockPerkRow(Icons.forum_outlined, 'Akses jaringan komunitas & diskusi Discord'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            // Primary CTA Button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _openCheckout(price);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00584B),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.shopping_bag_outlined, size: 20, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      price > 0 ? 'Beli Kelas Sekarang • $priceStr' : 'Ambil Kelas Sekarang',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Secondary dismiss button
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF94A3B8),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+              ),
+              child: Text(
+                'Nanti Dulu',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                ),
               ),
             ),
           ],
         ),
-        action: SnackBarAction(
-          label: 'Beli Sekarang',
-          textColor: const Color(0xFFFBBF24),
-          onPressed: () => _openCheckout(price),
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
       ),
+    );
+  }
+
+  Widget _buildLockPerkRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE6F4EA),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Icon(
+              icon,
+              color: const Color(0xFF00584B),
+              size: 15,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF334155),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1342,36 +1515,60 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // 3. CHAPTER / LESSONS CAPSULE CARD (ActivityDropdown with smooth animations)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildChapterCapsule(int index, Map<String, dynamic> chapter, bool isEnrolled, int price) {
-    return ChapterActivityDropdown(
-      index: index,
-      chapter: chapter,
-      isExpanded: _expandedChapters.contains(index),
-      activeSessionId: _activeSession?['id']?.toString(),
-      onToggle: () {
-        setState(() {
-          if (_expandedChapters.contains(index)) {
-            _expandedChapters.remove(index);
-          } else {
-            _expandedChapters.add(index);
-          }
-        });
+    final chapterKey = _chapterKeys.putIfAbsent(index, () => GlobalKey());
 
-        // Select first session if none selected yet
-        final sessions = (chapter['sessions'] as List?) ?? [];
-        if (sessions.isNotEmpty && _activeSession?['id'] == null) {
-          final first = sessions.first as Map<String, dynamic>;
-          if (isEnrolled || first['isFreePreview'] == true) {
-            _loadSessionVideo(first, autoPlay: false);
+    return Container(
+      key: chapterKey,
+      child: ChapterActivityDropdown(
+        index: index,
+        chapter: chapter,
+        isExpanded: _expandedChapters.contains(index),
+        activeSessionId: _activeSession?['id']?.toString(),
+        onToggle: () {
+          final willExpand = !_expandedChapters.contains(index);
+          setState(() {
+            if (willExpand) {
+              _expandedChapters.add(index);
+            } else {
+              _expandedChapters.remove(index);
+            }
+          });
+
+          if (willExpand) {
+            // Smoothly auto-scroll to focus on the opened lesson & its contents
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Future.delayed(const Duration(milliseconds: 140), () {
+                if (!mounted) return;
+                final currentCtx = chapterKey.currentContext;
+                if (currentCtx != null) {
+                  Scrollable.ensureVisible(
+                    currentCtx,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOutCubic,
+                    alignment: 0.08,
+                  );
+                }
+              });
+            });
           }
-        }
-      },
-      onSelectSession: (session) {
-        if (isEnrolled || session['isFreePreview'] == true) {
-          _openLearningPlayer(session);
-        } else {
-          _promptUnlockCourse(price);
-        }
-      },
+
+          // Select first session if none selected yet
+          final sessions = (chapter['sessions'] as List?) ?? [];
+          if (sessions.isNotEmpty && _activeSession?['id'] == null) {
+            final first = sessions.first as Map<String, dynamic>;
+            if (isEnrolled || first['isFreePreview'] == true) {
+              _loadSessionVideo(first, autoPlay: false);
+            }
+          }
+        },
+        onSelectSession: (session) {
+          if (isEnrolled || session['isFreePreview'] == true) {
+            _openLearningPlayer(session);
+          } else {
+            _promptUnlockCourse(price);
+          }
+        },
+      ),
     );
   }
 
