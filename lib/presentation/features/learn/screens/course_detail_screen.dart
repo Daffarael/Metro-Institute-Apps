@@ -1067,18 +1067,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // 1. TOP VIDEO CONTAINER (Exact 16:9 thumbnail size, with signature bottom curve)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildTopVideoPlayer(double height, String thumbnail, bool isEnrolled, int price) {
-    // Current duration calculations
-    final currentPos = _videoController?.value.position ?? Duration.zero;
-    Duration totalDur = _videoController?.value.duration ?? Duration.zero;
-
-    if (totalDur == Duration.zero && _activeSession?['videoDuration'] != null) {
-      final sec = _activeSession!['videoDuration'] as int;
-      if (sec > 0) totalDur = Duration(seconds: sec);
-    }
-
     final isSessionFree = _activeSession?['isFreePreview'] == true;
     final canPlay = isEnrolled || isSessionFree;
-    final timestampStr = '${_formatDuration(currentPos)} / ${_formatDuration(totalDur)}';
 
     return Container(
       height: height,
@@ -1124,7 +1114,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       )),
           ),
 
-          // ── LAYER 1: CINEMATIC GRADIENT VIGNETTES ──
+          // ── LAYER 1: CINEMATIC TOP GRADIENT VIGNETTE (For top navigation buttons contrast) ──
           Positioned(
             top: 0,
             left: 0,
@@ -1143,26 +1133,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ),
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 72,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Color(0x99000000),
-                  ],
-                ),
-              ),
-            ),
-          ),
 
-          // ── LAYER 2: CENTER PLAY / LOCK BUTTON ──
+          // ── LAYER 2: CENTER PLAY / LOCK BUTTON (Only the lock / play badge remains) ──
           if (!_isPlaying)
             Center(
               child: GestureDetector(
@@ -1198,7 +1170,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ),
 
-          // ── LAYER 3: TOP NAVIGATION BAR ──
+          // ── LAYER 3: TOP NAVIGATION BAR (Back, Transactions, Bookmark) ──
           Positioned(
             top: 10,
             left: 14,
@@ -1287,71 +1259,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
               ],
             ),
-          ),
-
-          // ── LAYER 4: STATUS BADGES (Akses Penuh Terkunci & Timestamp) ──
-          Positioned(
-            bottom: 46,
-            left: 16,
-            right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (!isEnrolled)
-                  GestureDetector(
-                    onTap: () => _openCheckout(price),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white24, width: 0.8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isSessionFree ? Icons.visibility_outlined : Icons.lock_outline_rounded,
-                            size: 12,
-                            color: isSessionFree ? const Color(0xFF4ADE80) : const Color(0xFFFBBF24),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            isSessionFree ? 'Preview Sesi Gratis' : 'Akses Penuh Terkunci',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  const SizedBox.shrink(),
-
-                Text(
-                  timestampStr,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    shadows: const [
-                      Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── LAYER 5: FLOATING FROSTED CONTROL PILL (Speed, Seekbar, Fullscreen) ──
-          Positioned(
-            bottom: 10,
-            left: 14,
-            right: 14,
-            child: _buildFrostedControlPill(currentPos, totalDur),
           ),
         ],
       ),
