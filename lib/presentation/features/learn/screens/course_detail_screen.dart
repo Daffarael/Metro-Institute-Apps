@@ -1009,9 +1009,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
                   _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
 
-                  // 2. WHITE CONTENT SHEET WITH SIGNATURE HANDLE (Matches reference screenshot 100%)
+                  // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons - Kept exactly as earlier)
                   Transform.translate(
-                    offset: const Offset(0, -16),
+                    offset: const Offset(0, -22),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildStatsCard(
+                        timeDisplay,
+                        lessonsDisplay,
+                        onTapLessons: () => setState(() => _selectedTab = 1),
+                      ),
+                    ),
+                  ),
+
+                  // 3. WHITE CONTENT SHEET WITH TOP NOTCH HANDLE, TITLE, TABS & LESSONS
+                  Transform.translate(
+                    offset: const Offset(0, -10),
                     child: Container(
                       width: double.infinity,
                       decoration: const BoxDecoration(
@@ -1019,7 +1032,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0x0A000000),
+                            color: Color(0x06000000),
                             blurRadius: 16,
                             offset: Offset(0, -4),
                           ),
@@ -1031,7 +1044,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           // ── TOP HANDLE NOTCH (Capsule pill with dark center bar) ──
                           Center(
                             child: Container(
-                              margin: const EdgeInsets.only(top: 14, bottom: 10),
+                              margin: const EdgeInsets.only(top: 14, bottom: 8),
                               width: 62,
                               height: 18,
                               decoration: BoxDecoration(
@@ -1121,15 +1134,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 ? Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // 1. STATS CARD: Time & Lessons
-                                      _buildStatsCard(
-                                        timeDisplay,
-                                        lessonsDisplay,
-                                        onTapLessons: () => setState(() => _selectedTab = 1),
-                                      ),
-                                      const SizedBox(height: 20),
-
-                                      // 2. Description text
+                                      // Description text
                                       Text(
                                         description,
                                         style: GoogleFonts.plusJakartaSans(
@@ -1141,11 +1146,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       ),
                                       const SizedBox(height: 24),
 
-                                      // 3. Mentor & Rating Row
+                                      // Mentor & Rating Row
                                       _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
                                       const SizedBox(height: 24),
 
-                                      // 4. Course Benefits / Highlights Card
+                                      // Course Benefits / Highlights Card
                                       _buildCourseHighlightsCard(),
                                     ],
                                   )
