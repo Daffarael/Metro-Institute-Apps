@@ -13,6 +13,7 @@ import '../../../../data/datasources/remote/wishlist_remote_datasource.dart';
 import 'course_detail_screen.dart';
 import '../widgets/clean_combobox.dart';
 import '../widgets/checkout_bottom_sheet.dart';
+import '../../webinar/screens/inspire_talk_detail_screen.dart';
 
 /// LearnScreen — Ruang Belajar Discovery page:
 /// • Clean Search Bar with dark charcoal cursor (NO green color)
@@ -323,6 +324,21 @@ class _LearnScreenState extends State<LearnScreen> {
     _loadMyClasses();
   }
 
+  Future<void> _openWebinarDetail(Map<String, dynamic> webinar) async {
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => InspireTalkDetailScreen(
+          item: {
+            ...webinar,
+            if (_isItemEnrolled(webinar)) 'isEnrolled': true,
+          },
+        ),
+      ),
+    );
+    _loadWebinars();
+    _loadMyClasses();
+  }
+
   void _openItemDetail(Map<String, dynamic> item) {
     final isBootcamp = item['itemType'] == 'BOOTCAMP' || item['batchStatus'] != null || item['batchNumber'] != null;
     final isWebinar = item['itemType'] == 'WEBINAR' ||
@@ -331,28 +347,7 @@ class _LearnScreenState extends State<LearnScreen> {
         item['speakerName'] != null ||
         item['eventDate'] != null;
     if (isWebinar) {
-      final wid = item['id']?.toString() ?? '';
-      final wtitle = item['title']?.toString() ?? 'Inspire Talk';
-      if (_isItemEnrolled(item)) {
-        _openWebinarAttendanceDialog(wid, wtitle);
-      } else {
-        final price = _parseItemPrice(item);
-        final thumbnail = _getItemImage(item);
-        final speakerName = item['speakerName'] as String?;
-        CheckoutBottomSheet.show(
-          context,
-          title: wtitle,
-          price: price,
-          productType: 'WEBINAR',
-          productId: wid,
-          thumbnailUrl: thumbnail,
-          subtitle: speakerName != null ? 'Pembicara: $speakerName' : null,
-          onSuccess: () {
-            _loadWebinars();
-            _loadMyClasses();
-          },
-        );
-      }
+      _openWebinarDetail(item);
     } else if (isBootcamp) {
       _openBootcampDetail(item);
     } else {
@@ -1771,6 +1766,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final duration = isWebinar ? 'Live Session' : (isBootcamp ? '8 Minggu' : '12 Materi');
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => _openItemDetail(item),
       child: Container(
         decoration: BoxDecoration(
@@ -2052,6 +2048,7 @@ class _LearnScreenState extends State<LearnScreen> {
 
                         // Right: Solid Dongker Pill Button (Buka Kelas / See more)
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => _openItemDetail(item),
                           child: Container(
                             padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
@@ -2131,6 +2128,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final isEnrolled = _isItemEnrolled(item);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => _openItemDetail(item),
       child: Container(
         width: 260,

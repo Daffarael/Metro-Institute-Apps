@@ -6,6 +6,7 @@ abstract class WebinarRemoteDataSource {
   Future<List<dynamic>> getMyWebinars();
   Future<Map<String, dynamic>> registerWebinar(String id);
   Future<Map<String, dynamic>> attendWebinar(String id, {String? feedback});
+  Future<Map<String, dynamic>> getWebinarDetail(String id);
 }
 
 class WebinarRemoteDataSourceImpl implements WebinarRemoteDataSource {
@@ -54,6 +55,19 @@ class WebinarRemoteDataSourceImpl implements WebinarRemoteDataSource {
       throw Exception(msg);
     } catch (e) {
       throw Exception('Terjadi kesalahan saat pendaftaran: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getWebinarDetail(String id) async {
+    try {
+      final response = await dio.get('/webinars/$id');
+      return (response.data['data'] as Map<String, dynamic>?) ?? {};
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? 'Gagal memuat detail webinar';
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Terjadi kesalahan memuat detail webinar: $e');
     }
   }
 
