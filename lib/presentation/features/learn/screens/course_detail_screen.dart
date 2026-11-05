@@ -40,7 +40,7 @@ class CourseDetailScreen extends StatefulWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SCOOPED NOTCH CARD DECORATION & PAINTER (Matches reference screenshot 100%)
+// SCOOPED NOTCH CARD DECORATION & PAINTER (Floating Card with Ambient Shadow)
 // ─────────────────────────────────────────────────────────────────────────────
 class ScoopedCardDecoration extends StatelessWidget {
   final Widget child;
@@ -51,53 +51,74 @@ class ScoopedCardDecoration extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: _ScoopedCardPainter(),
-      child: child,
+      child: ClipPath(
+        clipper: _ScoopedCardClipper(),
+        child: child,
+      ),
     );
   }
+}
+
+Path _buildScoopedCardPath(Size size) {
+  final w = size.width;
+  final h = size.height;
+  const r = 28.0;
+  const nw = 78.0;
+  const nd = 15.0;
+  const sr = 14.0;
+  final cx = w / 2;
+  final effectiveH = h < (2 * r) ? (2 * r) : h;
+
+  final path = Path()
+    ..moveTo(0, r)
+    ..arcToPoint(const Offset(r, 0), radius: const Radius.circular(r))
+    ..lineTo(cx - nw / 2 - sr, 0)
+    ..cubicTo(
+      cx - nw / 2, 0,
+      cx - nw / 2, nd,
+      cx - nw / 2 + sr, nd,
+    )
+    ..lineTo(cx + nw / 2 - sr, nd)
+    ..cubicTo(
+      cx + nw / 2, nd,
+      cx + nw / 2, 0,
+      cx + nw / 2 + sr, 0,
+    )
+    ..lineTo(w - r, 0)
+    ..arcToPoint(Offset(w, r), radius: const Radius.circular(r))
+    ..lineTo(w, effectiveH - r)
+    ..arcToPoint(Offset(w - r, effectiveH), radius: const Radius.circular(r))
+    ..lineTo(r, effectiveH)
+    ..arcToPoint(Offset(0, effectiveH - r), radius: const Radius.circular(r))
+    ..close();
+
+  return path;
+}
+
+class _ScoopedCardClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) => _buildScoopedCardPath(size);
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _ScoopedCardPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    const r = 32.0;
-    const nw = 84.0;
-    const nd = 16.0;
-    const sr = 14.0;
-    final cx = w / 2;
+    final path = _buildScoopedCardPath(size);
 
-    final path = Path()
-      ..moveTo(0, r)
-      ..arcToPoint(const Offset(r, 0), radius: const Radius.circular(r))
-      ..lineTo(cx - nw / 2 - sr, 0)
-      ..cubicTo(
-        cx - nw / 2, 0,
-        cx - nw / 2, nd,
-        cx - nw / 2 + sr, nd,
-      )
-      ..lineTo(cx + nw / 2 - sr, nd)
-      ..cubicTo(
-        cx + nw / 2, nd,
-        cx + nw / 2, 0,
-        cx + nw / 2 + sr, 0,
-      )
-      ..lineTo(w - r, 0)
-      ..arcToPoint(Offset(w, r), radius: const Radius.circular(r))
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
+    // 1. Ambient & Elevated Floating Shadows (Lifts card off background)
+    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.10), 16.0, false);
+    canvas.drawShadow(path, const Color(0x18000000), 6.0, true);
 
-    // 1. Soft Shadow
-    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.08), 8.0, false);
-
-    // 2. White Fill
+    // 2. Crisp White Fill
     final fillPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
     canvas.drawPath(path, fillPaint);
 
-    // 3. Subtle Border
+    // 3. Subtle Elegant Border
     final borderPaint = Paint()
       ..color = const Color(0xFFEBE6DF)
       ..strokeWidth = 1.2
@@ -1079,11 +1100,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
                   _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
 
-                  // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons - Kept exactly as earlier)
+                  // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons)
                   Transform.translate(
                     offset: const Offset(0, -22),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: _buildStatsCard(
                         timeDisplay,
                         lessonsDisplay,
@@ -1092,136 +1113,146 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     ),
                   ),
 
-                  // 3. WHITE CONTENT SHEET WITH SIGNATURE SCOOPED NOTCH HANDLE & LESSONS
+                  // 3. FLOATING WHITE CONTENT CARD WITH SIGNATURE SCOOPED NOTCH HANDLE & LESSONS
                   Transform.translate(
                     offset: const Offset(0, -10),
-                    child: ScoopedCardDecoration(
-                      child: Container(
-                        width: double.infinity,
-                        color: Colors.transparent,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ── TOP HANDLE NOTCH (Nestled in the scooped dip) ──
-                            Center(
-                              child: Container(
-                                margin: const EdgeInsets.only(top: 8, bottom: 8),
-                                width: 60,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEDE8E3),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ScoopedCardDecoration(
+                        child: Container(
+                          width: double.infinity,
+                          color: Colors.transparent,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ── TOP HANDLE NOTCH (Nestled in the scooped dip) ──
+                              Center(
                                 child: Container(
-                                  width: 26,
-                                  height: 3.5,
+                                  margin: const EdgeInsets.only(top: 8, bottom: 8),
+                                  width: 60,
+                                  height: 16,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF4F4D50),
-                                    borderRadius: BorderRadius.circular(2),
+                                    color: const Color(0xFFEDE8E3),
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1.5),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: 26,
+                                    height: 3.5,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF4F4D50),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
 
-                          // ── TITLE ROW ("Literature" -> Title + Calendar Icon Button) ──
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    title,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: const Color(0xFF1E1B18),
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: -0.4,
-                                      height: 1.25,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                InkWell(
-                                  onTap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Jadwal belajar fleksibel, dapat diakses kapan saja!',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        backgroundColor: const Color(0xFF1E1B18),
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFF3EFEA),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.calendar_today_outlined,
-                                      color: Color(0xFF1E1B18),
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // ── SEGMENTED TAB BAR ("Description" vs "Lessons") ──
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: _buildSegmentedTabBar(),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // ── TAB CONTENT: Description vs Lessons ──
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                            child: _selectedTab == 0
-                                ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Description text
-                                      Text(
-                                        description,
+                              // ── TITLE ROW ("Literature" -> Title + Calendar Icon Button) ──
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(18, 6, 18, 16),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        title,
                                         style: GoogleFonts.plusJakartaSans(
-                                          color: const Color(0xFF6B655F),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          height: 1.6,
+                                          color: const Color(0xFF1E1B18),
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: -0.4,
+                                          height: 1.25,
                                         ),
                                       ),
-                                      const SizedBox(height: 24),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    InkWell(
+                                      onTap: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Jadwal belajar fleksibel, dapat diakses kapan saja!',
+                                              style: GoogleFonts.plusJakartaSans(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            backgroundColor: const Color(0xFF1E1B18),
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(24),
+                                      child: Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFF3EFEA),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.calendar_today_outlined,
+                                          color: Color(0xFF1E1B18),
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
 
-                                      // Mentor & Rating Row
-                                      _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
-                                      const SizedBox(height: 24),
+                              // ── SEGMENTED TAB BAR ("Description" vs "Lessons") ──
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 18),
+                                child: _buildSegmentedTabBar(),
+                              ),
+                              const SizedBox(height: 20),
 
-                                      // Course Benefits / Highlights Card
-                                      _buildCourseHighlightsCard(),
-                                    ],
-                                  )
-                                : _buildLessonsList(chapters, isEnrolled, price),
+                              // ── TAB CONTENT: Description vs Lessons ──
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(18, 0, 18, 120),
+                                child: _selectedTab == 0
+                                    ? Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Description text
+                                          Text(
+                                            description,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: const Color(0xFF6B655F),
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                              height: 1.6,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+
+                                          // Mentor & Rating Row
+                                          _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
+                                          const SizedBox(height: 24),
+
+                                          // Course Benefits / Highlights Card
+                                          _buildCourseHighlightsCard(),
+                                        ],
+                                      )
+                                    : _buildLessonsList(chapters, isEnrolled, price),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
                 ],
               ),
             ),
