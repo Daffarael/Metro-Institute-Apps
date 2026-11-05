@@ -69,7 +69,7 @@ class BasecampDiscordCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
               child: InkWell(
                 onTap: () async {
-                  final uri = Uri.parse('https://discord.com');
+                  final uri = Uri.parse('https://discord.gg/hVW8g2bzU');
                   if (await canLaunchUrl(uri)) {
                     await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }
