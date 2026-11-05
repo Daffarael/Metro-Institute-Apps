@@ -1,8 +1,9 @@
 // ============================================================================
 // File: custom_bottom_nav_bar.dart
 // Deskripsi: Floating Bottom Navigation Bar dengan transisi lembut, tenang,
-//            dan elegan (Framer Motion style). Lebar total konstan matematis
-//            (zero wobble, zero jitter, tanpa getar/kaget).
+//            dan elegan (Framer Motion style). Kapsul aktif HANYA muncul
+//            pada tab tujuan (tanpa bekas pada tab sebelumnya).
+//            Lebar total konstan matematis (zero wobble, zero jitter).
 // ============================================================================
 
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
       vsync: this,
       duration: const Duration(milliseconds: 320),
     );
-    // Curves.easeOutCubic: kurva deselerasi halus alami (tanpa sentakan/hentakan)
+    // Curves.easeOutCubic: deselerasi tenang alami tanpa hentakan
     _animation = CurvedAnimation(
       parent: _animController,
       curve: Curves.easeOutCubic,
@@ -185,14 +186,27 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                       final double dynamicMarginLeft =
                           (_labelMarginLeft * progress).clamp(0.0, _labelMarginLeft);
 
-                      // Opasitas teks mengalir sinkron dengan lebar:
-                      final double textOpacity = progress.clamp(0.0, 1.0);
+                      // Kapsul aktif HANYA ada di tab yang sedang aktif (_activeIndex).
+                      // Tab sebelumnya (misal: menu Basecamp) TIDAK memiliki bekas kapsul abu-abu sama sekali:
+                      final Color pillBgColor = (idx == _activeIndex)
+                          ? Color.lerp(Colors.transparent, activePillColor, progress)!
+                          : Colors.transparent;
 
-                      // Warna kapsul latar belakang & konten:
-                      final Color pillBgColor = Color.lerp(
-                          Colors.transparent, activePillColor, progress)!;
-                      final Color contentColor = Color.lerp(
-                          inactiveIconColor, activeContentColor, progress)!;
+                      // Warna ikon & teks:
+                      final Color contentColor = (idx == _activeIndex)
+                          ? Color.lerp(inactiveIconColor, activeContentColor, progress)!
+                          : inactiveIconColor;
+
+                      // Opasitas teks:
+                      final double textOpacity;
+                      if (idx == _activeIndex) {
+                        textOpacity = progress.clamp(0.0, 1.0);
+                      } else if (idx == _previousIndex) {
+                        // Teks tab lama memudar cepat dan bersih tanpa meninggalkan bekas
+                        textOpacity = (progress * progress).clamp(0.0, 1.0);
+                      } else {
+                        textOpacity = 0.0;
+                      }
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2.0),
