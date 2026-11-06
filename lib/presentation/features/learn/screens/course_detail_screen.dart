@@ -1362,7 +1362,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   child: Center(
                     child: Icon(
                       canPlay ? Icons.play_arrow_rounded : Icons.lock_rounded,
-                      color: canPlay ? AppColors.primary : const Color(0xFFF59E0B),
+                      color: canPlay ? AppColors.primary : AppColors.accent,
                       size: canPlay ? 36 : 26,
                     ),
                   ),
@@ -2141,18 +2141,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
                 const SizedBox(width: 12),
 
-                // 3. Action Box: Kuning Metro (0xFFF59E0B) for Lock, Hijau Metro for Checkmark/Play
+                // 3. Action Box: Pure Kuning Metro (#FAE653) for Lock, Hijau Metro for Checkmark/Play
                 Container(
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
                     color: isLocked
-                        ? const Color(0xFFF59E0B) // Kuning Metro! Bold, vibrant, non-pale
-                        : AppColors.primary,       // Hijau Metro!
+                        ? AppColors.accent // PURE KUNING METRO (#FAE653) - kuning cerah, bukan oranye!
+                        : AppColors.primary, // Hijau Metro!
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: (isLocked ? const Color(0xFFF59E0B) : AppColors.primary).withValues(alpha: 0.28),
+                        color: (isLocked ? AppColors.accent : AppColors.primary).withValues(alpha: 0.35),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -2163,7 +2163,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     isLocked
                         ? Icons.lock_rounded
                         : (isPlayingSession ? Icons.play_arrow_rounded : Icons.check_rounded),
-                    color: Colors.white,
+                    color: isLocked ? const Color(0xFF143E26) : Colors.white,
                     size: isLocked ? 18 : 22,
                   ),
                 ),
