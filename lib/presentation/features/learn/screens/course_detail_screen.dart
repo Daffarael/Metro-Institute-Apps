@@ -1559,73 +1559,89 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // SEGMENTED TAB BAR (Description vs Lessons, matching reference design 100%)
+  // SEGMENTED TAB BAR (Productivity vs Daily Plan, Organic Bipartite Capsule)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSegmentedTabBar() {
-    return Container(
-      height: 52,
-      decoration: BoxDecoration(
-        color: const Color(0xFFEBE8E3),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Row(
-        children: [
-          // Tab 0: Description
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (_selectedTab != 0) setState(() => _selectedTab = 0);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeInOutCubic,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: _selectedTab == 0 ? const Color(0xFFE2C4F0) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Description',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.5,
-                    fontWeight: _selectedTab == 0 ? FontWeight.w800 : FontWeight.w600,
-                    color: const Color(0xFF1E1B18),
-                  ),
+    const tabHeight = 48.0;
+    const overlap = 10.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        final pillWidth = (totalWidth / 2) + (overlap / 2);
+
+        final tab0Widget = Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: pillWidth,
+          child: GestureDetector(
+            onTap: () {
+              if (_selectedTab != 0) setState(() => _selectedTab = 0);
+            },
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOutCubic,
+              height: tabHeight,
+              decoration: BoxDecoration(
+                color: _selectedTab == 0 ? const Color(0xFFE2C4F0) : const Color(0xFFEBE7E1),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Productivity',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.5,
+                  fontWeight: _selectedTab == 0 ? FontWeight.w800 : FontWeight.w600,
+                  color: const Color(0xFF1E1B18),
                 ),
               ),
             ),
           ),
-          // Tab 1: Lessons
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (_selectedTab != 1) setState(() => _selectedTab = 1);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeInOutCubic,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: _selectedTab == 1 ? const Color(0xFFE2C4F0) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Lessons',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.5,
-                    fontWeight: _selectedTab == 1 ? FontWeight.w800 : FontWeight.w600,
-                    color: const Color(0xFF1E1B18),
-                  ),
+        );
+
+        final tab1Widget = Positioned(
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: pillWidth,
+          child: GestureDetector(
+            onTap: () {
+              if (_selectedTab != 1) setState(() => _selectedTab = 1);
+            },
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOutCubic,
+              height: tabHeight,
+              decoration: BoxDecoration(
+                color: _selectedTab == 1 ? const Color(0xFFE2C4F0) : const Color(0xFFEBE7E1),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Daily Plan',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.5,
+                  fontWeight: _selectedTab == 1 ? FontWeight.w800 : FontWeight.w600,
+                  color: const Color(0xFF1E1B18),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        );
+
+        return SizedBox(
+          height: tabHeight,
+          width: totalWidth,
+          child: Stack(
+            children: _selectedTab == 0
+                ? [tab1Widget, tab0Widget]
+                : [tab0Widget, tab1Widget],
+          ),
+        );
+      },
     );
   }
 
