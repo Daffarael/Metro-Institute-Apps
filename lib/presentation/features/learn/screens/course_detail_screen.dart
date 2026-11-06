@@ -1189,60 +1189,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 ),
                               ),
 
-                              // ── TITLE ROW ("Literature" -> Title + Calendar Icon Button) ──
+                              // ── COURSE TITLE ──
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(18, 6, 18, 16),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        title,
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: const Color(0xFF1E1B18),
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: -0.4,
-                                          height: 1.25,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    InkWell(
-                                      onTap: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Jadwal belajar fleksibel, dapat diakses kapan saja!',
-                                              style: GoogleFonts.plusJakartaSans(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            backgroundColor: const Color(0xFF1E1B18),
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                            duration: const Duration(seconds: 2),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(24),
-                                      child: Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFF3EFEA),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.calendar_today_outlined,
-                                          color: Color(0xFF1E1B18),
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                child: Text(
+                                  title,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: const Color(0xFF1E1B18),
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.4,
+                                    height: 1.25,
+                                  ),
                                 ),
                               ),
 
@@ -1612,7 +1570,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ),
 
-            // Sliding Active Pill: Soft pastel lavender
+            // Sliding Active Pill: Metro Green
             AnimatedAlign(
               duration: const Duration(milliseconds: 260),
               curve: Curves.easeInOutCubic,
@@ -1624,7 +1582,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 heightFactor: 1.0,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2C4F0),
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(24),
                   ),
                 ),
@@ -1642,16 +1600,19 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       },
                       behavior: HitTestBehavior.opaque,
                       child: Center(
-                        child: Text(
-                          'Productivity',
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14.5,
                             fontWeight: _selectedTab == 0
                                 ? FontWeight.w700
                                 : FontWeight.w500,
-                            color: const Color(0xFF1E1B18),
+                            color: _selectedTab == 0
+                                ? Colors.white
+                                : const Color(0xFF1E1B18),
                             letterSpacing: -0.2,
                           ),
+                          child: const Text('Productivity'),
                         ),
                       ),
                     ),
@@ -1663,16 +1624,19 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       },
                       behavior: HitTestBehavior.opaque,
                       child: Center(
-                        child: Text(
-                          'Daily Plan',
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14.5,
                             fontWeight: _selectedTab == 1
                                 ? FontWeight.w700
                                 : FontWeight.w500,
-                            color: const Color(0xFF1E1B18),
+                            color: _selectedTab == 1
+                                ? Colors.white
+                                : const Color(0xFF1E1B18),
                             letterSpacing: -0.2,
                           ),
+                          child: const Text('Daily Plan'),
                         ),
                       ),
                     ),
