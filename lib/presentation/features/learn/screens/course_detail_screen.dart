@@ -51,10 +51,7 @@ class ScoopedCardDecoration extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: _ScoopedCardPainter(),
-      child: ClipPath(
-        clipper: _ScoopedCardClipper(),
-        child: child,
-      ),
+      child: child,
     );
   }
 }
@@ -93,14 +90,6 @@ Path _buildScoopedCardPath(Size size) {
     ..close();
 
   return path;
-}
-
-class _ScoopedCardClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) => _buildScoopedCardPath(size);
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _ScoopedCardPainter extends CustomPainter {
@@ -1125,30 +1114,41 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // ── TOP HANDLE NOTCH (Nestled in the scooped dip) ──
+                              // ── TOP HANDLE NOTCH (Elevated / Floating above the scooped dip) ──
                               Center(
-                                child: Container(
-                                  margin: const EdgeInsets.only(top: 8, bottom: 8),
-                                  width: 60,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEDE8E3),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.08),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 1.5),
-                                      ),
-                                    ],
-                                  ),
-                                  alignment: Alignment.center,
+                                child: Transform.translate(
+                                  offset: const Offset(0, -9),
                                   child: Container(
-                                    width: 26,
-                                    height: 3.5,
+                                    width: 58,
+                                    height: 16,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF4F4D50),
-                                      borderRadius: BorderRadius.circular(2),
+                                      color: const Color(0xFFEDE8E3),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2DDD6),
+                                        width: 0.8,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.12),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.04),
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Container(
+                                      width: 24,
+                                      height: 3.5,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF4F4D50),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
                                     ),
                                   ),
                                 ),
