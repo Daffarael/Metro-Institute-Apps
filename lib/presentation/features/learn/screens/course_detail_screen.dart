@@ -798,7 +798,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       return const Scaffold(
         backgroundColor: Color(0xFFFAF7F2),
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF1E1B18)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
@@ -1361,8 +1361,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   ),
                   child: Center(
                     child: Icon(
-                      canPlay ? Icons.play_arrow_rounded : Icons.lock_outline_rounded,
-                      color: const Color(0xFF1E1B18),
+                      canPlay ? Icons.play_arrow_rounded : Icons.lock_rounded,
+                      color: canPlay ? AppColors.primary : const Color(0xFFF59E0B),
                       size: canPlay ? 36 : 26,
                     ),
                   ),
@@ -1968,13 +1968,21 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               'sessions': [
                 {
                   'id': 'fallback_1',
-                  'title': 'Review key literary terms and concepts',
+                  'title': 'Introduction to UI/UX',
+                  'type': 'VIDEO',
                   'isFreePreview': true,
                 },
                 {
                   'id': 'fallback_2',
-                  'title': 'Set up a comfortable study space',
-                  'isFreePreview': true,
+                  'title': 'Materi Pengenalan UI/UX',
+                  'type': 'ARTICLE',
+                  'isFreePreview': false,
+                },
+                {
+                  'id': 'fallback_3',
+                  'title': 'Kuis Pengenalan UI/UX',
+                  'type': 'QUIZ',
+                  'isFreePreview': false,
                 },
               ]
             }
@@ -2007,6 +2015,34 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     );
   }
 
+  IconData _getSessionTypeIcon(String title, Map<String, dynamic> session) {
+    final rawType = (session['type'] ?? session['sessionType'] ?? '').toString().toUpperCase();
+    final lowerTitle = title.toLowerCase();
+
+    if (rawType.contains('QUIZ') || lowerTitle.contains('kuis') || lowerTitle.contains('quiz')) {
+      return Icons.quiz_outlined;
+    } else if (rawType.contains('LIVE') || lowerTitle.contains('live') || lowerTitle.contains('webinar')) {
+      return Icons.videocam_rounded;
+    } else if (rawType.contains('ARTICLE') ||
+        rawType.contains('READ') ||
+        lowerTitle.contains('materi') ||
+        lowerTitle.contains('bacaan') ||
+        lowerTitle.contains('modul') ||
+        lowerTitle.contains('pdf') ||
+        lowerTitle.contains('artikel') ||
+        lowerTitle.contains('panduan')) {
+      return Icons.menu_book_rounded;
+    } else if (rawType.contains('TASK') ||
+        rawType.contains('PROJECT') ||
+        lowerTitle.contains('tugas') ||
+        lowerTitle.contains('praktik')) {
+      return Icons.assignment_rounded;
+    } else {
+      // Default: Video lesson icon
+      return Icons.play_arrow_rounded;
+    }
+  }
+
   Widget _buildLessonCard({
     required int globalIndex,
     required Map<String, dynamic> session,
@@ -2015,20 +2051,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }) {
     final sessionTitle = (session['title'] as String?)?.trim().isNotEmpty == true
         ? session['title'] as String
-        : (globalIndex == 0 ? 'Review key literary terms and concepts' : 'Set up a comfortable study space');
+        : (globalIndex == 0
+            ? 'Introduction to UI/UX'
+            : (globalIndex == 1 ? 'Materi Pengenalan UI/UX' : 'Kuis Pengenalan UI/UX'));
     final isFree = session['isFreePreview'] == true;
     final canPlay = isEnrolled || isFree;
     final isLocked = !canPlay;
     final isPlayingSession = _activeSession?['id']?.toString() == session['id']?.toString() && _isPlaying;
-
-    // 4 Pastel Themes from Reference Design (Lavender, Peach, Mint, Sky)
-    const badgeThemes = [
-      (badgeBg: Color(0xFFEADBFA), starColor: Color(0xFF8B28B5)),
-      (badgeBg: Color(0xFFFCE1CE), starColor: Color(0xFFE65D0F)),
-      (badgeBg: Color(0xFFD7F5E5), starColor: Color(0xFF059669)),
-      (badgeBg: Color(0xFFD8EEFD), starColor: Color(0xFF2563EB)),
-    ];
-    final theme = badgeThemes[globalIndex % badgeThemes.length];
+    final iconData = _getSessionTypeIcon(sessionTitle, session);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -2036,7 +2066,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: isPlayingSession ? const Color(0xFF143E26) : const Color(0xFFECE7E1),
+          color: isPlayingSession ? AppColors.primary : const Color(0xFFECE7E1),
           width: isPlayingSession ? 1.6 : 1.2,
         ),
         boxShadow: const [
@@ -2063,35 +2093,19 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             child: Row(
               children: [
-                // 1. Squircle Pastel Badge with Tilted 3D Rounded Star
+                // 1. Sleek Neutral Grey Box with Lesson Type Icon (not colored)
                 Container(
-                  width: 58,
-                  height: 58,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: theme.badgeBg,
-                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFFF1EFEA), // Sleek neutral soft grey
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   alignment: Alignment.center,
-                  child: Transform.rotate(
-                    angle: -0.12,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Transform.translate(
-                          offset: const Offset(0, 2.5),
-                          child: Icon(
-                            Icons.star_rounded,
-                            color: theme.starColor.withValues(alpha: 0.35),
-                            size: 29,
-                          ),
-                        ),
-                        Icon(
-                          Icons.star_rounded,
-                          color: theme.starColor,
-                          size: 29,
-                        ),
-                      ],
-                    ),
+                  child: Icon(
+                    iconData,
+                    color: const Color(0xFF5A524C), // Clean neutral grey/charcoal
+                    size: 28,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -2127,13 +2141,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
                 const SizedBox(width: 12),
 
-                // 3. Black Squircle Action Box (Checkmark or Lock)
+                // 3. Action Box: Kuning Metro (0xFFF59E0B) for Lock, Hijau Metro for Checkmark/Play
                 Container(
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141414),
+                    color: isLocked
+                        ? const Color(0xFFF59E0B) // Kuning Metro! Bold, vibrant, non-pale
+                        : AppColors.primary,       // Hijau Metro!
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isLocked ? const Color(0xFFF59E0B) : AppColors.primary).withValues(alpha: 0.28),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   alignment: Alignment.center,
                   child: Icon(
@@ -2141,7 +2164,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         ? Icons.lock_rounded
                         : (isPlayingSession ? Icons.play_arrow_rounded : Icons.check_rounded),
                     color: Colors.white,
-                    size: isLocked ? 17 : 22,
+                    size: isLocked ? 18 : 22,
                   ),
                 ),
               ],
@@ -2299,7 +2322,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E1B18),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
