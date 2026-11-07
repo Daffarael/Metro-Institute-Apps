@@ -10,6 +10,7 @@ import '../widgets/basecamp_daily_missions.dart';
 import '../widgets/basecamp_discord_card.dart';
 import '../widgets/basecamp_header.dart';
 import '../widgets/basecamp_hero_card.dart';
+import '../widgets/basecamp_inspire_talk_card.dart';
 import '../widgets/basecamp_recommendations.dart';
 import '../widgets/basecamp_upcoming_live.dart';
 
@@ -148,6 +149,11 @@ class _BasecampScreenState extends State<BasecampScreen> {
                     BasecampHeroCard(
                       continueLearning: continueLearning,
                     ),
+
+                    const SizedBox(height: 20),
+
+                    // ── 2.5 Spotlight Card (UX & Web Design Course) ──────────
+                    const BasecampInspireTalkCard(),
 
                     // ── 3. Kelas Aktif (Only if activeCourses is not empty) ──
                     if (activeCourses.isNotEmpty) ...[
