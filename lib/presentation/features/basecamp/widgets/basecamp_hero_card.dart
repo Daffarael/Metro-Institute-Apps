@@ -7,7 +7,7 @@ import '../../../../core/constants/app_routes.dart';
 
 /// BasecampHeroCard — "UX Lab: Motion Edition" / Continue Learning Card.
 /// Styled 1:1 with the reference design:
-/// • Soft pastel periwinkle blue container with smooth rounded corners (r = 28).
+/// • Soft pastel periwinkle blue container with smooth rounded corners (r = 44).
 /// • Top-left white circular badge with stylized lens/target icon.
 /// • Top-right circular progress tracker with ring arc and "2/3" indicator.
 /// • Bold course title and mentor subtitle ("UX Lab: Motion Edition" / "Joseph Smith").
@@ -53,10 +53,10 @@ class BasecampHeroCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      constraints: const BoxConstraints(minHeight: 160),
+      constraints: const BoxConstraints(minHeight: 180),
       decoration: BoxDecoration(
         color: const Color(0xFFA2BCFB), // Soft pastel periwinkle blue from reference design
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(44),
         boxShadow: const [
           BoxShadow(
             color: Color(0x180F172A),
@@ -70,7 +70,7 @@ class BasecampHeroCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: handleTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(44),
           child: Stack(
             children: [
               // ── LAYER 0: Background Whimsical Line Art (Lightbulb, Ruler, Gear) ──
