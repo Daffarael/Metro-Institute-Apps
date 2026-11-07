@@ -51,8 +51,16 @@ class SpotlightSearchBar extends StatelessWidget {
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F3F5), // Flat soft light grey from reference design
+          color: Colors.white, // Clean white search pill
           borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x060F172A),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [

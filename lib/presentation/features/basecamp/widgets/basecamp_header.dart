@@ -297,12 +297,10 @@ class BasecampHeader extends StatelessWidget {
             context: context,
             count: courseCount,
             label: 'Courses',
-            progress: courseCount > 0 ? (courseCount / 10).clamp(0.2, 1.0) : 0.65,
-            progressColor: AppColors.accent, // Kuning Metro ring
-            trackColor: const Color(0xFF016B44),
-            cardBgColor: AppColors.primary, // Hijau Metro (#018556)
+            badgeBgColor: AppColors.accent, // Kuning Metro full solid
             badgeIcon: Icons.business_center_rounded,
-            iconColor: AppColors.primary,
+            iconColor: AppColors.primary, // Hijau Metro
+            cardBgColor: AppColors.primary, // Hijau Metro (#018556)
             isDarkBg: true,
             isCloudShape: false,
             onTap: () {
@@ -320,12 +318,10 @@ class BasecampHeader extends StatelessWidget {
             context: context,
             count: certificateCount,
             label: 'Certificates',
-            progress: certificateCount > 0 ? (certificateCount / 5).clamp(0.2, 1.0) : 0.70,
-            progressColor: AppColors.primary, // Hijau Metro ring
-            trackColor: const Color(0xFFE6D13A),
-            cardBgColor: AppColors.accent, // Kuning Metro (#FAE653)
+            badgeBgColor: AppColors.primary, // Hijau Metro full solid
             badgeIcon: Icons.workspace_premium_rounded,
-            iconColor: AppColors.primary,
+            iconColor: Colors.white, // Putih kontras di atas hijau
+            cardBgColor: AppColors.accent, // Kuning Metro (#FAE653)
             isDarkBg: false,
             isCloudShape: true,
             onTap: () {
@@ -342,12 +338,10 @@ class BasecampHeader extends StatelessWidget {
     required BuildContext context,
     required int count,
     required String label,
-    required double progress,
-    required Color progressColor,
-    required Color trackColor,
-    required Color cardBgColor,
+    required Color badgeBgColor,
     required IconData badgeIcon,
     required Color iconColor,
+    required Color cardBgColor,
     required bool isDarkBg,
     required bool isCloudShape,
     required VoidCallback onTap,
@@ -387,16 +381,11 @@ class BasecampHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top left circular progress badge
-                  _buildProgressCircle(
-                    progress: progress,
-                    progressColor: progressColor,
-                    trackColor: trackColor,
-                    child: Icon(
-                      badgeIcon,
-                      color: iconColor,
-                      size: 19,
-                    ),
+                  // Top left unified solid circular badge
+                  _buildSolidBadge(
+                    badgeBgColor: badgeBgColor,
+                    icon: badgeIcon,
+                    iconColor: iconColor,
                   ),
 
                   // Center Big Number & Subtitle
@@ -439,45 +428,30 @@ class BasecampHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressCircle({
-    required double progress,
-    required Color progressColor,
-    required Color trackColor,
-    required Widget child,
+  Widget _buildSolidBadge({
+    required Color badgeBgColor,
+    required IconData icon,
+    required Color iconColor,
   }) {
-    return SizedBox(
+    return Container(
       width: 44,
       height: 44,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Circular progress ring
-          CircularProgressIndicator(
-            value: progress,
-            strokeWidth: 3.5,
-            backgroundColor: trackColor,
-            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-            strokeCap: StrokeCap.round,
-          ),
-          // Inner white circle
-          Container(
-            width: 33,
-            height: 33,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x0C000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: child,
+      decoration: BoxDecoration(
+        color: badgeBgColor,
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
           ),
         ],
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        icon,
+        color: iconColor,
+        size: 21,
       ),
     );
   }

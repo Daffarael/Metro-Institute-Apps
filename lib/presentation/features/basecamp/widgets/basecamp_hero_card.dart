@@ -89,22 +89,8 @@ class BasecampHeroCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top Row: Metro Shield Badge (Left) & Circular Progress (Right)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Left: White Circular Badge with Metro Logo
-                        _buildTargetBadge(),
-
-                        // Right: Circular Progress Ring (e.g. "S2" or "2/3")
-                        _buildProgressRing(
-                          hasData: hasData,
-                          progress: hasData ? progress : 1.0,
-                          text: progressText,
-                        ),
-                      ],
-                    ),
+                    // Top Row: Metro Shield Badge (Left)
+                    _buildTargetBadge(),
 
                     const SizedBox(height: 20),
 
@@ -138,51 +124,41 @@ class BasecampHeroCard extends StatelessWidget {
 
                     const SizedBox(height: 18),
 
-                    // Bottom Row: "MULAI BELAJAR" Pill Button (Left) & Tracks (Right)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        // CTA Pill Button: "MULAI BELAJAR" / "LANJUT BELAJAR"
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary, // Hijau Metro
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x33018556),
-                                blurRadius: 10,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
+                    // Bottom Row: "MULAI BELAJAR" Pill Button
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary, // Hijau Metro
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x33018556),
+                            blurRadius: 10,
+                            offset: Offset(0, 3),
                           ),
-                          alignment: Alignment.center,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                hasData ? 'LANJUT BELAJAR' : 'MULAI BELAJAR',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              const Icon(
-                                Icons.arrow_forward_rounded,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                            ],
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            hasData ? 'LANJUT BELAJAR' : 'MULAI BELAJAR',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-
-                        // Overlapping Track Badges (Right)
-                        _buildAvatarStack(),
-                      ],
+                          const SizedBox(width: 5),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -222,148 +198,6 @@ class BasecampHeroCard extends StatelessWidget {
       ),
     );
   }
-
-  /// Circular Progress Ring at top-right
-  Widget _buildProgressRing({
-    required bool hasData,
-    required double progress,
-    required String text,
-  }) {
-    return SizedBox(
-      width: 46,
-      height: 46,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: const Size(46, 46),
-            painter: _ProgressRingPainter(
-              progress: progress,
-              trackColor: Colors.black.withValues(alpha: 0.08),
-              progressColor: AppColors.primary,
-              strokeWidth: 2.8,
-            ),
-          ),
-          Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-              letterSpacing: -0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 3 Overlapping Track Badges at bottom-right (UI/UX, Mobile, Engineering)
-  Widget _buildAvatarStack() {
-    const tracks = [
-      (
-        color: AppColors.primary, // Hijau Metro
-        icon: Icons.palette_rounded, // UI/UX Design
-        iconColor: Colors.white,
-      ),
-      (
-        color: AppColors.accent, // Kuning Metro
-        icon: Icons.phone_android_rounded, // Mobile Apps
-        iconColor: Color(0xFF063D2A),
-      ),
-      (
-        color: AppColors.emeraldDark, // Emerald Dark
-        icon: Icons.terminal_rounded, // Web & Backend Engineering
-        iconColor: Colors.white,
-      ),
-    ];
-
-    return SizedBox(
-      width: 82,
-      height: 36,
-      child: Stack(
-        children: List.generate(tracks.length, (index) {
-          final item = tracks[index];
-          return Positioned(
-            left: index * 22.0,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.2),
-                color: item.color,
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Icon(
-                  item.icon,
-                  color: item.iconColor,
-                  size: 18,
-                ),
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-/// CustomPainter for the circular progress ring at top-right
-class _ProgressRingPainter extends CustomPainter {
-  final double progress;
-  final Color trackColor;
-  final Color progressColor;
-  final double strokeWidth;
-
-  const _ProgressRingPainter({
-    required this.progress,
-    required this.trackColor,
-    required this.progressColor,
-    this.strokeWidth = 2.8,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    // Background Track
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Active Progress Arc (starts at top, sweeps clockwise)
-    final progressPaint = Paint()
-      ..color = progressColor
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = strokeWidth;
-
-    const startAngle = -math.pi / 2;
-    final sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepAngle,
-      false,
-      progressPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ProgressRingPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.progressColor != progressColor;
 }
 
 /// CustomPainter for whimsical background line-art illustrations (lightbulb, ruler, gear)
