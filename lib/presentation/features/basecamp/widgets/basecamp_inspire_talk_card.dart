@@ -8,11 +8,11 @@ import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
 
 /// BasecampInspireTalkCard — Card khusus "Inspire Talk"
 /// Styled 1:1 with the reference design (Royal Purple #6B37EB with signature avatar notch cutout):
-/// • Floating circular speaker portrait nested inside an organic concave notch cutout on top-left.
-/// • Top row: "[📖/🎙️] Inspire Talk" pill tag and "[⋮]" circular option button.
+/// • Floating circular speaker portrait nestled inside an organic concave notch cutout on top-left.
+/// • Top row: "[📖] Inspire Talk" pill tag and "[⋮]" circular option button.
 /// • Centered schedule ("Mon 14:30 PM || Zoom") and field category pill ("[UI/UX Design]").
 /// • Bold headline ("UX & Web Design Course" / dynamic Inspire Talk title).
-/// • Duration & rating metadata ("2 Jam Sesi  4.9 Rating").
+/// • Duration & rating metadata ("8 Hours   4.9 Rating").
 /// • Bottom row: Overlapping attendee avatar circles with "+12" pill and crisp white "[ Join Class ]" button.
 class BasecampInspireTalkCard extends StatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -62,15 +62,15 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
   Map<String, dynamic> _defaultTalkData() {
     return {
       'id': 'inspire-talk-s2-01',
+      'tag': 'Inspire Talk',
       'title': 'UX & Web Design Course',
       'speakerName': 'Alexander Smith',
       'speakerRole': 'Lead Product Designer',
-      'speakerAvatarUrl':
-          'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80',
+      'speakerAvatarUrl': 'assets/images/inspire_talk_speaker.png',
       'field': 'UI/UX Design',
-      'scheduledAt': 'Sabtu, 19:30 WIB',
+      'scheduledAt': 'Mon 14:30 PM',
       'platform': 'Zoom',
-      'duration': '2 Jam Sesi',
+      'duration': '8 Hours',
       'rating': '4.9 Rating',
     };
   }
@@ -78,21 +78,18 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
   @override
   Widget build(BuildContext context) {
     final data = _talk ?? _defaultTalkData();
+    final tag = data['tag'] as String? ?? 'Inspire Talk';
     final title = data['title'] as String? ?? 'UX & Web Design Course';
-    final speakerAvatar = data['speakerAvatarUrl'] as String? ??
-        'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80';
+    final speakerAvatar = data['speakerAvatarUrl'] as String? ?? 'assets/images/inspire_talk_speaker.png';
     final field = data['field']?.toString() ?? 'UI/UX Design';
-    final rawDate = data['scheduledAt']?.toString() ?? 'Sabtu, 19:30 WIB';
+    final rawDate = data['scheduledAt']?.toString() ?? 'Mon 14:30 PM';
     final platform = data['platform']?.toString() ?? 'Zoom';
     final scheduleText = '$rawDate || $platform';
-    final duration = data['duration'] != null
-        ? '${data['duration']} Menit'
-        : '2 Jam Sesi';
+    final duration = data['duration']?.toString() ?? '8 Hours';
     final rating = data['rating']?.toString() ?? '4.9 Rating';
 
     const clipper = _InspireTalkNotchClipper(
       cornerRadius: 36.0,
-      notchSize: 88.0,
     );
 
     return Container(
@@ -129,13 +126,13 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ── Top Row: Space for cutout + "Inspire Talk" Tag + Options [⋮] ──
+                          // ── Top Row: Space for cutout + Tag Pill + Options [⋮] ──
                           Row(
                             children: [
-                              // Clearance for avatar notch on the left
-                              const SizedBox(width: 78),
+                              // Clearance for avatar notch on the left (20 padding + 86 = 106)
+                              const SizedBox(width: 86),
 
-                              // Tag pill: [🎙️/📖] Inspire Talk
+                              // Tag pill: [📖] Tag
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                 decoration: BoxDecoration(
@@ -152,7 +149,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      'Inspire Talk',
+                                      tag,
                                       style: GoogleFonts.plusJakartaSans(
                                         color: Colors.white,
                                         fontSize: 12.5,
@@ -225,7 +222,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                             title,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 20,
+                              fontSize: 21,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                               letterSpacing: -0.4,
@@ -272,26 +269,29 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                               _buildAttendeeStack(),
 
                               // Right: Crisp White Pill Button [ Join Class ]
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(999),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x22000000),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 2),
+                              GestureDetector(
+                                onTap: _handleOpenDetail,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(999),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x22000000),
+                                        blurRadius: 8,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    'Join Class',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFF6B37EB),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.2,
                                     ),
-                                  ],
-                                ),
-                                child: Text(
-                                  'Join Class',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFF6B37EB),
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.2,
                                   ),
                                 ),
                               ),
@@ -308,37 +308,26 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
 
           // ── LAYER 2: Floating Circular Speaker Avatar inside Notch Cutout ──
           Positioned(
-            left: 2,
-            top: 2,
+            left: -4,
+            top: -4,
             child: GestureDetector(
               onTap: _handleOpenDetail,
               child: Container(
-                width: 66,
-                height: 66,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 3.5),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x240F172A),
+                      color: Color(0x2E0F172A),
                       blurRadius: 10,
                       offset: Offset(0, 3),
                     ),
                   ],
                 ),
                 child: ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: speakerAvatar,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: const Color(0xFFE2E8F0),
-                      child: const Icon(Icons.person_rounded, color: Color(0xFF64748B), size: 30),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFFE2E8F0),
-                      child: const Icon(Icons.person_rounded, color: Color(0xFF64748B), size: 30),
-                    ),
-                  ),
+                  child: _buildSpeakerImage(speakerAvatar),
                 ),
               ),
             ),
@@ -348,12 +337,38 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
     );
   }
 
+  /// Builds speaker image with offline fallback to the authentic reference portrait
+  Widget _buildSpeakerImage(String url) {
+    if (url.startsWith('http')) {
+      return CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        placeholder: (context, _) => Image.asset(
+          'assets/images/inspire_talk_speaker.png',
+          fit: BoxFit.cover,
+        ),
+        errorWidget: (context, _, __) => Image.asset(
+          'assets/images/inspire_talk_speaker.png',
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return Image.asset(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Image.asset(
+        'assets/images/inspire_talk_speaker.png',
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
   /// 3 Overlapping attendee avatar portraits + white "+12" pill
   Widget _buildAttendeeStack() {
-    const attendees = [
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80',
+    const attendeeAssets = [
+      'assets/images/inspire_attendee_1.png',
+      'assets/images/inspire_attendee_2.png',
+      'assets/images/inspire_attendee_3.png',
     ];
 
     return SizedBox(
@@ -362,10 +377,11 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 68,
+            width: 72,
             height: 34,
             child: Stack(
-              children: List.generate(attendees.length, (index) {
+              clipBehavior: Clip.none,
+              children: List.generate(attendeeAssets.length, (index) {
                 return Positioned(
                   left: index * 18.0,
                   child: Container(
@@ -383,14 +399,10 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                       ],
                     ),
                     child: ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: attendees[index],
+                      child: Image.asset(
+                        attendeeAssets[index],
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: const Color(0xFFCBD5E1),
-                          child: const Icon(Icons.person_rounded, size: 16, color: Colors.white),
-                        ),
-                        errorWidget: (context, url, error) => Container(
+                        errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFFCBD5E1),
                           child: const Icon(Icons.person_rounded, size: 16, color: Colors.white),
                         ),
@@ -435,14 +447,13 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
 }
 
 /// CustomClipper that sculpts the signature organic concave notch cutout on top-left,
-/// with rounded corners on the other 3 corners (r = 36).
+/// mathematically fitted from reference design (media_1794057804489_b962cd0c.png),
+/// with corner radius = 36 on top-right, bottom-right, and bottom-left.
 class _InspireTalkNotchClipper extends CustomClipper<Path> {
   final double cornerRadius;
-  final double notchSize;
 
   const _InspireTalkNotchClipper({
     this.cornerRadius = 36.0,
-    this.notchSize = 88.0,
   });
 
   @override
@@ -450,32 +461,32 @@ class _InspireTalkNotchClipper extends CustomClipper<Path> {
     final w = size.width;
     final h = size.height;
     final r = cornerRadius;
-    final n = notchSize;
 
     final path = Path();
-    // 1. Top edge starting after the notch
-    path.moveTo(n, 0);
+    // 1. Top edge starting after the organic notch fillet
+    path.moveTo(106.0, 0.0);
 
-    // 2. Top-right rounded corner
-    path.lineTo(w - r, 0);
+    // 2. Top-right rounded corner (r = 36)
+    path.lineTo(w - r, 0.0);
     path.arcToPoint(Offset(w, r), radius: Radius.circular(r));
 
-    // 3. Right edge to bottom-right corner
+    // 3. Right vertical edge to bottom-right corner (r = 36)
     path.lineTo(w, h - r);
     path.arcToPoint(Offset(w - r, h), radius: Radius.circular(r));
 
-    // 4. Bottom edge to bottom-left corner
+    // 4. Bottom horizontal edge to bottom-left corner (r = 36)
     path.lineTo(r, h);
-    path.arcToPoint(Offset(0, h - r), radius: Radius.circular(r));
+    path.arcToPoint(Offset(0.0, h - r), radius: Radius.circular(r));
 
-    // 5. Left edge up to notch boundary
-    path.lineTo(0, n);
+    // 5. Left vertical edge up to the organic shoulder
+    path.lineTo(0.0, 108.0);
 
-    // 6. Smooth organic notch around the avatar:
-    // Curves from (0, n) inwards around avatar and joins top edge at (n, 0)
-    path.cubicTo(0, n - 18, 12, n - 18, 24, n - 22);
-    path.cubicTo(55, n - 32, n - 32, 55, n - 22, 24);
-    path.cubicTo(n - 18, 12, n - 18, 0, n, 0);
+    // 6. Signature organic concave notch contouring around speaker avatar:
+    // Curve 1: Left shoulder into bottom of the circular cutout
+    path.cubicTo(0.0, 88.0, 22.0, 78.0, 48.0, 74.0);
+
+    // Curve 2: Circular cutout arc up to top rounded tab
+    path.cubicTo(76.0, 70.0, 82.0, 0.0, 106.0, 0.0);
 
     path.close();
     return path;
@@ -483,7 +494,7 @@ class _InspireTalkNotchClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant _InspireTalkNotchClipper oldDelegate) =>
-      oldDelegate.cornerRadius != cornerRadius || oldDelegate.notchSize != notchSize;
+      oldDelegate.cornerRadius != cornerRadius;
 }
 
 /// CustomPainter for the smooth drop shadow following the clipped notch card path
