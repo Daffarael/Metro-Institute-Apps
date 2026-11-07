@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/basecamp_remote_datasource.dart';
+import '../../../../data/datasources/remote/certificate_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../widgets/basecamp_active_courses.dart';
 import '../widgets/basecamp_daily_missions.dart';
@@ -27,10 +28,15 @@ class BasecampScreen extends StatefulWidget {
 
 class _BasecampScreenState extends State<BasecampScreen> {
   static Map<String, dynamic>? _cachedData;
-  static void clearCache() => _cachedData = null;
+  static int _cachedCertCount = 0;
+  static void clearCache() {
+    _cachedData = null;
+    _cachedCertCount = 0;
+  }
   late bool _isLoading = _cachedData == null;
   String? _error;
   Map<String, dynamic>? _data = _cachedData;
+  int _certificateCount = _cachedCertCount;
 
   @override
   void initState() {
@@ -50,9 +56,20 @@ class _BasecampScreenState extends State<BasecampScreen> {
       final ds = sl<BasecampRemoteDataSource>();
       final result = await ds.getBasecampData();
       _cachedData = result;
+
+      // Load certificate count asynchronously
+      int certCount = _certificateCount;
+      try {
+        final certDs = sl<CertificateRemoteDataSource>();
+        final certs = await certDs.getCertificates();
+        certCount = certs.length;
+        _cachedCertCount = certCount;
+      } catch (_) {}
+
       if (!mounted) return;
       setState(() {
         _data = result;
+        _certificateCount = certCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -111,10 +128,12 @@ class _BasecampScreenState extends State<BasecampScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── 1. Header (Avatar, Greeting, Level, Streak & XP Bar) ─
+                    // ── 1. Header (Avatar, Greeting, Level, Streak, Cards & Search) ─
                     BasecampHeader(
                       user: user,
                       unreadCount: unreadCount,
+                      certificateCount: _certificateCount,
+                      courseCount: activeCourses.length,
                     ),
 
                     const SizedBox(height: 8),

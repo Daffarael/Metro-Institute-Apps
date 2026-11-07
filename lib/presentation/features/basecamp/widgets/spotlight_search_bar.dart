@@ -48,34 +48,26 @@ class SpotlightSearchBar extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 46,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x060F172A),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          color: const Color(0xFFF1F3F5), // Flat soft light grey from reference design
+          borderRadius: BorderRadius.circular(999),
         ),
         child: Row(
           children: [
             const Icon(
               Icons.search_rounded,
               color: Color(0xFF94A3B8),
-              size: 20,
+              size: 21,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Cari halaman, topik, materi...',
+                'Search',
                 style: GoogleFonts.plusJakartaSans(
                   color: const Color(0xFF94A3B8),
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.1,
                 ),
