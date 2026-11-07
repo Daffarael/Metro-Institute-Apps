@@ -1,19 +1,23 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../data/datasources/remote/challenge_remote_datasource.dart';
+import '../../../../data/repositories/auth_repository.dart';
 import 'challenge_arena_screen.dart';
 
-/// ChallengeScreen — Redesigned 1:1 with the whimsical warm pastel aesthetic:
-/// • Warm cream peach canvas (#FFE7C8)
-/// • Prominent warm yellow header card (#FCDA83) with rounded corners
-/// • "Hi, Monica!" avatar greeting and 4-dot menu button
-/// • Bold headline: "What would you like to learn today?"
-/// • Pill search bar with "Search here" and pure black squircle filter button
-/// • Stepped tabs for "Lessons" and "My Classes"
-/// • "Popular" horizontal section featuring "Graphic Design" and "Swimming" cards
-/// • "Join a Workshop" horizontal section featuring "Wrestling" and instructor cards
+/// ChallengeScreen — Halaman Tantangan Metro Institute
+/// Mengadopsi 100% desain referensi visual (Warm Yellow Header, Stepped Tabs, Whimsical Illustrated Cards),
+/// dengan KONTEN YANG DIADAPTASIKAN PERSIS untuk konsep TANTANGAN koding & bootcamp:
+/// • Background kanvas krem pastel hangat (#FFE7C8)
+/// • Header card kuning pastel (#FCDA83) dengan sapaan user & headline "Tantangan apa yang ingin kamu taklukkan?"
+/// • Pill search bar ("Cari tantangan, algoritma, topik...") & tombol filter hitam pekat
+/// • Stepped tabs "Tantangan" dan "Peringkat" (Leaderboard)
+/// • Section "Tantangan Populer" dengan kartu bergambar (UI/UX Sprint, Mobile App Sprint)
+/// • Section "Live Code & Workshop" dengan kartu latihan (Algoritma, Slicing UI)
+/// • Ringkasan statistik (Total, Selesai, XP Tersedia) & Daftar Latihan lengkap dari API
+/// • Tab Peringkat dengan Podium Juara 1-2-3 dan daftar ranking mingguan
 class ChallengeScreen extends StatefulWidget {
   const ChallengeScreen({super.key});
 
@@ -39,15 +43,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   List<dynamic> _challenges = _cachedChallenges ?? [];
   List<dynamic> _leaderboard = _cachedLeaderboard ?? [];
 
-  int _activeTabIndex = 0; // 0 = Lessons, 1 = My Classes
+  int _activeTabIndex = 0; // 0 = Tantangan, 1 = Peringkat
   String _selectedField = 'ALL';
   String _selectedLevel = 'ALL';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  String _userName = 'Daffarael';
+  String? _userPhotoUrl;
+
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _loadChallenges();
     _loadLeaderboard();
   }
@@ -56,6 +64,21 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      final authRepo = sl<AuthRepository>();
+      final user = await authRepo.getSavedUser();
+      if (user != null && mounted) {
+        setState(() {
+          if (user.name.trim().isNotEmpty) {
+            _userName = user.name.trim().split(' ').first;
+          }
+          _userPhotoUrl = user.photoUrl;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadChallenges() async {
@@ -333,9 +356,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                 // ── 2. TAB CONTENT ───────────────────────────────────────
                 if (_activeTabIndex == 0)
-                  _buildLessonsTabContent()
+                  _buildTantanganTabContent()
                 else
-                  _buildMyClassesTabContent(),
+                  _buildPeringkatTabContent(),
               ],
             ),
           ),
@@ -345,13 +368,13 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. HEADER CARD (Warm Yellow Card with Greeting, Search & Stepped Tabs)
+  // 1. HEADER CARD (Warm Yellow Card with Greeting, Headline, Search & Tabs)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildHeaderCard() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       decoration: BoxDecoration(
-        color: const Color(0xFFFCDA83), // Warm yellow pastel
+        color: const Color(0xFFFCDA83), // Warm yellow pastel from reference
         borderRadius: BorderRadius.circular(38),
         boxShadow: const [
           BoxShadow(
@@ -365,13 +388,13 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header Content (Greeting, Headline, Search Bar) ──
+          // ── Header Content ──
           Padding(
             padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: Monica Avatar + Greeting + 4 Dots Menu
+                // Top row: User Avatar + Greeting + 4 Dots Menu
                 Row(
                   children: [
                     Container(
@@ -390,19 +413,24 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          'assets/images/challenge_monica_avatar.png',
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFFFAC55D),
-                            child: const Icon(Icons.person, color: Colors.white, size: 24),
-                          ),
-                        ),
+                        child: _userPhotoUrl != null && _userPhotoUrl!.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: _userPhotoUrl!,
+                                fit: BoxFit.cover,
+                                errorWidget: (_, __, ___) => Image.asset(
+                                  'assets/images/challenge_monica_avatar.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Image.asset(
+                                'assets/images/challenge_monica_avatar.png',
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Hi, Monica!',
+                      'Hai, $_userName!',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -417,9 +445,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                 const SizedBox(height: 22),
 
-                // Big Headline Title
+                // Big Tantangan Headline Title
                 Text(
-                  'What would you like\nto learn today?',
+                  'Tantangan apa yang\ningin kamu taklukkan?',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
@@ -474,7 +502,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                 decoration: InputDecoration(
                                   isDense: true,
                                   border: InputBorder.none,
-                                  hintText: 'Search here',
+                                  hintText: 'Cari tantangan, topik...',
                                   hintStyle: GoogleFonts.plusJakartaSans(
                                     color: const Color(0xFF94A3B8),
                                     fontSize: 14,
@@ -539,10 +567,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             ),
           ),
 
-          // ── STEPPED TABS (Lessons vs My Classes) ──
+          // ── STEPPED TABS (Tantangan vs Peringkat) ──
           Row(
             children: [
-              // Tab 1: Lessons
+              // Tab 1: Tantangan
               Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -561,7 +589,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'Lessons',
+                      'Tantangan',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -572,7 +600,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                 ),
               ),
 
-              // Tab 2: My Classes
+              // Tab 2: Peringkat
               Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -591,7 +619,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'My Classes',
+                      'Peringkat',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -609,13 +637,55 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 2. TAB 1: LESSONS (Popular + Join a Workshop + Dynamic Challenges)
+  // 2. TAB 1: TANTANGAN (Populer + Live Code & Workshop + Daftar Latihan)
   // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildLessonsTabContent() {
+  Widget _buildTantanganTabContent() {
+    final totalChallenges = _challenges.length;
+    final completedCount = _challenges.where((c) => c['isCompleted'] == true).length;
+    final totalXpEarnable = _challenges
+        .where((c) => c['isCompleted'] != true && c['isUnlocked'] != false)
+        .fold<int>(0, (sum, c) => sum + ((c['xpReward'] as num?)?.toInt() ?? 0));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── SECTION 1: POPULAR ──
+        // ── STATS ROW (Ringkasan Kemajuan Mentee) ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem('Total Tantangan', '$totalChallenges', const Color(0xFF1E1E1E)),
+                ),
+                Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
+                Expanded(
+                  child: _buildStatItem('Selesai', '$completedCount / $totalChallenges', const Color(0xFF1E1E1E)),
+                ),
+                Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
+                Expanded(
+                  child: _buildStatItem('XP Tersedia', '+$totalXpEarnable XP', const Color(0xFFD97706)),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // ── SECTION 1: TANTANGAN POPULER ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -623,7 +693,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Popular',
+                'Tantangan Populer',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 21,
                   fontWeight: FontWeight.w800,
@@ -638,17 +708,18 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
         const SizedBox(height: 14),
 
-        // Horizontal Row of Popular Cards (Graphic Design & Swimming)
+        // Horizontal Row of Popular Challenge Cards
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // Card 1: Graphic Design
+              // Card 1: UI/UX Design Sprint
               _buildPopularCard(
-                title: 'Graphic Design',
-                subtitle: '234 Course',
+                title: 'UI/UX Design Sprint',
+                subtitle: '15 Soal  •  +150 XP',
+                badgeText: 'UI/UX',
                 imageAsset: 'assets/images/challenge_graphic_design.png',
                 onTap: () {
                   if (_challenges.isNotEmpty) {
@@ -659,10 +730,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
               const SizedBox(width: 16),
 
-              // Card 2: Swimming
+              // Card 2: Mobile App Coding Sprint
               _buildPopularCard(
-                title: 'Swimming',
-                subtitle: '62 Courses',
+                title: 'Mobile App Sprint',
+                subtitle: '12 Soal  •  +200 XP',
+                badgeText: 'Mobile',
                 imageAsset: 'assets/images/challenge_swimming.png',
                 onTap: () {
                   if (_challenges.length > 1) {
@@ -678,7 +750,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
         const SizedBox(height: 28),
 
-        // ── SECTION 2: JOIN A WORKSHOP ──
+        // ── SECTION 2: LIVE CODE & WORKSHOP ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -686,7 +758,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Join a Workshop',
+                'Live Code & Workshop',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 21,
                   fontWeight: FontWeight.w800,
@@ -701,17 +773,17 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
         const SizedBox(height: 14),
 
-        // Horizontal Row of Workshop Cards (Wrestling & Character Design)
+        // Horizontal Row of Workshop Cards
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              // Card 1: Wrestling
+              // Card 1: Algoritma & Struktur Data
               _buildWorkshopCard(
-                title: 'Wrestling',
-                instructorName: 'Tommy St. Cash',
+                title: 'Algoritma & Struktur Data',
+                instructorName: 'Coach Tommy  •  Menengah',
                 instructorAsset: 'assets/images/challenge_instructor_tommy.png',
                 thumbnailAsset: 'assets/images/challenge_workshop_1.png',
                 onTap: () {
@@ -723,10 +795,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
               const SizedBox(width: 16),
 
-              // Card 2: Character Design (peeking on the right)
+              // Card 2: Slicing UI Figma ke Flutter
               _buildWorkshopCard(
-                title: 'Character Design',
-                instructorName: 'Alex Morgan',
+                title: 'Slicing UI ke Flutter',
+                instructorName: 'Mentor Daffa  •  Semua Level',
                 instructorAsset: 'assets/images/challenge_monica_avatar.png',
                 thumbnailAsset: 'assets/images/challenge_workshop_2.png',
                 onTap: () {
@@ -739,35 +811,45 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           ),
         ),
 
-        // ── SECTION 3: REAL CHALLENGES (If filtered or available) ──
-        if (_filteredChallenges.isNotEmpty) ...[
-          const SizedBox(height: 28),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Daftar Latihan',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
-                    letterSpacing: -0.3,
-                  ),
+        // ── SECTION 3: DAFTAR LATIHAN (Real Challenges from API) ──
+        const SizedBox(height: 28),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Daftar Latihan',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1E1E1E),
+                  letterSpacing: -0.3,
                 ),
-                Text(
-                  '${_filteredChallenges.length} tersedia',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF64748B),
-                  ),
+              ),
+              Text(
+                '${_filteredChallenges.length} tantangan',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+        ),
+        const SizedBox(height: 12),
+
+        if (_isLoadingChallenges)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 30),
+            child: Center(
+              child: CircularProgressIndicator(color: Color(0xFF101010)),
+            ),
+          )
+        else if (_filteredChallenges.isEmpty)
+          _buildEmptyChallengesCard()
+        else
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ListView.separated(
@@ -781,15 +863,45 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               },
             ),
           ),
-        ],
       ],
     );
   }
 
-  /// Popular vertical card (Graphic Design / Swimming)
+  Widget _buildStatItem(String label, String value, Color valueColor) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w800,
+            color: valueColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Popular vertical challenge card
   Widget _buildPopularCard({
     required String title,
     required String subtitle,
+    required String badgeText,
     required String imageAsset,
     required VoidCallback onTap,
   }) {
@@ -812,15 +924,38 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Illustration Artwork
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                imageAsset,
-                width: double.infinity,
-                height: 142,
-                fit: BoxFit.cover,
-              ),
+            // Artwork Thumbnail with Badge
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    imageAsset,
+                    width: double.infinity,
+                    height: 142,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF101010).withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      badgeText,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 12),
@@ -828,21 +963,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             // Card Title
             Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+                fontSize: 15.5,
                 fontWeight: FontWeight.w800,
                 color: const Color(0xFF1E1E1E),
                 letterSpacing: -0.3,
               ),
             ),
 
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
 
-            // Subtitle
+            // Subtitle / XP count
             Text(
               subtitle,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF94A3B8),
               ),
@@ -853,7 +990,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
-  /// Horizontal Workshop card (Wrestling / Tommy St. Cash)
+  /// Horizontal Workshop / Live Code card
   Widget _buildWorkshopCard({
     required String title,
     required String instructorName,
@@ -903,7 +1040,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15.5,
+                      fontSize: 15,
                       fontWeight: FontWeight.w800,
                       color: const Color(0xFF1E1E1E),
                       letterSpacing: -0.2,
@@ -930,7 +1067,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF64748B),
                           ),
@@ -947,7 +1084,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
-  /// Challenge list card matching the warm cream aesthetic
+  /// Challenge list item from database
   Widget _buildChallengeListItem(Map<String, dynamic> ch) {
     final title = ch['title']?.toString() ?? 'Tantangan';
     final xp = (ch['xpReward'] as num?)?.toInt() ?? 100;
@@ -1053,10 +1190,63 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
+  Widget _buildEmptyChallengesCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.code_off_rounded, size: 26, color: Color(0xFFD97706)),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Belum Ada Tantangan Aktif',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: const Color(0xFF1E1E1E),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tantangan baru akan terbuka seiring kamu menyelesaikan materi pada kelas aktifmu.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. TAB 2: MY CLASSES / PERINGKAT (Leaderboard & Active Classes)
+  // 3. TAB 2: PERINGKAT (Leaderboard & Podium)
   // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildMyClassesTabContent() {
+  Widget _buildPeringkatTabContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -1088,7 +1278,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               ),
             )
           else if (_leaderboard.isEmpty)
-            _buildEmptyClassesState()
+            _buildEmptyLeaderboardState()
           else ...[
             // Top Podium
             if (_leaderboard.length >= 3) _buildWarmPodium(),
@@ -1267,7 +1457,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
-  Widget _buildEmptyClassesState() {
+  Widget _buildEmptyLeaderboardState() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(28),
@@ -1277,10 +1467,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
       child: Column(
         children: [
-          const Icon(Icons.school_outlined, size: 48, color: Color(0xFF94A3B8)),
+          const Icon(Icons.emoji_events_outlined, size: 48, color: Color(0xFF94A3B8)),
           const SizedBox(height: 12),
           Text(
-            'Belum Ada Kelas Aktif',
+            'Belum Ada Peringkat',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -1289,7 +1479,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Kelas yang kamu ikuti akan muncul di sini beserta progres belajarmu.',
+            'Selesaikan tantangan untuk mengumpulkan XP dan memuncaki papan peringkat.',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
