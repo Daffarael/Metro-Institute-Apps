@@ -286,49 +286,51 @@ class BasecampHeader extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // DASHBOARD STAT CARDS (Side-by-side Certificates & Courses)
+  // DASHBOARD STAT CARDS (Side-by-side Courses & Certificates - Kuning & Hijau Metro)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildDashboardStatCards(BuildContext context) {
     return Row(
       children: [
-        // ── Left Card: Certificates ──
-        Expanded(
-          child: _buildStatCard(
-            context: context,
-            count: certificateCount,
-            label: 'Certificates',
-            progress: certificateCount > 0 ? (certificateCount / 5).clamp(0.2, 1.0) : 0.70,
-            progressColor: const Color(0xFF1B8A44), // Fresh green from reference
-            trackColor: const Color(0xFFD4EBD9),
-            cardBgColor: const Color(0xFFEAF5ED), // Mint pastel from reference
-            badgeIcon: Icons.workspace_premium_rounded,
-            iconColor: const Color(0xFF1B8A44),
-            isCloudShape: true,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.go(AppRoutes.certificate);
-            },
-          ),
-        ),
-
-        const SizedBox(width: 14),
-
-        // ── Right Card: Courses ──
+        // ── Card 1: Courses (Hijau Metro #018556) ──
         Expanded(
           child: _buildStatCard(
             context: context,
             count: courseCount,
             label: 'Courses',
             progress: courseCount > 0 ? (courseCount / 10).clamp(0.2, 1.0) : 0.65,
-            progressColor: const Color(0xFFD97706), // Warm orange from reference
-            trackColor: const Color(0xFFF9DFC3),
-            cardBgColor: const Color(0xFFFFF2E2), // Peach pastel from reference
+            progressColor: AppColors.accent, // Kuning Metro ring
+            trackColor: const Color(0xFF016B44),
+            cardBgColor: AppColors.primary, // Hijau Metro (#018556)
             badgeIcon: Icons.business_center_rounded,
-            iconColor: const Color(0xFFD97706),
+            iconColor: AppColors.primary,
+            isDarkBg: true,
             isCloudShape: false,
             onTap: () {
               HapticFeedback.lightImpact();
               context.go(AppRoutes.learn);
+            },
+          ),
+        ),
+
+        const SizedBox(width: 14),
+
+        // ── Card 2: Certificates (Kuning Metro #FAE653) ──
+        Expanded(
+          child: _buildStatCard(
+            context: context,
+            count: certificateCount,
+            label: 'Certificates',
+            progress: certificateCount > 0 ? (certificateCount / 5).clamp(0.2, 1.0) : 0.70,
+            progressColor: AppColors.primary, // Hijau Metro ring
+            trackColor: const Color(0xFFE6D13A),
+            cardBgColor: AppColors.accent, // Kuning Metro (#FAE653)
+            badgeIcon: Icons.workspace_premium_rounded,
+            iconColor: AppColors.primary,
+            isDarkBg: false,
+            isCloudShape: true,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.go(AppRoutes.certificate);
             },
           ),
         ),
@@ -346,6 +348,7 @@ class BasecampHeader extends StatelessWidget {
     required Color cardBgColor,
     required IconData badgeIcon,
     required Color iconColor,
+    required bool isDarkBg,
     required bool isCloudShape,
     required VoidCallback onTap,
   }) {
@@ -356,11 +359,13 @@ class BasecampHeader extends StatelessWidget {
         decoration: BoxDecoration(
           color: cardBgColor,
           borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 10,
-              offset: Offset(0, 3),
+              color: isDarkBg
+                  ? const Color(0xFF018556).withValues(alpha: 0.28)
+                  : const Color(0xFFFAE653).withValues(alpha: 0.35),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -371,8 +376,8 @@ class BasecampHeader extends StatelessWidget {
             Positioned.fill(
               child: CustomPaint(
                 painter: isCloudShape
-                    ? const _OrganicCloudPainter(color: Color(0x40D4EBD9))
-                    : const _GeometricShapePainter(color: Color(0x40F9DFC3)),
+                    ? const _OrganicCloudPainter(color: Color(0x40E6D13A))
+                    : const _GeometricShapePainter(color: Color(0x18FFFFFF)),
               ),
             ),
 
@@ -405,7 +410,7 @@ class BasecampHeader extends StatelessWidget {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 38,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFF0F172A),
+                              color: isDarkBg ? Colors.white : const Color(0xFF0D1117),
                               height: 1.1,
                               letterSpacing: -0.5,
                             ),
@@ -415,8 +420,10 @@ class BasecampHeader extends StatelessWidget {
                             label,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF475569),
+                              fontWeight: FontWeight.w700,
+                              color: isDarkBg
+                                  ? Colors.white.withValues(alpha: 0.92)
+                                  : const Color(0xFF0D1117).withValues(alpha: 0.75),
                             ),
                           ),
                         ],
