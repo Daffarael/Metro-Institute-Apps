@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +9,7 @@ import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
 
 /// BasecampInspireTalkCard — Spotlight Card
 /// Styled 1:1 with reference design (Royal Purple #6B37EB with signature avatar notch cutout):
-/// • Floating circular speaker portrait nested inside an organic concave notch cutout on top-left.
+/// • Floating circular speaker portrait nestled inside an organic concave notch cutout on top-left.
 /// • Top row: "[📖] Course 1" pill tag and "[⋮]" circular option button.
 /// • Centered schedule ("Mon 14:30 PM || Zoom") and field category pill ("[UI/UX Design]").
 /// • Bold headline ("UX & Web Design Course").
@@ -101,7 +102,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
           CustomPaint(
             painter: const _InspireTalkCardShadowPainter(
               clipper: clipper,
-              shadowColor: Color(0x386B37EB),
+              shadowColor: Color(0x356B37EB),
               elevation: 14.0,
             ),
             child: ClipPath(
@@ -129,8 +130,8 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                           // ── Top Row: Space for cutout + Tag Pill + Options [⋮] ──
                           Row(
                             children: [
-                              // Clearance for avatar notch on the left (20 padding + 86 = 106)
-                              const SizedBox(width: 86),
+                              // Clearance for avatar notch on the left (20 padding + 70 = 90 dp)
+                              const SizedBox(width: 70),
 
                               // Tag pill: [📖] Course 1
                               Container(
@@ -183,7 +184,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                             ],
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
 
                           // ── Schedule & Zoom Platform ──
                           Text(
@@ -215,7 +216,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                             ),
                           ),
 
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
                           // ── Big Talk Headline Title ──
                           Text(
@@ -258,7 +259,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                             ],
                           ),
 
-                          const SizedBox(height: 22),
+                          const SizedBox(height: 20),
 
                           // ── Bottom Row: Attendee Avatars with "+12" & White "Join Class" Button ──
                           Row(
@@ -306,10 +307,10 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
             ),
           ),
 
-          // ── LAYER 2: Floating Circular Speaker Avatar inside Notch Cutout ──
+          // ── LAYER 2: Floating Circular Speaker Avatar nestled inside Notch Cutout ──
           Positioned(
-            left: -4,
-            top: -4,
+            left: -2,
+            top: -2,
             child: GestureDetector(
               onTap: _handleOpenDetail,
               child: Container(
@@ -320,8 +321,8 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
                   border: Border.all(color: Colors.white, width: 3.5),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x2E0F172A),
-                      blurRadius: 10,
+                      color: Color(0x28000000),
+                      blurRadius: 8,
                       offset: Offset(0, 3),
                     ),
                   ],
@@ -447,7 +448,7 @@ class _BasecampInspireTalkCardState extends State<BasecampInspireTalkCard> {
 }
 
 /// CustomClipper that sculpts the signature organic concave notch cutout on top-left,
-/// mathematically fitted from reference design (media_1794059228056_2bd1ed1b.jpg),
+/// mathematically fitted to concentrically cradle the avatar with a uniform 5dp gap,
 /// with corner radius = 36 on top-right, bottom-right, and bottom-left.
 class _InspireTalkNotchClipper extends CustomClipper<Path> {
   final double cornerRadius;
@@ -462,9 +463,26 @@ class _InspireTalkNotchClipper extends CustomClipper<Path> {
     final h = size.height;
     final r = cornerRadius;
 
+    // Avatar center and cutout parameters (matches avatar at left: -2, top: -2, size: 72x72)
+    const cx = 34.0;
+    const cy = 34.0;
+    const rCut = 41.0;
+    const rf = 16.0;
+
+    // Geometric contact points for smooth fillets
+    final xf = cx + math.sqrt((rCut + rf) * (rCut + rf) - (rf - cy) * (rf - cy));
+    final yf = cy + math.sqrt((rCut + rf) * (rCut + rf) - (rf - cx) * (rf - cx));
+
+    // Tangency points
+    final t1x = cx + rCut * (xf - cx) / (rCut + rf);
+    final t1y = cy + rCut * (rf - cy) / (rCut + rf);
+
+    final t2x = cx + rCut * (rf - cx) / (rCut + rf);
+    final t2y = cy + rCut * (yf - cy) / (rCut + rf);
+
     final path = Path();
-    // 1. Top edge starting after the organic notch fillet
-    path.moveTo(106.0, 0.0);
+    // 1. Start at top edge where top fillet meets y = 0
+    path.moveTo(xf, 0.0);
 
     // 2. Top-right rounded corner (r = 36)
     path.lineTo(w - r, 0.0);
@@ -478,15 +496,29 @@ class _InspireTalkNotchClipper extends CustomClipper<Path> {
     path.lineTo(r, h);
     path.arcToPoint(Offset(0.0, h - r), radius: Radius.circular(r));
 
-    // 5. Left vertical edge up to the organic shoulder
-    path.lineTo(0.0, 108.0);
+    // 5. Left vertical edge up to where left fillet begins
+    path.lineTo(0.0, yf);
 
-    // 6. Signature organic concave notch contouring around speaker avatar:
-    // Curve 1: Left shoulder into bottom of the circular cutout
-    path.cubicTo(0.0, 88.0, 22.0, 78.0, 48.0, 74.0);
+    // 6. Left convex fillet: curves from (0, yf) into tangency with circular cutout
+    path.arcToPoint(
+      Offset(t2x, t2y),
+      radius: const Radius.circular(rf),
+      clockwise: true,
+    );
 
-    // Curve 2: Circular cutout arc up to top rounded tab
-    path.cubicTo(76.0, 70.0, 82.0, 0.0, 106.0, 0.0);
+    // 7. Pure circular concave cutout arc hugging the avatar concentric with 5dp gap
+    path.arcToPoint(
+      Offset(t1x, t1y),
+      radius: const Radius.circular(rCut),
+      clockwise: false,
+    );
+
+    // 8. Top convex fillet: curves from tangency out to horizontal top edge (xf, 0)
+    path.arcToPoint(
+      Offset(xf, 0.0),
+      radius: const Radius.circular(rf),
+      clockwise: true,
+    );
 
     path.close();
     return path;
