@@ -1,18 +1,18 @@
 import 'dart:math' as math;
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 
-/// BasecampHeroCard — "UX Lab: Motion Edition" / Continue Learning Card.
-/// Styled 1:1 with the reference design:
+/// BasecampHeroCard — "Bootcamp Metro Institute Season 2" / Continue Learning Card.
+/// Styled 1:1 with the reference design (r = 44) adapted to authentic Metro Institute content:
 /// • Soft pastel periwinkle blue container with smooth rounded corners (r = 44).
-/// • Top-left white circular badge with stylized lens/target icon.
-/// • Top-right circular progress tracker with ring arc and "2/3" indicator.
-/// • Bold course title and mentor subtitle ("UX Lab: Motion Edition" / "Joseph Smith").
-/// • Clean dark pill CTA button ("JOIN NOW").
-/// • Bottom-right overlapping avatar portraits with whimsical background line-art (lightbulb, ruler, gear).
+/// • Top-left white circular badge with Metro Institute Shield Logo.
+/// • Top-right circular progress tracker with ring arc and "S2" or actual progress indicator.
+/// • Bold course title and mentor subtitle ("Bootcamp Metro Institute Season 2" / "Intensif UI/UX Design & Mobile Apps").
+/// • Clean Hijau Metro pill CTA button ("MULAI BELAJAR" / "LANJUT BELAJAR").
+/// • Bottom-right overlapping track badges (UI/UX, Mobile, Engineering) with whimsical line-art.
 class BasecampHeroCard extends StatelessWidget {
   final Map<String, dynamic>? continueLearning;
 
@@ -20,21 +20,23 @@ class BasecampHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If continueLearning is available, bind its dynamic data; otherwise use reference design defaults
+    // If continueLearning is available, bind its dynamic data; otherwise use Metro Institute Season 2 defaults
     final hasData = continueLearning != null;
     final title = hasData && (continueLearning!['title'] as String?)?.trim().isNotEmpty == true
         ? continueLearning!['title'] as String
-        : 'UX Lab: Motion Edition';
+        : 'Bootcamp Metro Institute Season 2';
 
     final subtitle = hasData && (continueLearning!['sessionTitle'] as String?)?.trim().isNotEmpty == true
         ? continueLearning!['sessionTitle'] as String
-        : (continueLearning?['mentorName'] as String? ?? 'Joseph Smith');
+        : (continueLearning?['mentorName'] as String? ?? 'Intensif UI/UX Design & Mobile Apps');
 
-    final rawProgress = (continueLearning?['progress'] as num?)?.toDouble() ?? 66.7;
+    final rawProgress = (continueLearning?['progress'] as num?)?.toDouble() ?? 0.0;
     final progress = (rawProgress / 100).clamp(0.0, 1.0);
-    final completedCount = (continueLearning?['completedSessions'] as num?)?.toInt() ?? 2;
-    final totalCount = (continueLearning?['totalSessions'] as num?)?.toInt() ?? 3;
-    final progressText = hasData && totalCount > 0 ? '$completedCount/$totalCount' : '2/3';
+    final completedCount = (continueLearning?['completedSessions'] as num?)?.toInt() ?? 0;
+    final totalCount = (continueLearning?['totalSessions'] as num?)?.toInt() ?? 0;
+    final progressText = hasData
+        ? (totalCount > 0 ? '$completedCount/$totalCount' : '${(progress * 100).toInt()}%')
+        : 'S2';
 
     final courseId = continueLearning?['id']?.toString() ?? '';
     final sessionId = continueLearning?['sessionId']?.toString() ?? '';
@@ -42,9 +44,9 @@ class BasecampHeroCard extends StatelessWidget {
     void handleTap() {
       if (hasData && courseId.isNotEmpty) {
         if (sessionId.isNotEmpty) {
-          context.push('/learn/player/');
+          context.push('/learn/player/$sessionId');
         } else {
-          context.push('/learn/course/');
+          context.push('/learn/course/$courseId');
         }
       } else {
         context.go(AppRoutes.learn);
@@ -87,31 +89,32 @@ class BasecampHeroCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top Row: White Circular Badge (Left) & Circular Progress (Right)
+                    // Top Row: Metro Shield Badge (Left) & Circular Progress (Right)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Left: White Circular Badge with Target Mark
+                        // Left: White Circular Badge with Metro Logo
                         _buildTargetBadge(),
 
-                        // Right: Circular Progress Ring (e.g. "2/3")
+                        // Right: Circular Progress Ring (e.g. "S2" or "2/3")
                         _buildProgressRing(
-                          progress: hasData ? progress : (2 / 3),
+                          hasData: hasData,
+                          progress: hasData ? progress : 1.0,
                           text: progressText,
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 20),
 
                     // Title
                     Text(
                       title,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 19,
+                        fontSize: 18.5,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF063D2A), // Deep Emerald Dark Metro
                         letterSpacing: -0.3,
                         height: 1.25,
                       ),
@@ -121,52 +124,63 @@ class BasecampHeroCard extends StatelessWidget {
 
                     const SizedBox(height: 4),
 
-                    // Subtitle (Mentor / Session)
+                    // Subtitle (Mentor / Session / Track)
                     Text(
                       subtitle,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF334155),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF1E3A2F),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
-                    // Bottom Row: "JOIN NOW" Pill Button (Left) & Overlapping Avatars (Right)
+                    // Bottom Row: "MULAI BELAJAR" Pill Button (Left) & Tracks (Right)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // CTA Pill Button: "JOIN NOW"
+                        // CTA Pill Button: "MULAI BELAJAR" / "LANJUT BELAJAR"
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A), // Dark navy pill matching screenshot
+                            color: AppColors.primary, // Hijau Metro
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x220F172A),
+                                color: Color(0x33018556),
                                 blurRadius: 10,
                                 offset: Offset(0, 3),
                               ),
                             ],
                           ),
                           alignment: Alignment.center,
-                          child: Text(
-                            'JOIN NOW',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.6,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                hasData ? 'LANJUT BELAJAR' : 'MULAI BELAJAR',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ],
                           ),
                         ),
 
-                        // Overlapping Avatars Stack (Right)
+                        // Overlapping Track Badges (Right)
                         _buildAvatarStack(),
                       ],
                     ),
@@ -180,7 +194,7 @@ class BasecampHeroCard extends StatelessWidget {
     );
   }
 
-  /// White circular badge at top-left with target mark
+  /// White circular badge at top-left with Metro Institute Logo
   Widget _buildTargetBadge() {
     return Container(
       width: 46,
@@ -197,9 +211,13 @@ class BasecampHeroCard extends StatelessWidget {
         ],
       ),
       child: Center(
-        child: CustomPaint(
-          size: const Size(22, 22),
-          painter: const _TargetLogoPainter(),
+        child: ClipOval(
+          child: Image.asset(
+            'assets/images/logo.png',
+            width: 30,
+            height: 30,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -207,6 +225,7 @@ class BasecampHeroCard extends StatelessWidget {
 
   /// Circular Progress Ring at top-right
   Widget _buildProgressRing({
+    required bool hasData,
     required double progress,
     required String text,
   }) {
@@ -220,8 +239,8 @@ class BasecampHeroCard extends StatelessWidget {
             size: const Size(46, 46),
             painter: _ProgressRingPainter(
               progress: progress,
-              trackColor: Colors.black.withValues(alpha: 0.10),
-              progressColor: const Color(0xFF0F172A),
+              trackColor: Colors.black.withValues(alpha: 0.08),
+              progressColor: AppColors.primary,
               strokeWidth: 2.8,
             ),
           ),
@@ -230,7 +249,7 @@ class BasecampHeroCard extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF0F172A),
+              color: AppColors.primary,
               letterSpacing: -0.2,
             ),
           ),
@@ -239,23 +258,23 @@ class BasecampHeroCard extends StatelessWidget {
     );
   }
 
-  /// 3 Overlapping Avatar Portraits at bottom-right
+  /// 3 Overlapping Track Badges at bottom-right (UI/UX, Mobile, Engineering)
   Widget _buildAvatarStack() {
-    const avatars = [
+    const tracks = [
       (
-        url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-        color: Color(0xFF38BDF8),
-        icon: Icons.person_rounded,
+        color: AppColors.primary, // Hijau Metro
+        icon: Icons.palette_rounded, // UI/UX Design
+        iconColor: Colors.white,
       ),
       (
-        url: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=80',
-        color: Color(0xFFA855F7),
-        icon: Icons.face_rounded,
+        color: AppColors.accent, // Kuning Metro
+        icon: Icons.phone_android_rounded, // Mobile Apps
+        iconColor: Color(0xFF063D2A),
       ),
       (
-        url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-        color: Color(0xFFFB7185),
-        icon: Icons.face_4_rounded,
+        color: AppColors.emeraldDark, // Emerald Dark
+        icon: Icons.terminal_rounded, // Web & Backend Engineering
+        iconColor: Colors.white,
       ),
     ];
 
@@ -263,8 +282,8 @@ class BasecampHeroCard extends StatelessWidget {
       width: 82,
       height: 36,
       child: Stack(
-        children: List.generate(avatars.length, (index) {
-          final item = avatars[index];
+        children: List.generate(tracks.length, (index) {
+          final item = tracks[index];
           return Positioned(
             left: index * 22.0,
             child: Container(
@@ -282,17 +301,11 @@ class BasecampHeroCard extends StatelessWidget {
                   ),
                 ],
               ),
-              clipBehavior: Clip.antiAlias,
-              child: CachedNetworkImage(
-                imageUrl: item.url,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: item.color,
-                  child: Icon(item.icon, color: Colors.white, size: 20),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: item.color,
-                  child: Icon(item.icon, color: Colors.white, size: 20),
+              child: Center(
+                child: Icon(
+                  item.icon,
+                  color: item.iconColor,
+                  size: 18,
                 ),
               ),
             ),
@@ -301,35 +314,6 @@ class BasecampHeroCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// CustomPainter for the target/eye logo in the top-left circle badge
-class _TargetLogoPainter extends CustomPainter {
-  const _TargetLogoPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.width / 2;
-
-    final ringPaint = Paint()
-      ..color = const Color(0xFF0F172A)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4;
-
-    // Outer stylized ring
-    canvas.drawCircle(Offset(cx, cy), r - 1.2, ringPaint);
-
-    // Inner dot
-    final dotPaint = Paint()
-      ..color = const Color(0xFF0F172A)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(cx, cy), r * 0.40, dotPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 /// CustomPainter for the circular progress ring at top-right
