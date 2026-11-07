@@ -53,9 +53,10 @@ class BasecampHeroCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
+      constraints: const BoxConstraints(minHeight: 160),
       decoration: BoxDecoration(
         color: const Color(0xFFA2BCFB), // Soft pastel periwinkle blue from reference design
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
             color: Color(0x180F172A),
@@ -69,7 +70,7 @@ class BasecampHeroCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: handleTap,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
               // ── LAYER 0: Background Whimsical Line Art (Lightbulb, Ruler, Gear) ──
