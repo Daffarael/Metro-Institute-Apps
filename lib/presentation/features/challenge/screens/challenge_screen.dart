@@ -3,20 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/challenge_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import 'challenge_arena_screen.dart';
 
 /// ChallengeScreen — Halaman Tantangan Metro Institute
-/// Mengadopsi 100% desain referensi visual (Warm Yellow Header, Stepped Tabs, Whimsical Illustrated Cards),
-/// dengan KONTEN YANG DIADAPTASIKAN PERSIS untuk konsep TANTANGAN koding & bootcamp:
-/// • Background kanvas krem pastel hangat (#FFE7C8)
-/// • Header card kuning pastel (#FCDA83) dengan sapaan user & headline "Tantangan apa yang ingin kamu taklukkan?"
-/// • Pill search bar ("Cari tantangan, algoritma, topik...") & tombol filter hitam pekat
+/// Mengadopsi struktur & layout referensi visual dengan estetika khas Metro:
+/// • Background kanvas putih bersih (Colors.white)
+/// • Header card Kuning Metro (#FAE653) dengan sapaan user & headline "Tantangan apa yang ingin kamu taklukkan?"
+/// • Pill search bar ("Cari tantangan, topik...") & tombol filter hitam pekat
 /// • Stepped tabs "Tantangan" dan "Peringkat" (Leaderboard)
-/// • Section "Tantangan Populer" dengan kartu bergambar (UI/UX Sprint, Mobile App Sprint)
-/// • Section "Live Code & Workshop" dengan kartu latihan (Algoritma, Slicing UI)
-/// • Ringkasan statistik (Total, Selesai, XP Tersedia) & Daftar Latihan lengkap dari API
+/// • Ringkasan statistik (Total Tantangan, Selesai, XP Tersedia)
+/// • Daftar Latihan langsung terhubung ke API backend (menampilkan Empty State jika belum ada tantangan aktif)
 /// • Tab Peringkat dengan Podium Juara 1-2-3 dan daftar ranking mingguan
 class ChallengeScreen extends StatefulWidget {
   const ChallengeScreen({super.key});
@@ -176,7 +175,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             return Container(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 34),
               decoration: const BoxDecoration(
-                color: Color(0xFFFFF8EE),
+                color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
               ),
               child: Column(
@@ -311,10 +310,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFAC55D) : Colors.white,
+          color: isSelected ? AppColors.accent : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFFF5B942) : const Color(0xFFE2E8F0),
+            color: isSelected ? AppColors.accentDark : const Color(0xFFE2E8F0),
             width: 1.2,
           ),
         ),
@@ -333,7 +332,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE7C8), // Warm cream peach canvas from reference design
+      backgroundColor: Colors.white, // Latar belakang putih bersih
       body: SafeArea(
         top: true,
         bottom: false,
@@ -349,10 +348,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. SIGNATURE WARM YELLOW HEADER CARD (WITH TABS) ──────
+                // ── 1. SIGNATURE KUNING METRO HEADER CARD (WITH TABS) ─────
                 _buildHeaderCard(),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 // ── 2. TAB CONTENT ───────────────────────────────────────
                 if (_activeTabIndex == 0)
@@ -368,19 +367,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. HEADER CARD (Warm Yellow Card with Greeting, Headline, Search & Tabs)
+  // 1. HEADER CARD (Kuning Metro Card with Greeting, Headline, Search & Tabs)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildHeaderCard() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       decoration: BoxDecoration(
-        color: const Color(0xFFFCDA83), // Warm yellow pastel from reference
-        borderRadius: BorderRadius.circular(38),
+        color: AppColors.accent, // Kuning Metro (#FAE653)
+        borderRadius: BorderRadius.circular(36),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x14F5B942),
+            color: Color(0x18000000),
             blurRadius: 18,
-            offset: Offset(0, 8),
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -434,7 +433,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E1E1E),
+                        color: const Color(0xFF0D1117),
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -443,23 +442,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 22),
+                const SizedBox(height: 20),
 
                 // Big Tantangan Headline Title
                 Text(
                   'Tantangan apa yang\ningin kamu taklukkan?',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 24,
+                    fontSize: 23,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
+                    color: const Color(0xFF0D1117),
                     height: 1.25,
                     letterSpacing: -0.5,
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
 
-                // Search Bar + Black Filter Button
+                // Search Bar + Pure Black Squircle Filter Button
                 Row(
                   children: [
                     // Search Bar
@@ -472,7 +471,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           borderRadius: BorderRadius.circular(999),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0x0A000000),
+                              color: Color(0x0C000000),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
@@ -578,12 +577,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     setState(() => _activeTabIndex = 0);
                   },
                   child: Container(
-                    height: 56,
+                    height: 54,
                     decoration: BoxDecoration(
-                      color: _activeTabIndex == 0 ? const Color(0xFFFAC55D) : Colors.white,
+                      color: _activeTabIndex == 0 ? AppColors.accentDark : Colors.white,
                       borderRadius: BorderRadius.only(
-                        bottomLeft: const Radius.circular(38),
-                        bottomRight: _activeTabIndex == 0 ? const Radius.circular(26) : Radius.zero,
+                        bottomLeft: const Radius.circular(36),
+                        bottomRight: _activeTabIndex == 0 ? const Radius.circular(24) : Radius.zero,
                         topRight: _activeTabIndex == 0 ? Radius.zero : const Radius.circular(22),
                       ),
                     ),
@@ -593,7 +592,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: _activeTabIndex == 0 ? const Color(0xFF1E1E1E) : const Color(0xFF8E8E93),
+                        color: _activeTabIndex == 0 ? const Color(0xFF0D1117) : const Color(0xFF8E8E93),
                       ),
                     ),
                   ),
@@ -608,12 +607,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     setState(() => _activeTabIndex = 1);
                   },
                   child: Container(
-                    height: 56,
+                    height: 54,
                     decoration: BoxDecoration(
-                      color: _activeTabIndex == 1 ? const Color(0xFFFAC55D) : Colors.white,
+                      color: _activeTabIndex == 1 ? AppColors.accentDark : Colors.white,
                       borderRadius: BorderRadius.only(
-                        bottomRight: const Radius.circular(38),
-                        bottomLeft: _activeTabIndex == 1 ? const Radius.circular(26) : Radius.zero,
+                        bottomRight: const Radius.circular(36),
+                        bottomLeft: _activeTabIndex == 1 ? const Radius.circular(24) : Radius.zero,
                         topLeft: _activeTabIndex == 1 ? Radius.zero : const Radius.circular(22),
                       ),
                     ),
@@ -623,7 +622,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: _activeTabIndex == 1 ? const Color(0xFF1E1E1E) : const Color(0xFF8E8E93),
+                        color: _activeTabIndex == 1 ? const Color(0xFF0D1117) : const Color(0xFF8E8E93),
                       ),
                     ),
                   ),
@@ -637,7 +636,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 2. TAB 1: TANTANGAN (Populer + Live Code & Workshop + Daftar Latihan)
+  // 2. TAB 1: TANTANGAN (Stats + Daftar Latihan)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildTantanganTabContent() {
     final totalChallenges = _challenges.length;
@@ -657,9 +656,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x0A000000),
+                  color: Color(0x06000000),
                   blurRadius: 10,
                   offset: Offset(0, 3),
                 ),
@@ -683,136 +683,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 22),
 
-        // ── SECTION 1: TANTANGAN POPULER ──
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Tantangan Populer',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
-                  letterSpacing: -0.4,
-                ),
-              ),
-              _buildTwoDotsIcon(),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Horizontal Row of Popular Challenge Cards
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              // Card 1: UI/UX Design Sprint
-              _buildPopularCard(
-                title: 'UI/UX Design Sprint',
-                subtitle: '15 Soal  •  +150 XP',
-                badgeText: 'UI/UX',
-                imageAsset: 'assets/images/challenge_graphic_design.png',
-                onTap: () {
-                  if (_challenges.isNotEmpty) {
-                    _openChallenge(_challenges.first as Map<String, dynamic>);
-                  }
-                },
-              ),
-
-              const SizedBox(width: 16),
-
-              // Card 2: Mobile App Coding Sprint
-              _buildPopularCard(
-                title: 'Mobile App Sprint',
-                subtitle: '12 Soal  •  +200 XP',
-                badgeText: 'Mobile',
-                imageAsset: 'assets/images/challenge_swimming.png',
-                onTap: () {
-                  if (_challenges.length > 1) {
-                    _openChallenge(_challenges[1] as Map<String, dynamic>);
-                  } else if (_challenges.isNotEmpty) {
-                    _openChallenge(_challenges.first as Map<String, dynamic>);
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 28),
-
-        // ── SECTION 2: LIVE CODE & WORKSHOP ──
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Live Code & Workshop',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
-                  letterSpacing: -0.4,
-                ),
-              ),
-              _buildTwoDotsIcon(),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Horizontal Row of Workshop Cards
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              // Card 1: Algoritma & Struktur Data
-              _buildWorkshopCard(
-                title: 'Algoritma & Struktur Data',
-                instructorName: 'Coach Tommy  •  Menengah',
-                instructorAsset: 'assets/images/challenge_instructor_tommy.png',
-                thumbnailAsset: 'assets/images/challenge_workshop_1.png',
-                onTap: () {
-                  if (_challenges.isNotEmpty) {
-                    _openChallenge(_challenges.last as Map<String, dynamic>);
-                  }
-                },
-              ),
-
-              const SizedBox(width: 16),
-
-              // Card 2: Slicing UI Figma ke Flutter
-              _buildWorkshopCard(
-                title: 'Slicing UI ke Flutter',
-                instructorName: 'Mentor Daffa  •  Semua Level',
-                instructorAsset: 'assets/images/challenge_monica_avatar.png',
-                thumbnailAsset: 'assets/images/challenge_workshop_2.png',
-                onTap: () {
-                  if (_challenges.isNotEmpty) {
-                    _openChallenge(_challenges.first as Map<String, dynamic>);
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-
-        // ── SECTION 3: DAFTAR LATIHAN (Real Challenges from API) ──
-        const SizedBox(height: 28),
+        // ── SECTION: DAFTAR LATIHAN ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -842,7 +715,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
         if (_isLoadingChallenges)
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 30),
+            padding: EdgeInsets.symmetric(vertical: 40),
             child: Center(
               child: CircularProgressIndicator(color: Color(0xFF101010)),
             ),
@@ -897,193 +770,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
-  /// Popular vertical challenge card
-  Widget _buildPopularCard({
-    required String title,
-    required String subtitle,
-    required String badgeText,
-    required String imageAsset,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 195,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0C000000),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Artwork Thumbnail with Badge
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    imageAsset,
-                    width: double.infinity,
-                    height: 142,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF101010).withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Card Title
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15.5,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF1E1E1E),
-                letterSpacing: -0.3,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            // Subtitle / XP count
-            Text(
-              subtitle,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF94A3B8),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Horizontal Workshop / Live Code card
-  Widget _buildWorkshopCard({
-    required String title,
-    required String instructorName,
-    required String instructorAsset,
-    required String thumbnailAsset,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 250,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0C000000),
-              blurRadius: 12,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Artwork Thumbnail
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: Image.asset(
-                thumbnailAsset,
-                width: 74,
-                height: 74,
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            // Info Column
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF1E1E1E),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Row(
-                    children: [
-                      ClipOval(
-                        child: Image.asset(
-                          instructorAsset,
-                          width: 20,
-                          height: 20,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 16),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          instructorName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Challenge list item from database
   Widget _buildChallengeListItem(Map<String, dynamic> ch) {
     final title = ch['title']?.toString() ?? 'Tantangan';
@@ -1096,10 +782,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 10,
+            color: Color(0x06000000),
+            blurRadius: 8,
             offset: Offset(0, 2),
           ),
         ],
@@ -1112,7 +799,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             decoration: BoxDecoration(
               color: isCompleted
                   ? const Color(0xFF10B981).withValues(alpha: 0.12)
-                  : const Color(0xFFFAC55D).withValues(alpha: 0.25),
+                  : AppColors.accent.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
@@ -1142,7 +829,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3E0),
+                        color: const Color(0xFFFFF9E6),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -1199,6 +886,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
           boxShadow: const [
             BoxShadow(
               color: Color(0x06000000),
@@ -1210,15 +898,16 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         child: Column(
           children: [
             Container(
-              width: 52,
-              height: 52,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(16),
+                color: const Color(0xFFFFF9E6),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.accent.withValues(alpha: 0.5), width: 1.2),
               ),
-              child: const Icon(Icons.code_off_rounded, size: 26, color: Color(0xFFD97706)),
+              child: const Icon(Icons.code_off_rounded, size: 28, color: Color(0xFFD97706)),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Text(
               'Belum Ada Tantangan Aktif',
               style: GoogleFonts.plusJakartaSans(
@@ -1232,7 +921,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               'Tantangan baru akan terbuka seiring kamu menyelesaikan materi pada kelas aktifmu.',
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: const Color(0xFF64748B),
                 height: 1.45,
               ),
@@ -1312,7 +1001,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       children: [
         _buildPodiumStep(rank: 2, user: second, height: 110, color: const Color(0xFFE2E8F0)),
         const SizedBox(width: 14),
-        _buildPodiumStep(rank: 1, user: first, height: 140, color: const Color(0xFFFAC55D)),
+        _buildPodiumStep(rank: 1, user: first, height: 140, color: AppColors.accentDark),
         const SizedBox(width: 14),
         _buildPodiumStep(rank: 3, user: third, height: 95, color: const Color(0xFFFED7AA)),
       ],
@@ -1333,7 +1022,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       children: [
         CircleAvatar(
           radius: rank == 1 ? 26 : 22,
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFF1F5F9),
           child: Text(
             name.isNotEmpty ? name[0].toUpperCase() : '?',
             style: GoogleFonts.plusJakartaSans(
@@ -1404,6 +1093,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
@@ -1418,7 +1108,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: rank <= 3 ? const Color(0xFFFAC55D) : const Color(0xFFF1F5F9),
+              color: rank <= 3 ? AppColors.accent : const Color(0xFFF1F5F9),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -1464,6 +1154,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
       ),
       child: Column(
         children: [
@@ -1504,18 +1195,18 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF1E1E1E), shape: BoxShape.circle)),
+              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF0D1117), shape: BoxShape.circle)),
               const SizedBox(width: 4),
-              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF1E1E1E), shape: BoxShape.circle)),
+              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF0D1117), shape: BoxShape.circle)),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF1E1E1E), shape: BoxShape.circle)),
+              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF0D1117), shape: BoxShape.circle)),
               const SizedBox(width: 4),
-              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF1E1E1E), shape: BoxShape.circle)),
+              Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF0D1117), shape: BoxShape.circle)),
             ],
           ),
         ],
