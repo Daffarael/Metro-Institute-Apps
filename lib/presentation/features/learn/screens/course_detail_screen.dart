@@ -174,8 +174,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
 
-  // Selected Tab: 0 = Description, 1 = Lessons
-  int _selectedTab = 1;
+  // Selected Tab: 0 = Deskripsi (kiri), 1 = Silabus (kanan)
+  int _selectedTab = 0;
 
   // Track expanded chapters
   final Set<int> _expandedChapters = {0};
