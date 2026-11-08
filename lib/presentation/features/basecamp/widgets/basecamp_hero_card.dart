@@ -84,16 +84,11 @@ class BasecampHeroCard extends StatelessWidget {
 
               // ── LAYER 1: Card Content ──
               Padding(
-                padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+                padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top Row: Metro Shield Badge (Left)
-                    _buildTargetBadge(),
-
-                    const SizedBox(height: 20),
-
                     // Title
                     Text(
                       title,
@@ -108,7 +103,7 @@ class BasecampHeroCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
 
                     // Subtitle (Mentor / Session / Track)
                     Text(
@@ -122,7 +117,7 @@ class BasecampHeroCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
 
                     // Bottom Row: "MULAI BELAJAR" Pill Button
                     Container(
@@ -164,35 +159,6 @@ class BasecampHeroCard extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// White circular badge at top-left with Metro Institute Logo
-  Widget _buildTargetBadge() {
-    return Container(
-      width: 46,
-      height: 46,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x120F172A),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(
-        child: ClipOval(
-          child: Image.asset(
-            'assets/images/logo.png',
-            width: 30,
-            height: 30,
-            fit: BoxFit.contain,
           ),
         ),
       ),
