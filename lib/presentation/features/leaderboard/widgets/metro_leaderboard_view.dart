@@ -144,7 +144,21 @@ class MetroLeaderboardView extends StatelessWidget {
                       const SizedBox(height: 20),
 
                       // 3. The Podium Section
-                      _buildPodiumSection(topThree),
+                      if (topThree.isNotEmpty) ...[
+                        _buildPodiumSection(topThree),
+                      ] else if (!isLoading) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: Text(
+                            'Belum ada data peringkat mentee.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -165,6 +179,20 @@ class MetroLeaderboardView extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 40),
                   child: Center(
                     child: CircularProgressIndicator(color: AppColors.accent),
+                  ),
+                )
+              else if (displayList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: Center(
+                    child: Text(
+                      'Belum ada data mentee pada papan peringkat.',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 )
               else
@@ -317,9 +345,9 @@ class MetroLeaderboardView extends StatelessWidget {
   Widget _buildPodiumSection(List<Map<String, dynamic>> topThree) {
     if (topThree.isEmpty) return const SizedBox.shrink();
 
-    final second = topThree.length > 1 ? topThree[1] : topThree[0];
     final first = topThree[0];
-    final third = topThree.length > 2 ? topThree[2] : (topThree.length > 1 ? topThree[1] : topThree[0]);
+    final second = topThree.length > 1 ? topThree[1] : null;
+    final third = topThree.length > 2 ? topThree[2] : null;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -334,17 +362,21 @@ class MetroLeaderboardView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // ── PODIUM #2 (LEFT) ──
-            _buildPodiumPillar(
-              rank: 2,
-              percentage: second['percentage']?.toString() ?? '96 %',
-              name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Alice\nKoller',
-              avatarAsset: second['avatarAsset']?.toString(),
-              photoUrl: second['photoUrl']?.toString(),
-              isLogo: second['isLogo'] == true,
-              pillarHeight: 148,
-              pillarWidth: sideWidth,
-              topRadius: 26,
-            ),
+            if (second != null)
+              _buildPodiumPillar(
+                rank: 2,
+                percentage: second['percentage']?.toString() ?? '0 %',
+                name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Mentee',
+                avatarAsset: second['avatarAsset']?.toString(),
+                photoUrl: second['photoUrl']?.toString(),
+                isLogo: second['isLogo'] == true,
+                xp: second['xp'] as int?,
+                pillarHeight: 148,
+                pillarWidth: sideWidth,
+                topRadius: 26,
+              )
+            else
+              SizedBox(width: sideWidth),
 
             SizedBox(width: spacing),
 
@@ -352,10 +384,11 @@ class MetroLeaderboardView extends StatelessWidget {
             _buildPodiumPillar(
               rank: 1,
               percentage: first['percentage']?.toString() ?? '100 %',
-              name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Nikitin\nBogdan',
+              name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Mentee',
               avatarAsset: first['avatarAsset']?.toString(),
               photoUrl: first['photoUrl']?.toString(),
               isLogo: first['isLogo'] == true,
+              xp: first['xp'] as int?,
               pillarHeight: 184,
               pillarWidth: centerWidth,
               topRadius: 30,
@@ -364,17 +397,21 @@ class MetroLeaderboardView extends StatelessWidget {
             SizedBox(width: spacing),
 
             // ── PODIUM #3 (RIGHT) ──
-            _buildPodiumPillar(
-              rank: 3,
-              percentage: third['percentage']?.toString() ?? '88 %',
-              name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Peter\nDin',
-              avatarAsset: third['avatarAsset']?.toString(),
-              photoUrl: third['photoUrl']?.toString(),
-              isLogo: third['isLogo'] == true,
-              pillarHeight: 128,
-              pillarWidth: sideWidth,
-              topRadius: 26,
-            ),
+            if (third != null)
+              _buildPodiumPillar(
+                rank: 3,
+                percentage: third['percentage']?.toString() ?? '0 %',
+                name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Mentee',
+                avatarAsset: third['avatarAsset']?.toString(),
+                photoUrl: third['photoUrl']?.toString(),
+                isLogo: third['isLogo'] == true,
+                xp: third['xp'] as int?,
+                pillarHeight: 128,
+                pillarWidth: sideWidth,
+                topRadius: 26,
+              )
+            else
+              SizedBox(width: sideWidth),
           ],
         );
       },
@@ -391,6 +428,7 @@ class MetroLeaderboardView extends StatelessWidget {
     String? avatarAsset,
     String? photoUrl,
     bool isLogo = false,
+    int? xp,
   }) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -427,7 +465,7 @@ class MetroLeaderboardView extends StatelessWidget {
                     topRight: Radius.circular(topRadius),
                   ),
                 ),
-                padding: const EdgeInsets.only(top: 24, left: 8, right: 8),
+                padding: const EdgeInsets.only(top: 24, left: 6, right: 6),
                 child: Column(
                   children: [
                     // Avatar Squircle Box in Kuning Metro
@@ -438,7 +476,7 @@ class MetroLeaderboardView extends StatelessWidget {
                       fallbackName: name,
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
 
                     // User Name in 2 lines (White Text, bold, centered)
                     Text(
@@ -447,12 +485,25 @@ class MetroLeaderboardView extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
-                        height: 1.25,
+                        height: 1.2,
                       ),
                     ),
+
+                    if (xp != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        '$xp XP',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.accent, // Gold Kuning Metro
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -579,7 +630,8 @@ class MetroLeaderboardView extends StatelessWidget {
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildLeaderboardListItem(int rank, Map<String, dynamic> item) {
     final name = item['displayName']?.toString() ?? item['name']?.toString().replaceAll('\n', ' ') ?? 'Mentee';
-    final percentage = item['percentage']?.toString() ?? '${item['xp'] ?? 100} XP';
+    final percentage = item['percentage']?.toString() ?? '0 %';
+    final xp = item['xp'] as int?;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -625,15 +677,30 @@ class MetroLeaderboardView extends StatelessWidget {
             ),
           ),
 
-          // Percentage on the right
-          Text(
-            percentage,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15.5,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.2,
-            ),
+          // Percentage & XP on the right
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                percentage,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (xp != null)
+                Text(
+                  '$xp XP',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent, // Gold Kuning Metro
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -641,11 +708,11 @@ class MetroLeaderboardView extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // DATA PARSING & FALLBACK MAPPER
+  // DATA PARSING & FALLBACK MAPPER (Database-backed)
   // ─────────────────────────────────────────────────────────────────────────────
   List<Map<String, dynamic>> _buildDisplayList() {
     if (entries.isEmpty) {
-      return _sampleEntries;
+      return [];
     }
 
     // Determine max XP for relative percentage calculations
@@ -656,19 +723,20 @@ class MetroLeaderboardView extends StatelessWidget {
         if (xp > maxXp) maxXp = xp;
       }
     }
-    if (maxXp == 0) maxXp = 2000;
+    if (maxXp == 0) maxXp = 100;
 
     final result = <Map<String, dynamic>>[];
     for (int i = 0; i < entries.length; i++) {
       final raw = entries[i];
       if (raw is Map<String, dynamic>) {
-        final rawName = raw['name']?.toString() ?? 'Mentee';
-        final nameParts = rawName.trim().split(' ');
+        final rawName = (raw['name'] ?? raw['displayName'] ?? 'Mentee').toString().trim();
+        final nameParts = rawName.split(' ');
         final twoLineName = nameParts.length > 1
             ? '${nameParts[0]}\n${nameParts.sublist(1).join(" ")}'
             : rawName;
         final xp = (raw['totalXp'] as num?)?.toInt() ?? (raw['xp'] as num?)?.toInt() ?? 0;
-        final pct = ((xp / maxXp) * 100).clamp(15, 100).round();
+        final pct = maxXp > 0 ? ((xp / maxXp) * 100).round() : 0;
+        final isOrgLogo = raw['isLogo'] == true || rawName.toLowerCase() == 'metro institute';
 
         result.add({
           'name': twoLineName,
@@ -676,15 +744,8 @@ class MetroLeaderboardView extends StatelessWidget {
           'percentage': '$pct %',
           'xp': xp,
           'photoUrl': raw['photoUrl'],
-          'isLogo': i == 0,
+          'isLogo': isOrgLogo,
         });
-      }
-    }
-
-    // If fewer than 8 entries, fill up with reference sample entries
-    if (result.length < _sampleEntries.length) {
-      for (int i = result.length; i < _sampleEntries.length; i++) {
-        result.add(_sampleEntries[i]);
       }
     }
 

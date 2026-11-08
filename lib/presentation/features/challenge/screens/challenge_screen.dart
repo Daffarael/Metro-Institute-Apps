@@ -101,8 +101,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     }
   }
 
-  Future<void> _loadLeaderboard() async {
-    if (_cachedLeaderboard == null) {
+  Future<void> _loadLeaderboard({bool forceRefresh = false}) async {
+    if (_cachedLeaderboard == null || forceRefresh) {
       setState(() => _isLoadingLeaderboard = true);
     }
     try {
@@ -341,7 +341,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           color: const Color(0xFF101010),
           onRefresh: () async {
             await _loadChallenges();
-            await _loadLeaderboard();
+            await _loadLeaderboard(forceRefresh: true);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -471,9 +471,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           _searchQuery = '';
                           _searchController.clear();
                         });
-                        if (_leaderboard.isEmpty) {
-                          _loadLeaderboard();
-                        }
+                        _loadLeaderboard(forceRefresh: true);
                       },
                       child: Container(
                         height: 82,

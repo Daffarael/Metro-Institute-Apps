@@ -82,7 +82,10 @@ class ChallengeRemoteDataSourceImpl implements ChallengeRemoteDataSource {
       final response = await dio.get('/leaderboard');
       final data = response.data['data'];
       if (data is List) return data;
-      if (data is Map && data['rankings'] is List) return data['rankings'] as List<dynamic>;
+      if (data is Map) {
+        if (data['entries'] is List) return data['entries'] as List<dynamic>;
+        if (data['rankings'] is List) return data['rankings'] as List<dynamic>;
+      }
       return [];
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Gagal memuat leaderboard';
