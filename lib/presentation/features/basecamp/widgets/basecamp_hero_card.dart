@@ -119,40 +119,31 @@ class BasecampHeroCard extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // Bottom Row: "MULAI BELAJAR" Pill Button
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary, // Hijau Metro
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x33018556),
-                            blurRadius: 10,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            hasData ? 'LANJUT BELAJAR' : 'MULAI BELAJAR',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
+                    // Bottom: Compact "MULAI BELAJAR" Pill Button (Left-aligned, doesn't cover artwork)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary, // Hijau Metro
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x28018556),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
                             ),
-                          ),
-                          const SizedBox(width: 5),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 14,
+                          ],
+                        ),
+                        child: Text(
+                          hasData ? 'LANJUT BELAJAR' : 'MULAI BELAJAR',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
                             color: Colors.white,
+                            letterSpacing: 0.4,
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
