@@ -45,7 +45,7 @@ class CheckoutBottomSheet extends StatefulWidget {
   }) {
     return showModalBottomSheet<bool>(
       context: context,
-      useRootNavigator: true,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => CheckoutBottomSheet(
@@ -182,6 +182,10 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         return;
       }
 
+      if (widget.productId.trim().isEmpty) {
+        throw Exception('ID Program tidak ditemukan. Silakan muat ulang halaman detail program.');
+      }
+
       final res = await _userDataSource.initiateTransaction(
         productType: widget.productType,
         courseId: widget.productType == 'MINI_COURSE' ? widget.productId : null,
@@ -228,9 +232,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         throw Exception('Gagal mendapatkan halaman pembayaran dari payment gateway.');
       }
 
-      // Open Payment WebView
-      final result = await Navigator.push<bool?>(
-        context,
+      // Open Payment WebView as a full root screen
+      final result = await Navigator.of(context, rootNavigator: true).push<bool?>(
         MaterialPageRoute(
           builder: (_) => PaymentWebViewScreen(
             orderId: orderId,

@@ -114,6 +114,8 @@ class _BasecampScreenState extends State<BasecampScreen> {
     final recommendations = (_data?['recommendations'] as List?) ?? [];
     final dailyMissions = _data?['dailyMissions'] as Map<String, dynamic>?;
     final hasPhoto = user?['photoUrl'] != null && (user!['photoUrl'] as String).isNotEmpty;
+    final hasPurchasedCourse = continueLearning != null || activeCourses.isNotEmpty;
+    final primaryEnrolledCourse = continueLearning ?? (activeCourses.isNotEmpty ? (activeCourses.first as Map<String, dynamic>) : null);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F5), // Light warm pastel canvas (Reference Image)
@@ -163,10 +165,12 @@ class _BasecampScreenState extends State<BasecampScreen> {
                         ),
                       ),
 
-                    // ── 2. Lanjutkan Belajar (My Lesson / Continue Learning) ─
-                    BasecampHeroCard(
-                      continueLearning: continueLearning,
-                    ),
+                    // ── 2. Lanjutkan Belajar (HANYA tampil jika mentee sudah beli / memiliki kelas aktif) ─
+                    if (hasPurchasedCourse && primaryEnrolledCourse != null) ...[
+                      BasecampHeroCard(
+                        continueLearning: primaryEnrolledCourse,
+                      ),
+                    ],
 
                     // ── 3. Kelas Aktif (Only if activeCourses is not empty) ──
                     if (activeCourses.isNotEmpty) ...[

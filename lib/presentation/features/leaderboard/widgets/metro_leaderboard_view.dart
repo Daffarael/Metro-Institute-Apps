@@ -21,6 +21,7 @@ class MetroLeaderboardView extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final Widget? tabHeader;
   final VoidCallback? onBack;
+  final bool? showTopAppBar;
 
   const MetroLeaderboardView({
     super.key,
@@ -29,6 +30,7 @@ class MetroLeaderboardView extends StatelessWidget {
     this.onRefresh,
     this.tabHeader,
     this.onBack,
+    this.showTopAppBar,
   });
 
   // Default sample data mirroring the reference design if backend list is empty or minimal
@@ -114,19 +116,21 @@ class MetroLeaderboardView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // 1. App Bar (Menu, Search, Bell, Profile)
-                          _buildTopAppBar(context),
+                          // 1. App Bar (Menu, Search, Bell, Profile) - Sembunyikan jika di halaman Tantangan
+                          if (showTopAppBar ?? (tabHeader == null && onBack != null)) ...[
+                            _buildTopAppBar(context),
+                          ] else ...[
+                            const SizedBox(height: 16),
+                          ],
 
                           // Optional Tab Header (e.g. Tantangan vs Peringkat toggle)
                           if (tabHeader != null) ...[
-                            const SizedBox(height: 10),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: tabHeader!,
                             ),
+                            const SizedBox(height: 16),
                           ],
-
-                          const SizedBox(height: 14),
 
                           // 2. Title: "Leaderboard"
                           Text(

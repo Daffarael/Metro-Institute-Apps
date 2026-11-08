@@ -343,6 +343,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             await _loadLeaderboard();
           },
           tabHeader: _buildPeringkatTabHeader(),
+          showTopAppBar: false,
         ),
       );
     }

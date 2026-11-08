@@ -505,51 +505,83 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void _openCheckout(int price) {
-    final title = (_detail?['title'] ?? widget.item['title']) as String? ?? 'Kelas Metro';
-    final id = widget.item['id']?.toString() ?? '';
-    final rawThumb = (_detail?['bannerUrl'] ??
-            _detail?['thumbnailUrl'] ??
-            widget.item['bannerUrl'] ??
-            widget.item['thumbnailUrl'] ??
-            '') as String;
-    final mentorName = (_detail?['instructor']?['name'] ??
-            _detail?['mentorName'] ??
-            widget.item['instructor']?['name'] ??
-            widget.item['mentorName']) as String?;
+    try {
+      final actualIsBootcamp = _detail?['isBootcamp'] == true ||
+          widget.isBootcamp ||
+          _detail?['type']?.toString().toLowerCase() == 'bootcamp' ||
+          widget.item['type']?.toString().toLowerCase() == 'bootcamp' ||
+          _detail?.containsKey('cohort') == true ||
+          _detail?.containsKey('batch') == true;
 
-    CheckoutBottomSheet.show(
-      context,
-      title: title,
-      price: price,
-      productType: widget.isBootcamp ? 'BOOTCAMP' : 'MINI_COURSE',
-      productId: id,
-      thumbnailUrl: rawThumb,
-      subtitle: mentorName != null ? 'Mentor: $mentorName' : null,
-      onSuccess: () {
-        if (mounted) {
-          setState(() {
-            if (_detail != null) {
-              _detail!['isEnrolled'] = true;
-            }
-            widget.item['isEnrolled'] = true;
-          });
-        }
-        // Re-fetch detail to refresh isEnrolled status to true!
-        _fetchDetailAndInitVideo();
-      },
-      onStartLearning: () {
-        if (mounted) {
-          setState(() {
-            if (_detail != null) {
-              _detail!['isEnrolled'] = true;
-            }
-            widget.item['isEnrolled'] = true;
-          });
-          // Segera putar materi / video sesi pertama
-          _startPlaying();
-        }
-      },
-    );
+      final title = (_detail?['title'] ?? widget.item['title'])?.toString() ?? 'Kelas Metro';
+      final id = (_detail?['id'] ??
+              _detail?['courseId'] ??
+              _detail?['bootcampId'] ??
+              widget.item['id'] ??
+              widget.item['courseId'] ??
+              widget.item['bootcampId'])
+          ?.toString() ?? '';
+
+      final rawThumb = (_detail?['bannerUrl'] ??
+              _detail?['thumbnailUrl'] ??
+              _detail?['thumbnail'] ??
+              widget.item['bannerUrl'] ??
+              widget.item['thumbnailUrl'] ??
+              widget.item['thumbnail'] ??
+              '')
+          .toString();
+
+      String? mentorName;
+      final instr = _detail?['instructor'] ?? widget.item['instructor'];
+      if (instr is Map) {
+        mentorName = instr['name']?.toString();
+      } else if (instr is String && instr.isNotEmpty) {
+        mentorName = instr;
+      }
+      mentorName ??= (_detail?['mentorName'] ?? widget.item['mentorName'])?.toString();
+
+      CheckoutBottomSheet.show(
+        context,
+        title: title,
+        price: price,
+        productType: actualIsBootcamp ? 'BOOTCAMP' : 'MINI_COURSE',
+        productId: id,
+        thumbnailUrl: rawThumb,
+        subtitle: mentorName != null ? 'Mentor: $mentorName' : null,
+        onSuccess: () {
+          if (mounted) {
+            setState(() {
+              if (_detail != null) {
+                _detail!['isEnrolled'] = true;
+              }
+              widget.item['isEnrolled'] = true;
+            });
+          }
+          // Re-fetch detail to refresh isEnrolled status to true!
+          _fetchDetailAndInitVideo();
+        },
+        onStartLearning: () {
+          if (mounted) {
+            setState(() {
+              if (_detail != null) {
+                _detail!['isEnrolled'] = true;
+              }
+              widget.item['isEnrolled'] = true;
+            });
+            // Segera putar materi / video sesi pertama
+            _startPlaying();
+          }
+        },
+      );
+    } catch (e, stack) {
+      debugPrint('Error in _openCheckout: $e\n$stack');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal membuka checkout: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   void _promptUnlockCourse(int price) {
