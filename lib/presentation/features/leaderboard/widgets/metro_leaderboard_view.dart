@@ -336,7 +336,7 @@ class MetroLeaderboardView extends StatelessWidget {
 
           const SizedBox(width: 16),
 
-          // Bell with Pink Notification Dot
+          // Bell with Metro Green Notification Dot
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -352,7 +352,7 @@ class MetroLeaderboardView extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFFF5286), // Pink notification dot
+                    color: AppColors.primary, // Hijau Metro
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -647,18 +647,22 @@ class MetroLeaderboardView extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STAR BADGE (Pink 5-point star with white number matching reference)
+  // STAR BADGE (Hijau Metro 5-point star dengan border putih rapi)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildStarBadge(int rank) {
     return SizedBox(
-      width: 32,
-      height: 32,
+      width: 34,
+      height: 34,
       child: Stack(
         alignment: Alignment.center,
         children: [
           const CustomPaint(
-            size: Size(32, 32),
-            painter: _FivePointStarPainter(color: Color(0xFFFF5286)), // Coral Pink as in reference
+            size: Size(34, 34),
+            painter: _FivePointStarPainter(
+              color: AppColors.primary, // Hijau Metro (#018556)
+              borderColor: Colors.white,
+              borderWidth: 1.8,
+            ),
           ),
           Text(
             '$rank',
@@ -779,7 +783,14 @@ class MetroLeaderboardView extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 class _FivePointStarPainter extends CustomPainter {
   final Color color;
-  const _FivePointStarPainter({required this.color});
+  final Color? borderColor;
+  final double borderWidth;
+
+  const _FivePointStarPainter({
+    required this.color,
+    this.borderColor,
+    this.borderWidth = 1.6,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -790,7 +801,7 @@ class _FivePointStarPainter extends CustomPainter {
     final path = Path();
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final outerRadius = size.width / 2;
+    final outerRadius = (size.width / 2) - (borderColor != null ? borderWidth : 0);
     final innerRadius = outerRadius * 0.48; // Chunky rounded star proportion
     const step = math.pi / 5;
 
@@ -807,10 +818,22 @@ class _FivePointStarPainter extends CustomPainter {
     }
     path.close();
     canvas.drawPath(path, paint);
+
+    if (borderColor != null && borderWidth > 0) {
+      final borderPaint = Paint()
+        ..color = borderColor!
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = borderWidth
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(path, borderPaint);
+    }
   }
 
   @override
-  bool shouldRepaint(covariant _FivePointStarPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _FivePointStarPainter oldDelegate) =>
+      oldDelegate.color != color ||
+      oldDelegate.borderColor != borderColor ||
+      oldDelegate.borderWidth != borderWidth;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
