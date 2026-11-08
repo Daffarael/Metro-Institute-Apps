@@ -975,13 +975,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   ? AppColors.primary
                   : const Color(0xFF08261B),
               borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Icon(
               isCompleted ? Icons.check_circle_rounded : Icons.code_rounded,
@@ -1082,15 +1075,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: AppColors.primary, // Solid Hijau Metro tegas & mantap (#018556)
+                color: AppColors.primary, // Solid Hijau Metro tegas (#018556)
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.30),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: const Icon(Icons.code_off_rounded, size: 28, color: Colors.white),
             ),
@@ -1143,15 +1129,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: AppColors.primary, // Solid Hijau Metro tegas & mantap (#018556)
+                color: AppColors.primary, // Solid Hijau Metro tegas (#018556)
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.30),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: const Icon(Icons.search_off_rounded, size: 28, color: Colors.white),
             ),
