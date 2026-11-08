@@ -480,77 +480,91 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         children: [
           // ── LAYER 1 (BELAKANG): DUA TAB (TANTANGAN & PERINGKAT) ──
           // Memanjang dari bawah naik ke balik card atas setinggi 82px (54px terekspos + 28px masuk ke balik card)
+          // Memiliki base putih solid di baliknya sehingga lengkungan sudut tengah terisi warna putih mulus (persis media_1794117742534_66f5b141.png)
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             height: 82,
-            child: Row(
-              children: [
-                // Tab Kiri: Tantangan (Lessons)
-                // Mengisi sudut kiri atas (yang terbuka karena sudut bawah card melengkung)
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() => _activeTabIndex = 0);
-                    },
-                    child: Container(
-                      height: 82,
-                      decoration: BoxDecoration(
-                        color: activeTab == 0 ? activeTabColor : inactiveTabColor,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: const Radius.circular(28),
-                          bottomRight: activeTab == 0 ? const Radius.circular(28) : Radius.zero,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white, // Solid pure white base under the entire tab bar
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Tab Kiri: Tantangan (Lessons)
+                  // Mengisi sudut kiri atas, dengan sudut kanan bawah melengkung bulat di atas base putih
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _activeTabIndex = 0);
+                      },
+                      child: Container(
+                        height: 82,
+                        decoration: BoxDecoration(
+                          color: activeTab == 0 ? activeTabColor : Colors.white,
+                          borderRadius: activeTab == 0
+                              ? const BorderRadius.only(
+                                  bottomLeft: Radius.circular(28),
+                                  bottomRight: Radius.circular(28),
+                                )
+                              : BorderRadius.zero,
                         ),
-                      ),
-                      alignment: Alignment.bottomCenter,
-                      padding: const EdgeInsets.only(bottom: 18),
-                      child: Text(
-                        'Tantangan',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: activeTab == 0 ? FontWeight.w800 : FontWeight.w600,
-                          color: activeTab == 0 ? textDarkColor : inactiveTextColor,
+                        alignment: Alignment.bottomCenter,
+                        padding: const EdgeInsets.only(bottom: 18),
+                        child: Text(
+                          'Tantangan',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 15,
+                            fontWeight: activeTab == 0 ? FontWeight.w800 : FontWeight.w600,
+                            color: activeTab == 0 ? textDarkColor : inactiveTextColor,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                // Tab Kanan: Peringkat (My Classes)
-                // Mengisi sudut kanan atas (yang terbuka karena sudut bawah card melengkung)
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() => _activeTabIndex = 1);
-                    },
-                    child: Container(
-                      height: 82,
-                      decoration: BoxDecoration(
-                        color: activeTab == 1 ? activeTabColor : inactiveTabColor,
-                        borderRadius: BorderRadius.only(
-                          bottomRight: const Radius.circular(28),
-                          bottomLeft: activeTab == 1 ? const Radius.circular(28) : Radius.zero,
+                  // Tab Kanan: Peringkat (My Classes)
+                  // Mengisi sudut kanan atas, dengan sudut kiri bawah melengkung bulat di atas base putih saat aktif
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _activeTabIndex = 1);
+                      },
+                      child: Container(
+                        height: 82,
+                        decoration: BoxDecoration(
+                          color: activeTab == 1 ? activeTabColor : Colors.white,
+                          borderRadius: activeTab == 1
+                              ? const BorderRadius.only(
+                                  bottomRight: Radius.circular(28),
+                                  bottomLeft: Radius.circular(28),
+                                )
+                              : BorderRadius.zero,
                         ),
-                      ),
-                      alignment: Alignment.bottomCenter,
-                      padding: const EdgeInsets.only(bottom: 18),
-                      child: Text(
-                        'Peringkat',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: activeTab == 1 ? FontWeight.w800 : FontWeight.w600,
-                          color: activeTab == 1 ? textDarkColor : inactiveTextColor,
+                        alignment: Alignment.bottomCenter,
+                        padding: const EdgeInsets.only(bottom: 18),
+                        child: Text(
+                          'Peringkat',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 15,
+                            fontWeight: activeTab == 1 ? FontWeight.w800 : FontWeight.w600,
+                            color: activeTab == 1 ? textDarkColor : inactiveTextColor,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
