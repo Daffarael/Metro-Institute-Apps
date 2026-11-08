@@ -130,18 +130,8 @@ class MetroLeaderboardView extends StatelessWidget {
                         const SizedBox(height: 16),
                       ],
 
-                      // 2. Title: "Leaderboard"
-                      Text(
-                        'Leaderboard',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: isEmbedded ? 25 : 27,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF0F172A), // Dark charcoal
-                          letterSpacing: -0.6,
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
+                      // Spacing before podium (Leaderboard title removed as requested)
+                      SizedBox(height: isEmbedded ? 14 : 12),
 
                       // 3. The Podium Section
                       if (topThree.isNotEmpty) ...[
@@ -365,13 +355,12 @@ class MetroLeaderboardView extends StatelessWidget {
             if (second != null)
               _buildPodiumPillar(
                 rank: 2,
-                percentage: second['percentage']?.toString() ?? '0 %',
                 name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Mentee',
                 avatarAsset: second['avatarAsset']?.toString(),
                 photoUrl: second['photoUrl']?.toString(),
                 isLogo: second['isLogo'] == true,
                 xp: second['xp'] as int?,
-                pillarHeight: 148,
+                pillarHeight: 154,
                 pillarWidth: sideWidth,
                 topRadius: 26,
               )
@@ -383,13 +372,12 @@ class MetroLeaderboardView extends StatelessWidget {
             // ── PODIUM #1 (CENTER - TALLEST) ──
             _buildPodiumPillar(
               rank: 1,
-              percentage: first['percentage']?.toString() ?? '100 %',
               name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Mentee',
               avatarAsset: first['avatarAsset']?.toString(),
               photoUrl: first['photoUrl']?.toString(),
               isLogo: first['isLogo'] == true,
               xp: first['xp'] as int?,
-              pillarHeight: 184,
+              pillarHeight: 190,
               pillarWidth: centerWidth,
               topRadius: 30,
             ),
@@ -400,13 +388,12 @@ class MetroLeaderboardView extends StatelessWidget {
             if (third != null)
               _buildPodiumPillar(
                 rank: 3,
-                percentage: third['percentage']?.toString() ?? '0 %',
                 name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Mentee',
                 avatarAsset: third['avatarAsset']?.toString(),
                 photoUrl: third['photoUrl']?.toString(),
                 isLogo: third['isLogo'] == true,
                 xp: third['xp'] as int?,
-                pillarHeight: 128,
+                pillarHeight: 142,
                 pillarWidth: sideWidth,
                 topRadius: 26,
               )
@@ -420,7 +407,6 @@ class MetroLeaderboardView extends StatelessWidget {
 
   Widget _buildPodiumPillar({
     required int rank,
-    required String percentage,
     required String name,
     required double pillarHeight,
     required double pillarWidth,
@@ -430,93 +416,75 @@ class MetroLeaderboardView extends StatelessWidget {
     bool isLogo = false,
     int? xp,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Percentage above pedestal on yellow background
-        Text(
-          percentage,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: rank == 1 ? 16.5 : 15,
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
-            letterSpacing: -0.2,
-          ),
-        ),
+    return SizedBox(
+      width: pillarWidth,
+      height: pillarHeight + 16,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          // The Dark Emerald Pedestal Container
+          Container(
+            width: pillarWidth,
+            height: pillarHeight,
+            decoration: BoxDecoration(
+              color: const Color(0xFF08261B), // Deep Emerald Dark Metro
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(topRadius),
+                topRight: Radius.circular(topRadius),
+              ),
+            ),
+            padding: const EdgeInsets.only(top: 20, left: 4, right: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Avatar Squircle Box in Kuning Metro
+                _buildAvatarBox(
+                  isLogo: isLogo,
+                  avatarAsset: avatarAsset,
+                  photoUrl: photoUrl,
+                  fallbackName: name,
+                ),
 
-        const SizedBox(height: 6),
+                const SizedBox(height: 6),
 
-        // Pedestal Stack with overlapping star badge
-        SizedBox(
-          width: pillarWidth,
-          height: pillarHeight + 16,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
-            children: [
-              // The Dark Emerald Pedestal Container
-              Container(
-                width: pillarWidth,
-                height: pillarHeight,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF08261B), // Deep Emerald Dark Metro
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(topRadius),
-                    topRight: Radius.circular(topRadius),
+                // User Name in 2 lines (White Text, bold, centered)
+                Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.15,
                   ),
                 ),
-                padding: const EdgeInsets.only(top: 24, left: 6, right: 6),
-                child: Column(
-                  children: [
-                    // Avatar Squircle Box in Kuning Metro
-                    _buildAvatarBox(
-                      isLogo: isLogo,
-                      avatarAsset: avatarAsset,
-                      photoUrl: photoUrl,
-                      fallbackName: name,
+
+                if (xp != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    '$xp XP',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.accent, // Gold Kuning Metro
+                      letterSpacing: 0.2,
                     ),
-
-                    const SizedBox(height: 8),
-
-                    // User Name in 2 lines (White Text, bold, centered)
-                    Text(
-                      name,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        height: 1.2,
-                      ),
-                    ),
-
-                    if (xp != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        '$xp XP',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.accent, // Gold Kuning Metro
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // Pink Star Badge with Rank Number straddling the top edge
-              Positioned(
-                top: 0,
-                child: _buildStarBadge(rank),
-              ),
-            ],
+                  ),
+                ],
+              ],
+            ),
           ),
-        ),
-      ],
+
+          // Pink Star Badge with Rank Number straddling the top edge
+          Positioned(
+            top: 0,
+            child: _buildStarBadge(rank),
+          ),
+        ],
+      ),
     );
   }
 
@@ -530,11 +498,11 @@ class MetroLeaderboardView extends StatelessWidget {
     required String fallbackName,
   }) {
     return Container(
-      width: 52,
-      height: 52,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
         color: AppColors.accent, // Kuning Metro (#FAE653)
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(15),
         boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
@@ -546,8 +514,8 @@ class MetroLeaderboardView extends StatelessWidget {
       child: Center(
         child: isLogo
             ? Container(
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: const Color(0xFF08261B),
                   borderRadius: BorderRadius.circular(8),
@@ -560,23 +528,23 @@ class MetroLeaderboardView extends StatelessWidget {
               )
             : (photoUrl != null && photoUrl.isNotEmpty)
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(15),
                     child: CachedNetworkImage(
                       imageUrl: photoUrl,
                       fit: BoxFit.cover,
-                      width: 52,
-                      height: 52,
+                      width: 48,
+                      height: 48,
                       errorWidget: (_, __, ___) => _buildFallbackInitial(fallbackName),
                     ),
                   )
                 : (avatarAsset != null && avatarAsset.isNotEmpty)
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(15),
                         child: Image.asset(
                           avatarAsset,
                           fit: BoxFit.cover,
-                          width: 52,
-                          height: 52,
+                          width: 48,
+                          height: 48,
                           errorBuilder: (_, __, ___) => _buildFallbackInitial(fallbackName),
                         ),
                       )
@@ -630,7 +598,6 @@ class MetroLeaderboardView extends StatelessWidget {
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildLeaderboardListItem(int rank, Map<String, dynamic> item) {
     final name = item['displayName']?.toString() ?? item['name']?.toString().replaceAll('\n', ' ') ?? 'Mentee';
-    final percentage = item['percentage']?.toString() ?? '0 %';
     final xp = item['xp'] as int?;
 
     return Padding(
@@ -677,30 +644,15 @@ class MetroLeaderboardView extends StatelessWidget {
             ),
           ),
 
-          // Percentage & XP on the right
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                percentage,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              if (xp != null)
-                Text(
-                  '$xp XP',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.accent, // Gold Kuning Metro
-                  ),
-                ),
-            ],
+          // XP on the right (without percentage)
+          Text(
+            '${xp ?? 0} XP',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w800,
+              color: AppColors.accent, // Gold Kuning Metro
+              letterSpacing: 0.2,
+            ),
           ),
         ],
       ),
