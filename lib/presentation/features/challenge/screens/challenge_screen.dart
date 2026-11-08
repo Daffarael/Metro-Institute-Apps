@@ -588,24 +588,39 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                   const SizedBox(height: 20),
 
-                  // 2. Tantangan Headline Title (Smooth fade transition on tab switch)
+                  // 2. Tantangan Headline Title (Smooth crossfade, anchored to left with fixed height to prevent jitter)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 22),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 240),
-                      transitionBuilder: (child, animation) =>
-                          FadeTransition(opacity: animation, child: child),
-                      child: Text(
-                        activeTab == 0
-                            ? 'Tantangan apa yang\ningin kamu taklukkan?'
-                            : 'Siapa yang memimpin\nperingkat saat ini?',
-                        key: ValueKey('header_title_$activeTab'),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: textDarkColor,
-                          height: 1.25,
-                          letterSpacing: -0.4,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 64,
+                      child: AnimatedCrossFade(
+                        duration: const Duration(milliseconds: 250),
+                        firstCurve: Curves.easeInOut,
+                        secondCurve: Curves.easeInOut,
+                        crossFadeState: activeTab == 0
+                            ? CrossFadeState.showFirst
+                            : CrossFadeState.showSecond,
+                        alignment: Alignment.centerLeft,
+                        firstChild: Text(
+                          'Tantangan apa yang\ningin kamu taklukkan?',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: textDarkColor,
+                            height: 1.25,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
+                        secondChild: Text(
+                          'Siapa yang memimpin\nperingkat saat ini?',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: textDarkColor,
+                            height: 1.25,
+                            letterSpacing: -0.4,
+                          ),
                         ),
                       ),
                     ),
