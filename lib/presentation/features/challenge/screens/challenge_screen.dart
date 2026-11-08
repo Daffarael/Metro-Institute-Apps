@@ -972,13 +972,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             height: 44,
             decoration: BoxDecoration(
               color: isCompleted
-                  ? AppColors.primary.withValues(alpha: 0.12)
-                  : AppColors.primaryLight,
+                  ? AppColors.primary
+                  : const Color(0xFF08261B),
               borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(
               isCompleted ? Icons.check_circle_rounded : Icons.code_rounded,
-              color: AppColors.primary,
+              color: isCompleted ? Colors.white : AppColors.accent,
               size: 22,
             ),
           ),
@@ -1072,14 +1079,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         child: Column(
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 1.2),
+                color: AppColors.primary, // Solid Hijau Metro tegas & mantap (#018556)
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.30),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.code_off_rounded, size: 28, color: AppColors.primary),
+              child: const Icon(Icons.code_off_rounded, size: 28, color: Colors.white),
             ),
             const SizedBox(height: 16),
             Text(
@@ -1127,14 +1140,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         child: Column(
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 1.2),
+                color: AppColors.primary, // Solid Hijau Metro tegas & mantap (#018556)
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.30),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.search_off_rounded, size: 28, color: AppColors.primary),
+              child: const Icon(Icons.search_off_rounded, size: 28, color: Colors.white),
             ),
             const SizedBox(height: 16),
             Text(
