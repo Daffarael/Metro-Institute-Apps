@@ -487,7 +487,7 @@ class MetroLeaderboardView extends StatelessWidget {
                           fit: BoxFit.cover,
                           width: 52,
                           height: 52,
-                          errorWidget: (_, __, ___) => _buildFallbackInitial(fallbackName),
+                          errorBuilder: (_, __, ___) => _buildFallbackInitial(fallbackName),
                         ),
                       )
                     : _buildFallbackInitial(fallbackName),
@@ -737,3 +737,4 @@ class _OrganicWavePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
