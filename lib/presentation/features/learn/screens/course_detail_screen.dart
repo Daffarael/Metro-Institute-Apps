@@ -1584,7 +1584,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // SEGMENTED TAB BAR (Productivity vs Daily Plan, Organic Bipartite Capsule)
+  // SEGMENTED TAB BAR (Deskripsi vs Silabus, Organic Bipartite Capsule)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSegmentedTabBar() {
     const tabHeight = 48.0;
@@ -1621,7 +1621,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ),
             ),
 
-            // Interactive Tab Labels: "Productivity" vs "Daily Plan"
+            // Interactive Tab Labels: "Deskripsi" vs "Silabus"
             Positioned.fill(
               child: Row(
                 children: [
@@ -1644,7 +1644,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 : const Color(0xFF1E1B18),
                             letterSpacing: -0.2,
                           ),
-                          child: const Text('Productivity'),
+                          child: const Text('Deskripsi'),
                         ),
                       ),
                     ),
@@ -1668,7 +1668,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 : const Color(0xFF1E1B18),
                             letterSpacing: -0.2,
                           ),
-                          child: const Text('Daily Plan'),
+                          child: const Text('Silabus'),
                         ),
                       ),
                     ),
@@ -1800,7 +1800,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Time',
+                        'Durasi',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1864,7 +1864,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Lessons',
+                        'Materi',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
