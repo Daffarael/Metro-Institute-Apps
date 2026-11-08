@@ -394,17 +394,19 @@ class MetroLeaderboardView extends StatelessWidget {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // PODIUM SECTION (Stepped Champion Throne / Singgasana Juara)
-  // Direproduksi 100% PERSIS sesuai referensi desain (media_1794128789059_780f403f.jpg):
-  // • Juara 2 dan Juara 3 menyatu langsung dengan tepi kiri & kanan kartu (tanpa spasi/margin samping)
-  // • Gaya mereng asimetris:
-  //   - Juara 2 miring naik ke arah pilar Juara 1
-  //   - Juara 1 berdiri tegak paling tinggi di tengah
-  //   - Juara 3 miring turun ke arah tepi kanan
+  // Direproduksi 100% PERSIS sesuai referensi desain (media_1794129564096_b491c022.jpg):
+  // • Ketiga pilar saling menempel rapat tanpa celah (gap = 0)
+  // • Juara 2 di kiri menyatu langsung dengan tepi kiri kartu (left: 0)
+  // • Juara 3 di kanan menyatu langsung dengan tepi kanan kartu (right: 0)
+  // • Bentuk pilar geometri berundak bersih (rounded rectangle):
+  //   - Pilar tengah (#1) tertinggi (196 px), radius atas 24 px
+  //   - Pilar kiri (#2) tinggi kedua (156 px), radius atas 22 px
+  //   - Pilar kanan (#3) tinggi ketiga (136 px), radius atas 22 px
   // • Bintang 5 sudut pink (#FF5286) bertengger di puncak lengkungan masing-masing pilar
-  // • Persentase bold gelap di atas setiap bintang pada latar belakang Kuning Metro
+  // • Teks persentase DIHAPUS TOTAL sesuai permintaan
   // • Frame avatar squircle Kuning Metro (#FAE653) untuk semua mentee di podium
   // • Nama mentee 2 baris teks putih tebal di dalam pilar gelap
-  // • Poin XP di bawah nama dengan warna Kuning Metro
+  // • Poin XP di bawah nama dengan warna Kuning Metro Gold
   // • Bagian bawah ketiga pilar menyatu langsung dengan kontainer gelap di bawahnya
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildPodiumSection(List<Map<String, dynamic>> topThree) {
@@ -414,174 +416,151 @@ class MetroLeaderboardView extends StatelessWidget {
     final second = topThree.length > 1 ? topThree[1] : null;
     final third = topThree.length > 2 ? topThree[2] : null;
 
-    final firstXp = (first['xp'] as num?)?.toInt() ?? 0;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // ── JUARA #2 (LEFT - MENYATU DENGAN TEPI KIRI KARTU) ──
+        Expanded(
+          flex: 32,
+          child: second != null
+              ? _buildPodiumPillar(
+                  rank: 2,
+                  name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Mentee',
+                  avatarAsset: second['avatarAsset']?.toString(),
+                  photoUrl: second['photoUrl']?.toString(),
+                  isLogo: second['isLogo'] == true,
+                  xp: second['xp'] as int?,
+                  pillarHeight: 156,
+                  topRadius: 22,
+                  avatarSize: 46,
+                )
+              : const SizedBox.shrink(),
+        ),
 
-    String computePercentage(Map<String, dynamic>? item, int rank) {
-      if (item == null) return '0 %';
-      if (item['percentage'] != null && item['percentage'].toString().isNotEmpty) {
-        return item['percentage'].toString();
-      }
-      if (rank == 1) return '100 %';
-      final itemXp = (item['xp'] as num?)?.toInt() ?? 0;
-      if (firstXp > 0) {
-        final pct = ((itemXp / firstXp) * 100).round();
-        return '$pct %';
-      }
-      return '0 %';
-    }
-
-    const podiumHeight = 224.0;
-
-    return SizedBox(
-      width: double.infinity,
-      height: podiumHeight,
-      child: Stack(
-        children: [
-          // 1. Siluet Monolit Berundak "Gaya Mereng" yang Menyatu dengan Tepi Kiri & Kanan
-          Positioned.fill(
-            child: const CustomPaint(
-              painter: _SteppedPodiumPainter(color: Color(0xFF08261B)),
-            ),
+        // ── JUARA #1 (CENTER - TERTINGGI DI TENGAH) ──
+        Expanded(
+          flex: 36,
+          child: _buildPodiumPillar(
+            rank: 1,
+            name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Mentee',
+            avatarAsset: first['avatarAsset']?.toString(),
+            photoUrl: first['photoUrl']?.toString(),
+            isLogo: first['isLogo'] == true,
+            xp: first['xp'] as int?,
+            pillarHeight: 196,
+            topRadius: 24,
+            avatarSize: 52,
           ),
+        ),
 
-          // 2. Tiga Kolom Konten Juara (Juara 2 kiri, Juara 1 tengah, Juara 3 kanan)
-          Positioned.fill(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ── JUARA #2 (LEFT - MENYATU DENGAN TEPI KIRI KARTU) ──
-                Expanded(
-                  flex: 33,
-                  child: second != null
-                      ? _buildChampionColumn(
-                          rank: 2,
-                          name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Mentee',
-                          avatarAsset: second['avatarAsset']?.toString(),
-                          photoUrl: second['photoUrl']?.toString(),
-                          isLogo: second['isLogo'] == true,
-                          xp: second['xp'] as int?,
-                          percentage: computePercentage(second, 2),
-                          topPadding: 24,
-                          avatarSize: 46,
-                        )
-                      : const SizedBox.shrink(),
-                ),
-
-                // ── JUARA #1 (CENTER - TERTINGGI DI TENGAH) ──
-                Expanded(
-                  flex: 34,
-                  child: _buildChampionColumn(
-                    rank: 1,
-                    name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Mentee',
-                    avatarAsset: first['avatarAsset']?.toString(),
-                    photoUrl: first['photoUrl']?.toString(),
-                    isLogo: first['isLogo'] == true,
-                    xp: first['xp'] as int?,
-                    percentage: computePercentage(first, 1),
-                    topPadding: 8,
-                    avatarSize: 52,
-                  ),
-                ),
-
-                // ── JUARA #3 (RIGHT - MENYATU DENGAN TEPI KANAN KARTU) ──
-                Expanded(
-                  flex: 33,
-                  child: third != null
-                      ? _buildChampionColumn(
-                          rank: 3,
-                          name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Mentee',
-                          avatarAsset: third['avatarAsset']?.toString(),
-                          photoUrl: third['photoUrl']?.toString(),
-                          isLogo: third['isLogo'] == true,
-                          xp: third['xp'] as int?,
-                          percentage: computePercentage(third, 3),
-                          topPadding: 38,
-                          avatarSize: 46,
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        // ── JUARA #3 (RIGHT - MENYATU DENGAN TEPI KANAN KARTU) ──
+        Expanded(
+          flex: 32,
+          child: third != null
+              ? _buildPodiumPillar(
+                  rank: 3,
+                  name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Mentee',
+                  avatarAsset: third['avatarAsset']?.toString(),
+                  photoUrl: third['photoUrl']?.toString(),
+                  isLogo: third['isLogo'] == true,
+                  xp: third['xp'] as int?,
+                  pillarHeight: 136,
+                  topRadius: 22,
+                  avatarSize: 46,
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 
-  Widget _buildChampionColumn({
+  Widget _buildPodiumPillar({
     required int rank,
     required String name,
-    required String percentage,
-    required double topPadding,
+    required double pillarHeight,
+    required double topRadius,
     required double avatarSize,
     String? avatarAsset,
     String? photoUrl,
     bool isLogo = false,
     int? xp,
   }) {
-    return Padding(
-      padding: EdgeInsets.only(top: topPadding, left: 3, right: 3),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
+    const starAboveHeight = 16.0;
+
+    return SizedBox(
+      height: pillarHeight + starAboveHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
         children: [
-          // 1. Teks Persentase di atas Bintang pada Latar Kuning Metro
-          Text(
-            percentage,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: rank == 1 ? 14.5 : 13.5,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF0F172A),
-              letterSpacing: -0.2,
+          // 1. Badan Pilar Gelap (Deep Emerald Dark Metro #08261B)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: pillarHeight,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF08261B), // Deep Emerald Dark Metro
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(topRadius),
+                  topRight: Radius.circular(topRadius),
+                ),
+              ),
+              padding: const EdgeInsets.only(top: 20, left: 3, right: 3, bottom: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Frame Avatar Squircle Kuning Metro (#FAE653)
+                  _buildAvatarBox(
+                    isLogo: isLogo,
+                    avatarAsset: avatarAsset,
+                    photoUrl: photoUrl,
+                    fallbackName: name,
+                    size: avatarSize,
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Nama Mentee (2 baris teks putih tebal)
+                  Flexible(
+                    child: Text(
+                      name,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: rank == 1 ? 12.0 : 11.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+
+                  if (xp != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      '$xp XP',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.accent, // Gold Kuning Metro
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
-
-          const SizedBox(height: 2),
 
           // 2. Pin Bintang 5 Sudut Pink (#FF5286) bertengger di puncak pilar
-          _buildStarBadge(rank),
-
-          SizedBox(height: rank == 1 ? 8 : 6),
-
-          // 3. Avatar Squircle Kuning Metro (#FAE653)
-          _buildAvatarBox(
-            isLogo: isLogo,
-            avatarAsset: avatarAsset,
-            photoUrl: photoUrl,
-            fallbackName: name,
-            size: avatarSize,
+          Positioned(
+            top: 0,
+            child: _buildStarBadge(rank),
           ),
-
-          const SizedBox(height: 5),
-
-          // 4. Nama Mentee (2 baris teks putih tebal)
-          Flexible(
-            child: Text(
-              name,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: rank == 1 ? 12.0 : 11.0,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                height: 1.15,
-              ),
-            ),
-          ),
-
-          if (xp != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              '$xp XP',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w800,
-                color: AppColors.accent, // Gold Kuning Metro
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -878,86 +857,5 @@ class _OrganicWavePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STEPPED PODIUM SILHOUETTE PAINTER ("Gaya Mereng" Asimetris & Menyatu dengan Tepi)
-// ─────────────────────────────────────────────────────────────────────────────
-class _SteppedPodiumPainter extends CustomPainter {
-  final Color color;
-  const _SteppedPodiumPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    final x0 = 0.0;
-    final x1 = w * 0.33;
-    final x2 = w * 0.67;
-    final x3 = w;
-
-    final path = Path();
-    path.moveTo(x0, h);
-
-    // 1. Menyatu dengan tepi kiri kartu di x = 0 (ketinggian awal y = 84)
-    path.lineTo(x0, 84);
-
-    // 2. Juara 2: Gaya mereng naik ke arah tengah (crest di x1 * 0.5, y = 60)
-    path.cubicTo(
-      x1 * 0.25, 72,
-      x1 * 0.40, 60,
-      x1 * 0.50, 60,
-    );
-    path.cubicTo(
-      x1 * 0.65, 60,
-      x1 * 0.85, 64,
-      x1, 70,
-    );
-
-    // 3. Step Up ke puncak pilar Juara 1 di tengah
-    path.lineTo(x1, 56);
-    path.arcToPoint(
-      Offset(x1 + 14, 44),
-      radius: const Radius.circular(14),
-      clockwise: true,
-    );
-
-    // 4. Puncak arch Juara 1 melengkung anggun di tengah
-    path.lineTo(x2 - 14, 44);
-    path.arcToPoint(
-      Offset(x2, 56),
-      radius: const Radius.circular(14),
-      clockwise: true,
-    );
-
-    // 5. Step Down ke pilar Juara 3 di kanan
-    path.lineTo(x2, 80);
-
-    // 6. Juara 3: Gaya mereng turun ke arah tepi kanan (crest di y = 76, turun ke y = 96 di x = w)
-    path.cubicTo(
-      x2 + (x3 - x2) * 0.20, 77,
-      x2 + (x3 - x2) * 0.40, 76,
-      x2 + (x3 - x2) * 0.50, 76,
-    );
-    path.cubicTo(
-      x2 + (x3 - x2) * 0.70, 77,
-      x2 + (x3 - x2) * 0.88, 88,
-      x3, 96,
-    );
-
-    // 7. Menyatu langsung dengan tepi kanan kartu di x = w
-    path.lineTo(x3, h);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _SteppedPodiumPainter oldDelegate) => oldDelegate.color != color;
 }
 
