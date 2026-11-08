@@ -624,18 +624,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                   const SizedBox(height: 20),
 
-                  // 3. Search Bar + Right-docked Filter Button (Filter removed on Peringkat)
-                  AnimatedPadding(
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeInOutCubic,
-                    padding: EdgeInsets.only(
-                      left: 22,
-                      right: activeTab == 0 ? 0 : 22,
-                      bottom: 22,
-                    ),
+                  // 3. Search Bar + Right-docked Filter Button (Filter hidden on Peringkat, Search bar width kept constant)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 22, bottom: 22),
                     child: Row(
                       children: [
-                        // White Pill Search Bar
+                        // White Pill Search Bar (Width remains constant regardless of tab)
                         Expanded(
                           child: Container(
                             height: 52,
@@ -708,71 +702,59 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           ),
                         ),
 
-                        // Filter Button - ONLY visible in Tantangan tab (activeTab == 0)
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 260),
-                          transitionBuilder: (child, animation) {
-                            return SizeTransition(
-                              sizeFactor: animation,
-                              axis: Axis.horizontal,
-                              axisAlignment: 1.0,
-                              child: FadeTransition(opacity: animation, child: child),
-                            );
-                          },
-                          child: activeTab == 0
-                              ? Row(
-                                  key: const ValueKey('filter_button_row'),
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const SizedBox(width: 12),
-                                    GestureDetector(
-                                      onTap: _openFilterBottomSheet,
+                        const SizedBox(width: 12),
+
+                        // Filter Button - Visible only in Tantangan tab, maintaining size so search bar never shifts
+                        Visibility(
+                          visible: activeTab == 0,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: GestureDetector(
+                            onTap: _openFilterBottomSheet,
+                            child: Container(
+                              width: 66,
+                              height: 52,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF111827),
+                                borderRadius: BorderRadius.horizontal(
+                                  left: Radius.circular(26),
+                                  right: Radius.circular(0),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x28000000),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.tune_rounded,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                  if (_selectedField != 'ALL' || _selectedLevel != 'ALL')
+                                    Positioned(
+                                      top: 10,
+                                      right: 14,
                                       child: Container(
-                                        width: 66,
-                                        height: 52,
+                                        width: 7,
+                                        height: 7,
                                         decoration: const BoxDecoration(
-                                          color: Color(0xFF111827),
-                                          borderRadius: BorderRadius.horizontal(
-                                            left: Radius.circular(26),
-                                            right: Radius.circular(0),
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Color(0x28000000),
-                                              blurRadius: 8,
-                                              offset: Offset(0, 3),
-                                            ),
-                                          ],
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            const Icon(
-                                              Icons.tune_rounded,
-                                              color: Colors.white,
-                                              size: 22,
-                                            ),
-                                            if (_selectedField != 'ALL' || _selectedLevel != 'ALL')
-                                              Positioned(
-                                                top: 10,
-                                                right: 14,
-                                                child: Container(
-                                                  width: 7,
-                                                  height: 7,
-                                                  decoration: const BoxDecoration(
-                                                    color: AppColors.accent,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
+                                          color: AppColors.accent,
+                                          shape: BoxShape.circle,
                                         ),
                                       ),
                                     ),
-                                  ],
-                                )
-                              : const SizedBox.shrink(key: ValueKey('filter_empty')),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
