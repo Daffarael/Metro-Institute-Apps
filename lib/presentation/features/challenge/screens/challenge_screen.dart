@@ -6,6 +6,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/challenge_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
+import '../../leaderboard/widgets/metro_leaderboard_view.dart';
 import 'challenge_arena_screen.dart';
 
 /// ChallengeScreen — Halaman Tantangan Metro Institute
@@ -331,6 +332,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ── TAB 2: PERINGKAT (Leaderboard View — Direproduksi Persis Sesuai Desain) ──
+    if (_activeTabIndex == 1) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF08261B), // Deep Emerald Dark Metro
+        body: MetroLeaderboardView(
+          entries: _leaderboard,
+          isLoading: _isLoadingLeaderboard,
+          onRefresh: () async {
+            await _loadLeaderboard();
+          },
+          tabHeader: _buildPeringkatTabHeader(),
+        ),
+      );
+    }
+
+    // ── TAB 1: TANTANGAN (Lessons View) ──
     return Scaffold(
       backgroundColor: Colors.white, // Latar belakang putih bersih
       body: SafeArea(
@@ -353,15 +370,78 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                 const SizedBox(height: 20),
 
-                // ── 2. TAB CONTENT ───────────────────────────────────────
-                if (_activeTabIndex == 0)
-                  _buildTantanganTabContent()
-                else
-                  _buildPeringkatTabContent(),
+                // ── 2. TAB CONTENT: TANTANGAN ────────────────────────────
+                _buildTantanganTabContent(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Tab Pill Header saat tab Peringkat aktif (memungkinkan toggle kembali ke Tantangan)
+  Widget _buildPeringkatTabHeader() {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.38),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.55), width: 1.2),
+      ),
+      child: Row(
+        children: [
+          // Tantangan Tab (Inactive)
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _activeTabIndex = 0);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Tantangan',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0D1117).withValues(alpha: 0.75),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Peringkat Tab (Active)
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0D1117), // Deep dark / black
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x20000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Peringkat',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -933,256 +1013,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. TAB 2: PERINGKAT (Leaderboard & Podium)
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildPeringkatTabContent() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Papan Peringkat Mingguan',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
-                  letterSpacing: -0.3,
-                ),
-              ),
-              _buildTwoDotsIcon(),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          if (_isLoadingLeaderboard)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: Center(
-                child: CircularProgressIndicator(color: Color(0xFF101010)),
-              ),
-            )
-          else if (_leaderboard.isEmpty)
-            _buildEmptyLeaderboardState()
-          else ...[
-            // Top Podium
-            if (_leaderboard.length >= 3) _buildWarmPodium(),
-            const SizedBox(height: 20),
-
-            // Leaderboard List
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _leaderboard.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, idx) {
-                final user = _leaderboard[idx] as Map<String, dynamic>;
-                return _buildLeaderboardRow(idx + 1, user);
-              },
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWarmPodium() {
-    final first = _leaderboard[0] as Map<String, dynamic>;
-    final second = _leaderboard[1] as Map<String, dynamic>;
-    final third = _leaderboard[2] as Map<String, dynamic>;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        _buildPodiumStep(rank: 2, user: second, height: 110, color: const Color(0xFFE2E8F0)),
-        const SizedBox(width: 14),
-        _buildPodiumStep(rank: 1, user: first, height: 140, color: AppColors.accentDark),
-        const SizedBox(width: 14),
-        _buildPodiumStep(rank: 3, user: third, height: 95, color: const Color(0xFFFED7AA)),
-      ],
-    );
-  }
-
-  Widget _buildPodiumStep({
-    required int rank,
-    required Map<String, dynamic> user,
-    required double height,
-    required Color color,
-  }) {
-    final name = user['name']?.toString() ?? 'User';
-    final xp = (user['totalXp'] as num?)?.toInt() ?? 0;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircleAvatar(
-          radius: rank == 1 ? 26 : 22,
-          backgroundColor: const Color(0xFFF1F5F9),
-          child: Text(
-            name.isNotEmpty ? name[0].toUpperCase() : '?',
-            style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w800,
-              fontSize: rank == 1 ? 16 : 14,
-              color: const Color(0xFF1E1E1E),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: 75,
-          child: Text(
-            name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1E1E1E),
-            ),
-          ),
-        ),
-        Text(
-          '$xp XP',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFFD97706),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: 75,
-          height: height,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0C000000),
-                blurRadius: 8,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            '#$rank',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLeaderboardRow(int rank, Map<String, dynamic> user) {
-    final name = user['name']?.toString() ?? 'User';
-    final xp = (user['totalXp'] as num?)?.toInt() ?? 0;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: rank <= 3 ? AppColors.accent : const Color(0xFFF1F5F9),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$rank',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: rank <= 3 ? const Color(0xFF1E1E1E) : const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E1E),
-              ),
-            ),
-          ),
-          Text(
-            '$xp XP',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFFD97706),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyLeaderboardState() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.emoji_events_outlined, size: 48, color: Color(0xFF94A3B8)),
-          const SizedBox(height: 12),
-          Text(
-            'Belum Ada Peringkat',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E1E1E),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Selesaikan tantangan untuk mengumpulkan XP dan memuncaki papan peringkat.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              color: const Color(0xFF64748B),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
   // 4. HELPER ICONS (4 Dots & 2 Dots)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildFourDotsIcon() {
@@ -1211,17 +1041,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTwoDotsIcon() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF1E1E1E), shape: BoxShape.circle)),
-        const SizedBox(width: 4),
-        Container(width: 4.5, height: 4.5, decoration: const BoxDecoration(color: Color(0xFF1E1E1E), shape: BoxShape.circle)),
-      ],
     );
   }
 }
