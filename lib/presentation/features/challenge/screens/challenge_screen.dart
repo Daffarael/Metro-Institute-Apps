@@ -796,7 +796,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
     );
   }
-  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. TAB 1: TANTANGAN (Stats + Daftar Latihan)
@@ -1173,7 +1172,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         ),
       ),
     );
-  }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
