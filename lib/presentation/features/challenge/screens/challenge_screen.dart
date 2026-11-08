@@ -448,10 +448,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. HEADER CARD (Warm Butter Yellow Unified Card with Integrated Bottom Tabs)
-  // Direproduksi 100% persis sesuai desain referensi (media_1794115158283_24a151c2.png)
-  // Menyatukan Upper Card dan Tab Bar dalam 1 Card halus tanpa celah atau bayangan bertumpuk.
-  // Sudut kiri atas dan kanan atas tab melengkung rapi (Radius.circular(24)).
+  // 1. HEADER CARD (Warm Butter Yellow Card with Curved Tab Tops)
+  // Direproduksi 100% persis sesuai desain referensi (media_1794116744526_1547e0d0.jpg)
+  // • Bagian bawah Card Hi Monica melengkung ke atas di kedua sudut (Radius 28)
+  // • Sudut kiri atas tab Tantangan (Lesson) melengkung naik mengisi sudut kiri
+  // • Sudut kanan atas tab Peringkat (My Classes) melengkung naik mengisi sudut kanan
+  // • Garis lurus mulus tanpa celah atau bayangan bertumpuk
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildHeaderCard() {
     final activeTab = _activeTabIndex; // 0 = Tantangan, 1 = Peringkat
@@ -464,210 +466,29 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       decoration: BoxDecoration(
-        color: cardBgColor,
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
-            blurRadius: 18,
+            blurRadius: 16,
             offset: Offset(0, 6),
           ),
         ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias, // Memastikan kedua layer terpotong rapi dalam 1 kontur kartu
+      child: Stack(
         children: [
-          // ── UPPER CARD CONTENT ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+          // ── LAYER 1 (BELAKANG): DUA TAB (TANTANGAN & PERINGKAT) ──
+          // Memanjang dari bawah naik ke balik card atas setinggi 82px (54px terekspos + 28px masuk ke balik card)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 82,
             child: Row(
               children: [
-                // Squircle Monica Avatar (Candy Pink with white border)
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFDB5CB), // Soft candy pink
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white, width: 2.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x12000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(13.5),
-                    child: Image.asset(
-                      'assets/images/challenge_monica_avatar.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                // Greeting: "Hai, [Name]!"
-                Expanded(
-                  child: Text(
-                    _userName.isNotEmpty ? 'Hai, $_userName!' : 'Hai, Monica!',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1F2937),
-                      letterSpacing: -0.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // 4 Dots Menu (2x2 grid)
-                _buildFourDotsIcon(),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Tantangan Headline Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            child: Text(
-              'Tantangan apa yang\ningin kamu taklukkan?',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: textDarkColor,
-                height: 1.25,
-                letterSpacing: -0.4,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Search Bar + Right-docked Black Capsule Filter Button
-          Padding(
-            padding: const EdgeInsets.only(left: 22, bottom: 22),
-            child: Row(
-              children: [
-                // White Pill Search Bar
-                Expanded(
-                  child: Container(
-                    height: 52,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(999),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0C000000),
-                          blurRadius: 10,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFF9CA3AF),
-                          size: 22,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            cursorColor: textDarkColor,
-                            cursorWidth: 1.5,
-                            onChanged: (val) {
-                              setState(() => _searchQuery = val);
-                            },
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: textDarkColor,
-                            ),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              hintText: 'Cari tantangan...',
-                              hintStyle: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFF9CA3AF),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_searchQuery.isNotEmpty)
-                          GestureDetector(
-                            onTap: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF1F5F9),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close_rounded,
-                                color: Color(0xFF64748B),
-                                size: 14,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Black Filter Button Docked to Right Edge of Card
-                GestureDetector(
-                  onTap: _openFilterBottomSheet,
-                  child: Container(
-                    width: 66,
-                    height: 52,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF111827),
-                      borderRadius: BorderRadius.horizontal(
-                        left: Radius.circular(26),
-                        right: Radius.circular(0),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x28000000),
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.tune_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── BOTTOM TABS ROW (UNIFIED INSIDE CARD CONTAINER) ──
-          Container(
-            height: 56,
-            decoration: const BoxDecoration(
-              color: inactiveTabColor, // Latar dasar putih bersih
-            ),
-            child: Row(
-              children: [
-                // Tab 1: Tantangan (Lessons)
+                // Tab Kiri: Tantangan (Lessons)
+                // Mengisi sudut kiri atas (yang terbuka karena sudut bawah card melengkung)
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
@@ -676,21 +497,16 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       setState(() => _activeTabIndex = 0);
                     },
                     child: Container(
-                      height: 56,
+                      height: 82,
                       decoration: BoxDecoration(
                         color: activeTab == 0 ? activeTabColor : inactiveTabColor,
-                        borderRadius: activeTab == 0
-                            ? const BorderRadius.only(
-                                topLeft: Radius.circular(24),
-                                bottomLeft: Radius.circular(36),
-                                bottomRight: Radius.circular(28),
-                              )
-                            : const BorderRadius.only(
-                                topLeft: Radius.circular(24),
-                                bottomLeft: Radius.circular(36),
-                              ),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: const Radius.circular(28),
+                          bottomRight: activeTab == 0 ? const Radius.circular(28) : Radius.zero,
+                        ),
                       ),
-                      alignment: Alignment.center,
+                      alignment: Alignment.bottomCenter,
+                      padding: const EdgeInsets.only(bottom: 18),
                       child: Text(
                         'Tantangan',
                         style: GoogleFonts.plusJakartaSans(
@@ -703,7 +519,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   ),
                 ),
 
-                // Tab 2: Peringkat (My Classes / Leaderboard)
+                // Tab Kanan: Peringkat (My Classes)
+                // Mengisi sudut kanan atas (yang terbuka karena sudut bawah card melengkung)
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
@@ -712,21 +529,16 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       setState(() => _activeTabIndex = 1);
                     },
                     child: Container(
-                      height: 56,
+                      height: 82,
                       decoration: BoxDecoration(
                         color: activeTab == 1 ? activeTabColor : inactiveTabColor,
-                        borderRadius: activeTab == 1
-                            ? const BorderRadius.only(
-                                topRight: Radius.circular(24),
-                                bottomRight: Radius.circular(36),
-                                bottomLeft: Radius.circular(28),
-                              )
-                            : const BorderRadius.only(
-                                topRight: Radius.circular(24),
-                                bottomRight: Radius.circular(36),
-                              ),
+                        borderRadius: BorderRadius.only(
+                          bottomRight: const Radius.circular(28),
+                          bottomLeft: activeTab == 1 ? const Radius.circular(28) : Radius.zero,
+                        ),
                       ),
-                      alignment: Alignment.center,
+                      alignment: Alignment.bottomCenter,
+                      padding: const EdgeInsets.only(bottom: 18),
                       child: Text(
                         'Peringkat',
                         style: GoogleFonts.plusJakartaSans(
@@ -739,6 +551,209 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+
+          // ── LAYER 2 (DEPAN): KARTU UTAMA HI MONICA (KUNING BUTTER) ──
+          // Diberi padding bottom 54px sehingga 54px tab terekspos di bawah.
+          // Kedua sudut bawahnya melengkung naik (Radius 28), sehingga sudut kiri atas dan kanan atas tab tampak menyembul mulus!
+          Padding(
+            padding: const EdgeInsets.only(bottom: 54),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: cardBgColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(32),
+                  topRight: Radius.circular(32),
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Top row: Monica Avatar + Greeting + 4 Dots Menu
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+                    child: Row(
+                      children: [
+                        // Squircle Monica Avatar
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDB5CB), // Soft candy blossom pink
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x12000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(13.5),
+                            child: Image.asset(
+                              'assets/images/challenge_monica_avatar.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        // Greeting: "Hai, [Name]!"
+                        Expanded(
+                          child: Text(
+                            _userName.isNotEmpty ? 'Hai, $_userName!' : 'Hai, Monica!',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1F2937),
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // 4 Dots Menu (2x2 grid)
+                        _buildFourDotsIcon(),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 2. Tantangan Headline Title
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: Text(
+                      'Tantangan apa yang\ningin kamu taklukkan?',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: textDarkColor,
+                        height: 1.25,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 3. Search Bar + Right-docked Black Capsule Filter Button
+                  Padding(
+                    padding: const EdgeInsets.only(left: 22, bottom: 22),
+                    child: Row(
+                      children: [
+                        // White Pill Search Bar
+                        Expanded(
+                          child: Container(
+                            height: 52,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(999),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x0C000000),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.search_rounded,
+                                  color: Color(0xFF9CA3AF),
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    cursorColor: textDarkColor,
+                                    cursorWidth: 1.5,
+                                    onChanged: (val) {
+                                      setState(() => _searchQuery = val);
+                                    },
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: textDarkColor,
+                                    ),
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      border: InputBorder.none,
+                                      hintText: 'Cari tantangan...',
+                                      hintStyle: GoogleFonts.plusJakartaSans(
+                                        color: const Color(0xFF9CA3AF),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (_searchQuery.isNotEmpty)
+                                  GestureDetector(
+                                    onTap: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFF1F5F9),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close_rounded,
+                                        color: Color(0xFF64748B),
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Black Filter Button Docked to Right Edge of Card
+                        GestureDetector(
+                          onTap: _openFilterBottomSheet,
+                          child: Container(
+                            width: 66,
+                            height: 52,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF111827),
+                              borderRadius: BorderRadius.horizontal(
+                                left: Radius.circular(26),
+                                right: Radius.circular(0),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0x28000000),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.tune_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
