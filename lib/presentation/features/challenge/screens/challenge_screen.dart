@@ -354,16 +354,39 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                 const SizedBox(height: 16),
 
-                // ── 2. TAB CONTENT: TANTANGAN vs PERINGKAT ───────────────
-                if (_activeTabIndex == 0)
-                  _buildTantanganTabContent()
-                else
-                  MetroLeaderboardView(
-                    entries: _leaderboard,
-                    isLoading: _isLoadingLeaderboard,
-                    isEmbedded: true,
-                    searchQuery: _searchQuery,
-                  ),
+                // ── 2. TAB CONTENT: TANTANGAN vs PERINGKAT (Smooth Transition) ──
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.04, 0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _activeTabIndex == 0
+                      ? KeyedSubtree(
+                          key: const ValueKey('tab_tantangan'),
+                          child: _buildTantanganTabContent(),
+                        )
+                      : KeyedSubtree(
+                          key: const ValueKey('tab_peringkat'),
+                          child: MetroLeaderboardView(
+                            entries: _leaderboard,
+                            isLoading: _isLoadingLeaderboard,
+                            isEmbedded: true,
+                            searchQuery: _searchQuery,
+                            onRefresh: () => _loadLeaderboard(forceRefresh: true),
+                          ),
+                        ),
+                ),
               ],
             ),
           ),
@@ -382,8 +405,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildHeaderCard() {
     final activeTab = _activeTabIndex; // 0 = Tantangan, 1 = Peringkat
-    const cardBgColor = Color(0xFFFED968);       // Warm butter pastel yellow
-    const activeTabColor = Color(0xFFF6C54E);    // Rich golden amber yellow
+    const cardBgColor = Color(0xFFFED968);       // Warm butter pastel yellow (Kuning Metro)
+    const activeTabColor = Color(0xFFFED968);    // Exactly matches cardBgColor for seamless organic tab
     const inactiveTabColor = Colors.white;       // Pure white tab background
     const textDarkColor = Color(0xFF111827);     // Deep dark/charcoal text
     const inactiveTextColor = Color(0xFF8E8E93);  // Muted gray for inactive tab
@@ -404,8 +427,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       child: Stack(
         children: [
           // ── LAYER 1 (BELAKANG): DUA TAB (TANTANGAN & PERINGKAT) ──
-          // Memanjang dari bawah naik ke balik card atas setinggi 82px (54px terekspos + 28px masuk ke balik card)
-          // Memiliki base putih solid di baliknya sehingga lengkungan sudut tengah terisi warna putih mulus (persis media_1794117742534_66f5b141.png)
           Positioned(
             left: 0,
             right: 0,
@@ -422,7 +443,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               child: Row(
                 children: [
                   // Tab Kiri: Tantangan (Lessons)
-                  // Mengisi sudut kiri atas, dengan sudut kanan bawah melengkung bulat di atas base putih
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -434,7 +454,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           _searchController.clear();
                         });
                       },
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeInOutCubic,
                         height: 82,
                         decoration: BoxDecoration(
                           color: activeTab == 0 ? activeTabColor : Colors.white,
@@ -447,20 +469,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         ),
                         alignment: Alignment.bottomCenter,
                         padding: const EdgeInsets.only(bottom: 18),
-                        child: Text(
-                          'Tantangan',
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: activeTab == 0 ? FontWeight.w800 : FontWeight.w600,
                             color: activeTab == 0 ? textDarkColor : inactiveTextColor,
                           ),
+                          child: const Text('Tantangan'),
                         ),
                       ),
                     ),
                   ),
 
                   // Tab Kanan: Peringkat (My Classes)
-                  // Mengisi sudut kanan atas, dengan sudut kiri bawah melengkung bulat di atas base putih saat aktif
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -473,7 +495,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         });
                         _loadLeaderboard(forceRefresh: true);
                       },
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeInOutCubic,
                         height: 82,
                         decoration: BoxDecoration(
                           color: activeTab == 1 ? activeTabColor : Colors.white,
@@ -486,13 +510,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         ),
                         alignment: Alignment.bottomCenter,
                         padding: const EdgeInsets.only(bottom: 18),
-                        child: Text(
-                          'Peringkat',
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: activeTab == 1 ? FontWeight.w800 : FontWeight.w600,
                             color: activeTab == 1 ? textDarkColor : inactiveTextColor,
                           ),
+                          child: const Text('Peringkat'),
                         ),
                       ),
                     ),
@@ -503,8 +528,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           ),
 
           // ── LAYER 2 (DEPAN): KARTU UTAMA HI MONICA (KUNING BUTTER) ──
-          // Diberi padding bottom 54px sehingga 54px tab terekspos di bawah.
-          // Kedua sudut bawahnya melengkung naik (Radius 28), sehingga sudut kiri atas dan kanan atas tab tampak menyembul mulus!
           Padding(
             padding: const EdgeInsets.only(bottom: 54),
             child: Container(
@@ -520,40 +543,44 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Top row: Monica Avatar + Greeting + 4 Dots Menu
+                  // 1. Top row: Metro Shield/User Avatar + Greeting + 4 Dots Menu
                   Padding(
                     padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
                     child: Row(
                       children: [
-                        // Squircle Monica Avatar
+                        // Squircle Metro Green Shield Avatar
                         Container(
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFDB5CB), // Soft candy blossom pink
+                            color: const Color(0xFF08261B), // Deep Emerald Hijau Metro
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white, width: 2.5),
+                            border: Border.all(color: Colors.white, width: 2.2),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x12000000),
+                                color: Color(0x18000000),
                                 blurRadius: 6,
                                 offset: Offset(0, 2),
                               ),
                             ],
                           ),
+                          padding: const EdgeInsets.all(4),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(13.5),
-                            child: Image.asset(
-                              'assets/images/challenge_monica_avatar.png',
-                              fit: BoxFit.cover,
-                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            child: _userPhotoUrl != null && _userPhotoUrl!.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: _userPhotoUrl!,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, __, ___) => _buildFallbackUserIcon(),
+                                  )
+                                : _buildFallbackUserIcon(),
                           ),
                         ),
                         const SizedBox(width: 14),
                         // Greeting: "Hai, [Name]!"
                         Expanded(
                           child: Text(
-                            _userName.isNotEmpty ? 'Hai, $_userName!' : 'Hai, Monica!',
+                            _userName.isNotEmpty ? 'Hai, $_userName!' : 'Hai, Mentee!',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -572,28 +599,40 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                   const SizedBox(height: 20),
 
-                  // 2. Tantangan Headline Title
+                  // 2. Tantangan Headline Title (Smooth fade transition on tab switch)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 22),
-                    child: Text(
-                      activeTab == 0
-                          ? 'Tantangan apa yang\ningin kamu taklukkan?'
-                          : 'Siapa yang memimpin\nperingkat saat ini?',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: textDarkColor,
-                        height: 1.25,
-                        letterSpacing: -0.4,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 240),
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
+                      child: Text(
+                        activeTab == 0
+                            ? 'Tantangan apa yang\ningin kamu taklukkan?'
+                            : 'Siapa yang memimpin\nperingkat saat ini?',
+                        key: ValueKey('header_title_$activeTab'),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: textDarkColor,
+                          height: 1.25,
+                          letterSpacing: -0.4,
+                        ),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  // 3. Search Bar + Right-docked Black Capsule Filter Button
-                  Padding(
-                    padding: const EdgeInsets.only(left: 22, bottom: 22),
+                  // 3. Search Bar + Right-docked Filter Button (Filter removed on Peringkat)
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeInOutCubic,
+                    padding: EdgeInsets.only(
+                      left: 22,
+                      right: activeTab == 0 ? 0 : 22,
+                      bottom: 22,
+                    ),
                     child: Row(
                       children: [
                         // White Pill Search Bar
@@ -669,35 +708,71 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           ),
                         ),
 
-                        const SizedBox(width: 12),
-
-                        // Black Filter Button Docked to Right Edge of Card
-                        GestureDetector(
-                          onTap: _openFilterBottomSheet,
-                          child: Container(
-                            width: 66,
-                            height: 52,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF111827),
-                              borderRadius: BorderRadius.horizontal(
-                                left: Radius.circular(26),
-                                right: Radius.circular(0),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x28000000),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.tune_rounded,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                          ),
+                        // Filter Button - ONLY visible in Tantangan tab (activeTab == 0)
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 260),
+                          transitionBuilder: (child, animation) {
+                            return SizeTransition(
+                              sizeFactor: animation,
+                              axis: Axis.horizontal,
+                              axisAlignment: 1.0,
+                              child: FadeTransition(opacity: animation, child: child),
+                            );
+                          },
+                          child: activeTab == 0
+                              ? Row(
+                                  key: const ValueKey('filter_button_row'),
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: _openFilterBottomSheet,
+                                      child: Container(
+                                        width: 66,
+                                        height: 52,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF111827),
+                                          borderRadius: BorderRadius.horizontal(
+                                            left: Radius.circular(26),
+                                            right: Radius.circular(0),
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Color(0x28000000),
+                                              blurRadius: 8,
+                                              offset: Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.tune_rounded,
+                                              color: Colors.white,
+                                              size: 22,
+                                            ),
+                                            if (_selectedField != 'ALL' || _selectedLevel != 'ALL')
+                                              Positioned(
+                                                top: 10,
+                                                right: 14,
+                                                child: Container(
+                                                  width: 7,
+                                                  height: 7,
+                                                  decoration: const BoxDecoration(
+                                                    color: AppColors.accent,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : const SizedBox.shrink(key: ValueKey('filter_empty')),
                         ),
                       ],
                     ),
@@ -709,6 +784,18 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildFallbackUserIcon() {
+    return Container(
+      color: const Color(0xFF08261B),
+      padding: const EdgeInsets.all(4),
+      child: Image.asset(
+        'assets/images/logo.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -752,7 +839,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                 ),
                 Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
                 Expanded(
-                  child: _buildStatItem('XP Tersedia', '+$totalXpEarnable XP', const Color(0xFFD97706)),
+                  child: _buildStatItem('XP Tersedia', '+$totalXpEarnable XP', AppColors.primary),
                 ),
               ],
             ),
@@ -793,11 +880,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
             child: Center(
-              child: CircularProgressIndicator(color: Color(0xFF101010)),
+              child: CircularProgressIndicator(color: AppColors.primary),
             ),
           )
         else if (_filteredChallenges.isEmpty)
-          _buildEmptyChallengesCard()
+          if (_searchQuery.trim().isNotEmpty)
+            _buildSearchEmptyCard()
+          else
+            _buildEmptyChallengesCard()
         else
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -874,13 +964,13 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             height: 44,
             decoration: BoxDecoration(
               color: isCompleted
-                  ? const Color(0xFF10B981).withValues(alpha: 0.12)
-                  : AppColors.accent.withValues(alpha: 0.35),
+                  ? AppColors.primary.withValues(alpha: 0.12)
+                  : AppColors.primaryLight,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
               isCompleted ? Icons.check_circle_rounded : Icons.code_rounded,
-              color: isCompleted ? const Color(0xFF10B981) : const Color(0xFFD97706),
+              color: AppColors.primary,
               size: 22,
             ),
           ),
@@ -905,7 +995,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF9E6),
+                        color: AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -913,7 +1003,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFFD97706),
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
@@ -923,7 +1013,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF10B981),
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -977,11 +1067,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF9E6),
+                color: AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.accent.withValues(alpha: 0.5), width: 1.2),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 1.2),
               ),
-              child: const Icon(Icons.code_off_rounded, size: 28, color: Color(0xFFD97706)),
+              child: const Icon(Icons.code_off_rounded, size: 28, color: AppColors.primary),
             ),
             const SizedBox(height: 16),
             Text(
@@ -1006,6 +1096,84 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildSearchEmptyCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 1.2),
+              ),
+              child: const Icon(Icons.search_off_rounded, size: 28, color: AppColors.primary),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tantangan Tidak Ditemukan',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: const Color(0xFF1E1E1E),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tidak ada tantangan yang cocok dengan kata kunci "$_searchQuery".',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                _searchController.clear();
+                setState(() => _searchQuery = '');
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Hapus Pencarian',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

@@ -90,9 +90,19 @@ class MetroLeaderboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Process display entries
-    final displayList = _buildDisplayList();
-    final topThree = displayList.take(3).toList();
-    final remaining = displayList.length > 3 ? displayList.sublist(3) : <Map<String, dynamic>>[];
+    final allEntries = _buildAllEntries();
+    final isSearching = searchQuery != null && searchQuery!.trim().isNotEmpty;
+    final filteredList = isSearching
+        ? allEntries.where((e) {
+            final name = (e['displayName'] ?? e['name'] ?? '').toString().toLowerCase();
+            return name.contains(searchQuery!.trim().toLowerCase());
+          }).toList()
+        : allEntries;
+
+    final topThree = isSearching ? <Map<String, dynamic>>[] : allEntries.take(3).toList();
+    final remaining = isSearching
+        ? filteredList
+        : (allEntries.length > 3 ? allEntries.sublist(3) : <Map<String, dynamic>>[]);
 
     final mainColumn = Column(
       children: [
@@ -130,24 +140,46 @@ class MetroLeaderboardView extends StatelessWidget {
                         const SizedBox(height: 16),
                       ],
 
-                      // Spacing before podium (Leaderboard title removed as requested)
-                      SizedBox(height: isEmbedded ? 14 : 12),
-
-                      // 3. The Podium Section
-                      if (topThree.isNotEmpty) ...[
-                        _buildPodiumSection(topThree),
-                      ] else if (!isLoading) ...[
+                      if (isSearching) ...[
+                        // Search active summary banner
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 24),
-                          child: Text(
-                            'Belum ada data peringkat mentee.',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF64748B),
-                            ),
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.person_search_rounded, size: 20, color: Color(0xFF0F172A)),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Ditemukan ${filteredList.length} mentee',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                      ] else ...[
+                        // Spacing before podium (Leaderboard title removed as requested)
+                        SizedBox(height: isEmbedded ? 14 : 12),
+
+                        // 3. The Podium Section
+                        if (topThree.isNotEmpty) ...[
+                          _buildPodiumSection(topThree),
+                        ] else if (!isLoading) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 24),
+                            child: Text(
+                              'Belum ada data peringkat mentee.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ),
@@ -171,7 +203,38 @@ class MetroLeaderboardView extends StatelessWidget {
                     child: CircularProgressIndicator(color: AppColors.accent),
                   ),
                 )
-              else if (displayList.isEmpty)
+              else if (isSearching && filteredList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.search_off_rounded,
+                        size: 42,
+                        color: AppColors.accent.withValues(alpha: 0.65),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Mentee Tidak Ditemukan',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tidak ada mentee yang cocok dengan "$searchQuery".',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (!isSearching && allEntries.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 30),
                   child: Center(
@@ -187,8 +250,8 @@ class MetroLeaderboardView extends StatelessWidget {
                 )
               else
                 ...List.generate(remaining.length, (index) {
-                  final rank = index + 4;
                   final item = remaining[index];
+                  final rank = item['rank'] as int? ?? (index + (isSearching ? 1 : 4));
                   return _buildLeaderboardListItem(rank, item);
                 }),
             ],
@@ -567,7 +630,7 @@ class MetroLeaderboardView extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STAR BADGE (Pink 5-point star with white number)
+  // STAR BADGE (Metro Green 5-point star with white number)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildStarBadge(int rank) {
     return SizedBox(
@@ -578,7 +641,7 @@ class MetroLeaderboardView extends StatelessWidget {
         children: [
           CustomPaint(
             size: const Size(32, 32),
-            painter: const _FivePointStarPainter(color: Color(0xFFFF5286)), // Coral Pink
+            painter: const _FivePointStarPainter(color: Color(0xFF018556)), // Metro Green
           ),
           Text(
             '$rank',
@@ -662,20 +725,10 @@ class MetroLeaderboardView extends StatelessWidget {
   // ─────────────────────────────────────────────────────────────────────────────
   // DATA PARSING & FALLBACK MAPPER (Database-backed)
   // ─────────────────────────────────────────────────────────────────────────────
-  List<Map<String, dynamic>> _buildDisplayList() {
+  List<Map<String, dynamic>> _buildAllEntries() {
     if (entries.isEmpty) {
       return [];
     }
-
-    // Determine max XP for relative percentage calculations
-    int maxXp = 0;
-    for (final e in entries) {
-      if (e is Map<String, dynamic>) {
-        final xp = (e['totalXp'] as num?)?.toInt() ?? (e['xp'] as num?)?.toInt() ?? 0;
-        if (xp > maxXp) maxXp = xp;
-      }
-    }
-    if (maxXp == 0) maxXp = 100;
 
     final result = <Map<String, dynamic>>[];
     for (int i = 0; i < entries.length; i++) {
@@ -687,27 +740,17 @@ class MetroLeaderboardView extends StatelessWidget {
             ? '${nameParts[0]}\n${nameParts.sublist(1).join(" ")}'
             : rawName;
         final xp = (raw['totalXp'] as num?)?.toInt() ?? (raw['xp'] as num?)?.toInt() ?? 0;
-        final pct = maxXp > 0 ? ((xp / maxXp) * 100).round() : 0;
         final isOrgLogo = raw['isLogo'] == true || rawName.toLowerCase() == 'metro institute';
 
         result.add({
+          'rank': i + 1,
           'name': twoLineName,
           'displayName': rawName,
-          'percentage': '$pct %',
           'xp': xp,
           'photoUrl': raw['photoUrl'],
           'isLogo': isOrgLogo,
         });
       }
-    }
-
-    if (searchQuery != null && searchQuery!.trim().isNotEmpty) {
-      final q = searchQuery!.trim().toLowerCase();
-      final filtered = result.where((e) {
-        final name = (e['displayName'] ?? e['name'] ?? '').toString().toLowerCase();
-        return name.contains(q);
-      }).toList();
-      return filtered;
     }
 
     return result;
@@ -762,9 +805,9 @@ class _OrganicWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFD97706).withValues(alpha: 0.22)
+      ..color = const Color(0xFF018556).withValues(alpha: 0.12) // Subtle Metro Green organic curves
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3
+      ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
 
     final w = size.width;
