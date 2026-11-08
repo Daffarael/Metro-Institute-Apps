@@ -393,7 +393,16 @@ class MetroLeaderboardView extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // PODIUM SECTION (3 Pedestals with percentages, stars, avatars, and names)
+  // PODIUM SECTION (Stepped Champion Throne / Singgasana Juara)
+  // Direproduksi 100% PERSIS sesuai referensi desain (media_1794127901516_48201b00.jpg):
+  // • Ketiga pilar saling menempel rapat tanpa celah kuning (spacing = 0)
+  // • Pilar tengah (#1) tertinggi, kiri (#2) kedua tertinggi, kanan (#3) ketiga
+  // • Bintang 5 sudut pink (#FF5286) bertengger di puncak setiap pilar dengan nomor putih
+  // • Persentase di atas setiap bintang (100 % di #1, kalkulasi % di #2 dan #3)
+  // • Avatar frame squircle Kuning Metro (#FAE653) untuk semua mentee di podium
+  // • Nama mentee 2 baris teks putih tebal di dalam pilar gelap
+  // • Poin XP di bawah nama dengan warna Kuning Metro
+  // • Bagian bawah ketiga pilar menyatu langsung dengan kontainer gelap di bawahnya
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildPodiumSection(List<Map<String, dynamic>> topThree) {
     if (topThree.isEmpty) return const SizedBox.shrink();
@@ -402,67 +411,91 @@ class MetroLeaderboardView extends StatelessWidget {
     final second = topThree.length > 1 ? topThree[1] : null;
     final third = topThree.length > 2 ? topThree[2] : null;
 
+    final firstXp = (first['xp'] as num?)?.toInt() ?? 0;
+
+    String computePercentage(Map<String, dynamic>? item, int rank) {
+      if (item == null) return '0 %';
+      if (item['percentage'] != null && item['percentage'].toString().isNotEmpty) {
+        return item['percentage'].toString();
+      }
+      if (rank == 1) return '100 %';
+      final itemXp = (item['xp'] as num?)?.toInt() ?? 0;
+      if (firstXp > 0) {
+        final pct = ((itemXp / firstXp) * 100).round();
+        return '$pct %';
+      }
+      return '0 %';
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxW = constraints.maxWidth;
-        final spacing = (maxW * 0.02).clamp(4.0, 8.0);
-        final available = maxW - (spacing * 2) - 16;
-        final sideWidth = (available * 0.315).clamp(84.0, 104.0);
-        final centerWidth = (available * 0.37).clamp(94.0, 114.0);
+        final totalWidth = constraints.maxWidth;
+        // Margin samping proporsional agar siluet podium elegan
+        final sideMargin = (totalWidth * 0.035).clamp(8.0, 14.0);
+        final podiumWidth = totalWidth - (sideMargin * 2);
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ── PODIUM #2 (LEFT) ──
-            if (second != null)
+        // Lebar ketiga pilar (Total = 100% podiumWidth, TANPA GAP / SPACING = 0)
+        final sidePillarWidth = podiumWidth * 0.315;
+        final centerPillarWidth = podiumWidth * 0.37;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: sideMargin),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ── PODIUM #2 (LEFT - SECOND TALLEST) ──
+              if (second != null)
+                _buildPodiumPillar(
+                  rank: 2,
+                  name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Mentee',
+                  avatarAsset: second['avatarAsset']?.toString(),
+                  photoUrl: second['photoUrl']?.toString(),
+                  isLogo: second['isLogo'] == true,
+                  xp: second['xp'] as int?,
+                  percentage: computePercentage(second, 2),
+                  pillarHeight: 168,
+                  pillarWidth: sidePillarWidth,
+                  topLeftRadius: 24,
+                  topRightRadius: 24,
+                )
+              else
+                SizedBox(width: sidePillarWidth),
+
+              // ── PODIUM #1 (CENTER - TALLEST JUARA 1) ──
               _buildPodiumPillar(
-                rank: 2,
-                name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Mentee',
-                avatarAsset: second['avatarAsset']?.toString(),
-                photoUrl: second['photoUrl']?.toString(),
-                isLogo: second['isLogo'] == true,
-                xp: second['xp'] as int?,
-                pillarHeight: 154,
-                pillarWidth: sideWidth,
-                topRadius: 26,
-              )
-            else
-              SizedBox(width: sideWidth),
+                rank: 1,
+                name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Mentee',
+                avatarAsset: first['avatarAsset']?.toString(),
+                photoUrl: first['photoUrl']?.toString(),
+                isLogo: first['isLogo'] == true,
+                xp: first['xp'] as int?,
+                percentage: computePercentage(first, 1),
+                pillarHeight: 204,
+                pillarWidth: centerPillarWidth,
+                topLeftRadius: 28,
+                topRightRadius: 28,
+              ),
 
-            SizedBox(width: spacing),
-
-            // ── PODIUM #1 (CENTER - TALLEST) ──
-            _buildPodiumPillar(
-              rank: 1,
-              name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Mentee',
-              avatarAsset: first['avatarAsset']?.toString(),
-              photoUrl: first['photoUrl']?.toString(),
-              isLogo: first['isLogo'] == true,
-              xp: first['xp'] as int?,
-              pillarHeight: 190,
-              pillarWidth: centerWidth,
-              topRadius: 30,
-            ),
-
-            SizedBox(width: spacing),
-
-            // ── PODIUM #3 (RIGHT) ──
-            if (third != null)
-              _buildPodiumPillar(
-                rank: 3,
-                name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Mentee',
-                avatarAsset: third['avatarAsset']?.toString(),
-                photoUrl: third['photoUrl']?.toString(),
-                isLogo: third['isLogo'] == true,
-                xp: third['xp'] as int?,
-                pillarHeight: 142,
-                pillarWidth: sideWidth,
-                topRadius: 26,
-              )
-            else
-              SizedBox(width: sideWidth),
-          ],
+              // ── PODIUM #3 (RIGHT - THIRD TALLEST) ──
+              if (third != null)
+                _buildPodiumPillar(
+                  rank: 3,
+                  name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Mentee',
+                  avatarAsset: third['avatarAsset']?.toString(),
+                  photoUrl: third['photoUrl']?.toString(),
+                  isLogo: third['isLogo'] == true,
+                  xp: third['xp'] as int?,
+                  percentage: computePercentage(third, 3),
+                  pillarHeight: 150,
+                  pillarWidth: sidePillarWidth,
+                  topLeftRadius: 24,
+                  topRightRadius: 24,
+                )
+              else
+                SizedBox(width: sidePillarWidth),
+            ],
+          ),
         );
       },
     );
@@ -471,80 +504,109 @@ class MetroLeaderboardView extends StatelessWidget {
   Widget _buildPodiumPillar({
     required int rank,
     required String name,
+    required String percentage,
     required double pillarHeight,
     required double pillarWidth,
-    required double topRadius,
+    required double topLeftRadius,
+    required double topRightRadius,
     String? avatarAsset,
     String? photoUrl,
     bool isLogo = false,
     int? xp,
   }) {
+    const headerAboveHeight = 44.0;
+    const starSize = 32.0;
+
     return SizedBox(
       width: pillarWidth,
-      height: pillarHeight + 16,
+      height: pillarHeight + headerAboveHeight,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
         children: [
-          // The Dark Emerald Pedestal Container
-          Container(
-            width: pillarWidth,
+          // 1. The Pedestal Body (Deep Emerald Dark Metro #08261B)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
             height: pillarHeight,
-            decoration: BoxDecoration(
-              color: const Color(0xFF08261B), // Deep Emerald Dark Metro
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(topRadius),
-                topRight: Radius.circular(topRadius),
+            child: Container(
+              width: pillarWidth,
+              height: pillarHeight,
+              decoration: BoxDecoration(
+                color: const Color(0xFF08261B), // Deep Emerald Dark Metro
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(topLeftRadius),
+                  topRight: Radius.circular(topRightRadius),
+                ),
               ),
-            ),
-            padding: const EdgeInsets.only(top: 20, left: 4, right: 4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Avatar Squircle Box in Kuning Metro
-                _buildAvatarBox(
-                  isLogo: isLogo,
-                  avatarAsset: avatarAsset,
-                  photoUrl: photoUrl,
-                  fallbackName: name,
-                ),
-
-                const SizedBox(height: 6),
-
-                // User Name in 2 lines (White Text, bold, centered)
-                Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.15,
+              padding: const EdgeInsets.only(top: 22, left: 4, right: 4, bottom: 6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Avatar Squircle Box in Kuning Metro
+                  _buildAvatarBox(
+                    isLogo: isLogo,
+                    avatarAsset: avatarAsset,
+                    photoUrl: photoUrl,
+                    fallbackName: name,
+                    size: rank == 1 ? 50 : 46,
                   ),
-                ),
 
-                if (xp != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    '$xp XP',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.accent, // Gold Kuning Metro
-                      letterSpacing: 0.2,
+                  const SizedBox(height: 6),
+
+                  // Mentee Name (2 lines, white text, bold, centered)
+                  Flexible(
+                    child: Text(
+                      name,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: rank == 1 ? 12.0 : 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.15,
+                      ),
                     ),
                   ),
+
+                  if (xp != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      '$xp XP',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.accent, // Gold Kuning Metro
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
 
-          // Pink Star Badge with Rank Number straddling the top edge
+          // 2. Pink Star Badge with Rank Number straddling the top edge
           Positioned(
-            top: 0,
+            bottom: pillarHeight - (starSize / 2),
             child: _buildStarBadge(rank),
+          ),
+
+          // 3. Percentage Text centered directly above the star on the yellow background
+          Positioned(
+            bottom: pillarHeight + (starSize / 2) + 2,
+            child: Text(
+              percentage,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: rank == 1 ? 15.0 : 14.0,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A), // Dark charcoal/black
+                letterSpacing: -0.2,
+              ),
+            ),
           ),
         ],
       ),
@@ -559,13 +621,14 @@ class MetroLeaderboardView extends StatelessWidget {
     String? avatarAsset,
     String? photoUrl,
     required String fallbackName,
+    double size = 48,
   }) {
     return Container(
-      width: 48,
-      height: 48,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: AppColors.accent, // Kuning Metro (#FAE653)
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
@@ -574,14 +637,15 @@ class MetroLeaderboardView extends StatelessWidget {
           ),
         ],
       ),
+      padding: const EdgeInsets.all(3.5),
       child: Center(
         child: isLogo
             ? Container(
-                width: 30,
-                height: 30,
+                width: size - 8,
+                height: size - 8,
                 decoration: BoxDecoration(
                   color: const Color(0xFF08261B),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 padding: const EdgeInsets.all(4),
                 child: Image.asset(
@@ -591,38 +655,38 @@ class MetroLeaderboardView extends StatelessWidget {
               )
             : (photoUrl != null && photoUrl.isNotEmpty)
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(12),
                     child: CachedNetworkImage(
                       imageUrl: photoUrl,
                       fit: BoxFit.cover,
-                      width: 48,
-                      height: 48,
-                      errorWidget: (_, __, ___) => _buildFallbackInitial(fallbackName),
+                      width: size - 7,
+                      height: size - 7,
+                      errorWidget: (_, __, ___) => _buildFallbackInitial(fallbackName, size),
                     ),
                   )
                 : (avatarAsset != null && avatarAsset.isNotEmpty)
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(12),
                         child: Image.asset(
                           avatarAsset,
                           fit: BoxFit.cover,
-                          width: 48,
-                          height: 48,
-                          errorBuilder: (_, __, ___) => _buildFallbackInitial(fallbackName),
+                          width: size - 7,
+                          height: size - 7,
+                          errorBuilder: (_, __, ___) => _buildFallbackInitial(fallbackName, size),
                         ),
                       )
-                    : _buildFallbackInitial(fallbackName),
+                    : _buildFallbackInitial(fallbackName, size),
       ),
     );
   }
 
-  Widget _buildFallbackInitial(String name) {
+  Widget _buildFallbackInitial(String name, [double boxSize = 48]) {
     final clean = name.replaceAll('\n', ' ').trim();
     final letter = clean.isNotEmpty ? clean[0].toUpperCase() : 'M';
     return Text(
       letter,
       style: GoogleFonts.plusJakartaSans(
-        fontSize: 22,
+        fontSize: boxSize * 0.44,
         fontWeight: FontWeight.w900,
         color: const Color(0xFF08261B),
       ),
@@ -630,7 +694,7 @@ class MetroLeaderboardView extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STAR BADGE (Metro Green 5-point star with white number)
+  // STAR BADGE (Pink 5-point star with white number matching reference)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildStarBadge(int rank) {
     return SizedBox(
@@ -639,9 +703,9 @@ class MetroLeaderboardView extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(
-            size: const Size(32, 32),
-            painter: const _FivePointStarPainter(color: Color(0xFF018556)), // Metro Green
+          const CustomPaint(
+            size: Size(32, 32),
+            painter: _FivePointStarPainter(color: Color(0xFFFF5286)), // Coral Pink as in reference
           ),
           Text(
             '$rank',
@@ -805,7 +869,7 @@ class _OrganicWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF018556).withValues(alpha: 0.12) // Subtle Metro Green organic curves
+      ..color = const Color(0xFFD9901C).withValues(alpha: 0.28) // Warm golden organic curves matching reference
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
@@ -815,26 +879,26 @@ class _OrganicWavePainter extends CustomPainter {
 
     // Line 1: Upper subtle curve
     final path1 = Path()
-      ..moveTo(-30, h * 0.20)
-      ..cubicTo(w * 0.25, h * 0.12, w * 0.70, h * 0.35, w + 30, h * 0.16);
+      ..moveTo(-30, h * 0.18)
+      ..cubicTo(w * 0.25, h * 0.10, w * 0.70, h * 0.30, w + 30, h * 0.14);
     canvas.drawPath(path1, paint);
 
     // Line 2: Mid wave across leaderboard title
     final path2 = Path()
-      ..moveTo(-30, h * 0.38)
-      ..cubicTo(w * 0.30, h * 0.24, w * 0.65, h * 0.52, w + 30, h * 0.36);
+      ..moveTo(-30, h * 0.35)
+      ..cubicTo(w * 0.30, h * 0.22, w * 0.65, h * 0.48, w + 30, h * 0.32);
     canvas.drawPath(path2, paint);
 
     // Line 3: Sweeping curve dipping down to podiums
     final path3 = Path()
-      ..moveTo(-40, h * 0.55)
-      ..cubicTo(w * 0.20, h * 0.44, w * 0.55, h * 0.78, w + 40, h * 0.48);
+      ..moveTo(-40, h * 0.52)
+      ..cubicTo(w * 0.20, h * 0.40, w * 0.55, h * 0.72, w + 40, h * 0.45);
     canvas.drawPath(path3, paint);
 
     // Line 4: Flowing bottom contour
     final path4 = Path()
-      ..moveTo(-30, h * 0.75)
-      ..cubicTo(w * 0.35, h * 0.88, w * 0.75, h * 0.62, w + 30, h * 0.78);
+      ..moveTo(-30, h * 0.70)
+      ..cubicTo(w * 0.35, h * 0.82, w * 0.75, h * 0.58, w + 30, h * 0.72);
     canvas.drawPath(path4, paint);
   }
 

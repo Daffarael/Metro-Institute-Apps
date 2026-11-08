@@ -658,33 +658,49 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: TextField(
-                                    controller: _searchController,
-                                    cursorColor: textDarkColor,
-                                    cursorWidth: 1.5,
-                                    onChanged: (val) {
-                                      setState(() => _searchQuery = val);
-                                    },
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: textDarkColor,
+                                  child: Theme(
+                                    data: Theme.of(context).copyWith(
+                                      inputDecorationTheme: const InputDecorationTheme(
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        disabledBorder: InputBorder.none,
+                                        errorBorder: InputBorder.none,
+                                        focusedErrorBorder: InputBorder.none,
+                                        filled: false,
+                                        fillColor: Colors.transparent,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
                                     ),
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      filled: false,
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      disabledBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      focusedErrorBorder: InputBorder.none,
-                                      contentPadding: EdgeInsets.zero,
-                                      hintText: activeTab == 0 ? 'Cari tantangan...' : 'Cari mentee...',
-                                      hintStyle: GoogleFonts.plusJakartaSans(
-                                        color: const Color(0xFF9CA3AF),
+                                    child: TextField(
+                                      controller: _searchController,
+                                      cursorColor: textDarkColor,
+                                      cursorWidth: 1.5,
+                                      onChanged: (val) {
+                                        setState(() => _searchQuery = val);
+                                      },
+                                      style: GoogleFonts.plusJakartaSans(
                                         fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w600,
+                                        color: textDarkColor,
+                                      ),
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        filled: false,
+                                        fillColor: Colors.transparent,
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        disabledBorder: InputBorder.none,
+                                        errorBorder: InputBorder.none,
+                                        focusedErrorBorder: InputBorder.none,
+                                        contentPadding: EdgeInsets.zero,
+                                        hintText: activeTab == 0 ? 'Cari tantangan...' : 'Cari mentee...',
+                                        hintStyle: GoogleFonts.plusJakartaSans(
+                                          color: const Color(0xFF9CA3AF),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ),
                                   ),
