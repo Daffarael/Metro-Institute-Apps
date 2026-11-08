@@ -448,268 +448,305 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. HEADER CARD (Kuning Metro Card with Greeting, Headline, Search & Tabs)
+  // 1. HEADER CARD (Warm Butter Yellow Asymmetric Tabbed Folder Card)
+  // Direproduksi 100% persis sesuai desain referensi (media_1794114236661_0ee6e7ed.jpg)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildHeaderCard() {
+    final activeTab = _activeTabIndex; // 0 = Tantangan, 1 = Peringkat
+    const cardBgColor = Color(0xFFFED968);      // Warm butter pastel yellow
+    const activeTabColor = Color(0xFFF6C54E);   // Rich golden amber yellow
+    const textDarkColor = Color(0xFF111827);    // Deep dark/charcoal text
+    const inactiveTextColor = Color(0xFF8E8E93); // Muted gray for inactive tab
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      decoration: BoxDecoration(
-        color: AppColors.accent, // Kuning Metro (#FAE653)
-        borderRadius: BorderRadius.circular(36),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 18,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header Content ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+          // ── UPPER MAIN FOLDER CARD BODY ──
+          Container(
+            decoration: BoxDecoration(
+              color: cardBgColor,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(36),
+                topRight: const Radius.circular(36),
+                // Asymmetric bottom curves based on active tab:
+                bottomLeft: activeTab == 0 ? Radius.zero : const Radius.circular(32),
+                bottomRight: activeTab == 0 ? const Radius.circular(32) : Radius.zero,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x12000000),
+                  blurRadius: 18,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top row: User Avatar + Greeting + 4 Dots Menu
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x10000000),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: _userPhotoUrl != null && _userPhotoUrl!.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: _userPhotoUrl!,
-                                fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) => Image.asset(
-                                  'assets/images/challenge_monica_avatar.png',
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Image.asset(
-                                'assets/images/challenge_monica_avatar.png',
-                                fit: BoxFit.cover,
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Hai, $_userName!',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0D1117),
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const Spacer(),
-                    _buildFourDotsIcon(),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // Big Tantangan Headline Title
-                Text(
-                  'Tantangan apa yang\ningin kamu taklukkan?',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 23,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF0D1117),
-                    height: 1.25,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                // Search Bar + Pure Black Squircle Filter Button
-                Row(
-                  children: [
-                    // Search Bar
-                    Expanded(
-                      child: Container(
-                        height: 50,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+                  child: Row(
+                    children: [
+                      // Squircle Avatar (Candy Pink with white border)
+                      Container(
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(999),
+                          color: const Color(0xFFFDB5CB), // Soft candy pink
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white, width: 2.5),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0x0C000000),
-                              blurRadius: 10,
+                              color: Color(0x12000000),
+                              blurRadius: 6,
                               offset: Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.search_rounded,
-                              color: Color(0xFF94A3B8),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                cursorColor: const Color(0xFF101010),
-                                cursorWidth: 1.5,
-                                onChanged: (val) {
-                                  setState(() => _searchQuery = val);
-                                },
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF1E1E1E),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(13.5),
+                          child: _userPhotoUrl != null && _userPhotoUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: _userPhotoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) => Image.asset(
+                                    'assets/images/challenge_monica_avatar.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Image.asset(
+                                  'assets/images/challenge_monica_avatar.png',
+                                  fit: BoxFit.cover,
                                 ),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  border: InputBorder.none,
-                                  hintText: 'Cari tantangan, topik...',
-                                  hintStyle: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      // Greeting: "Hai, [Name]!"
+                      Expanded(
+                        child: Text(
+                          _userName.isNotEmpty ? 'Hai, $_userName!' : 'Hai, Monica!',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1F2937),
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      // 4 Dots Menu
+                      _buildFourDotsIcon(),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Tantangan Headline Title
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  child: Text(
+                    'Tantangan apa yang\ningin kamu taklukkan?',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: textDarkColor,
+                      height: 1.25,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Search Bar + Right-docked Black Capsule Filter Button
+                Padding(
+                  padding: const EdgeInsets.only(left: 22, bottom: 22),
+                  child: Row(
+                    children: [
+                      // White Pill Search Bar
+                      Expanded(
+                        child: Container(
+                          height: 52,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x0C000000),
+                                blurRadius: 10,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.search_rounded,
+                                color: Color(0xFF9CA3AF),
+                                size: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  cursorColor: textDarkColor,
+                                  cursorWidth: 1.5,
+                                  onChanged: (val) {
+                                    setState(() => _searchQuery = val);
+                                  },
+                                  style: GoogleFonts.plusJakartaSans(
                                     fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w600,
+                                    color: textDarkColor,
+                                  ),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    border: InputBorder.none,
+                                    hintText: 'Cari tantangan...',
+                                    hintStyle: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFF9CA3AF),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            if (_searchQuery.isNotEmpty)
-                              GestureDetector(
-                                onTap: () {
-                                  _searchController.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFF1F5F9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.close_rounded,
-                                    color: Color(0xFF64748B),
-                                    size: 14,
+                              if (_searchQuery.isNotEmpty)
+                                GestureDetector(
+                                  onTap: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF1F5F9),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close_rounded,
+                                      color: Color(0xFF64748B),
+                                      size: 14,
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(width: 10),
+                      const SizedBox(width: 12),
 
-                    // Pure Black Squircle Filter Button
-                    GestureDetector(
-                      onTap: _openFilterBottomSheet,
-                      child: Container(
-                        width: 52,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF101010),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x24101010),
-                              blurRadius: 8,
-                              offset: Offset(0, 3),
+                      // Black Filter Button Docked to Right Edge of Card
+                      GestureDetector(
+                        onTap: _openFilterBottomSheet,
+                        child: Container(
+                          width: 66,
+                          height: 52,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF111827),
+                            borderRadius: BorderRadius.horizontal(
+                              left: Radius.circular(26),
+                              right: Radius.circular(0),
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.tune_rounded,
-                          color: Colors.white,
-                          size: 20,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x28000000),
+                                blurRadius: 8,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.tune_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          // ── STEPPED TABS (Tantangan vs Peringkat) ──
-          Row(
-            children: [
-              // Tab 1: Tantangan
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _activeTabIndex = 0);
-                  },
-                  child: Container(
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: _activeTabIndex == 0 ? AppColors.accentDark : Colors.white,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: const Radius.circular(36),
-                        bottomRight: _activeTabIndex == 0 ? const Radius.circular(24) : Radius.zero,
-                        topRight: _activeTabIndex == 0 ? Radius.zero : const Radius.circular(22),
+          // ── ASYMMETRIC FOLDER TAB ROW ──
+          SizedBox(
+            height: 52,
+            child: Row(
+              children: [
+                // Tab 1: Tantangan (Lessons)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _activeTabIndex = 0);
+                    },
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: activeTab == 0 ? activeTabColor : Colors.transparent,
+                        borderRadius: activeTab == 0
+                            ? const BorderRadius.only(
+                                bottomLeft: Radius.circular(28),
+                                bottomRight: Radius.circular(28),
+                              )
+                            : BorderRadius.zero,
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Tantangan',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: _activeTabIndex == 0 ? const Color(0xFF0D1117) : const Color(0xFF8E8E93),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Tantangan',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: activeTab == 0 ? FontWeight.w800 : FontWeight.w600,
+                          color: activeTab == 0 ? textDarkColor : inactiveTextColor,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-              // Tab 2: Peringkat
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _activeTabIndex = 1);
-                  },
-                  child: Container(
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: _activeTabIndex == 1 ? AppColors.accentDark : Colors.white,
-                      borderRadius: BorderRadius.only(
-                        bottomRight: const Radius.circular(36),
-                        bottomLeft: _activeTabIndex == 1 ? const Radius.circular(24) : Radius.zero,
-                        topLeft: _activeTabIndex == 1 ? Radius.zero : const Radius.circular(22),
+                // Tab 2: Peringkat (My Classes / Leaderboard)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _activeTabIndex = 1);
+                    },
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: activeTab == 1 ? activeTabColor : Colors.transparent,
+                        borderRadius: activeTab == 1
+                            ? const BorderRadius.only(
+                                bottomLeft: Radius.circular(28),
+                                bottomRight: Radius.circular(28),
+                              )
+                            : BorderRadius.zero,
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Peringkat',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: _activeTabIndex == 1 ? const Color(0xFF0D1117) : const Color(0xFF8E8E93),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Peringkat',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: activeTab == 1 ? FontWeight.w800 : FontWeight.w600,
+                          color: activeTab == 1 ? textDarkColor : inactiveTextColor,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
