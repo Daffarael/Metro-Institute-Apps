@@ -22,6 +22,8 @@ class MetroLeaderboardView extends StatelessWidget {
   final Widget? tabHeader;
   final VoidCallback? onBack;
   final bool? showTopAppBar;
+  final bool isEmbedded;
+  final String? searchQuery;
 
   const MetroLeaderboardView({
     super.key,
@@ -31,6 +33,8 @@ class MetroLeaderboardView extends StatelessWidget {
     this.tabHeader,
     this.onBack,
     this.showTopAppBar,
+    this.isEmbedded = false,
+    this.searchQuery,
   });
 
   // Default sample data mirroring the reference design if backend list is empty or minimal
@@ -90,6 +94,109 @@ class MetroLeaderboardView extends StatelessWidget {
     final topThree = displayList.take(3).toList();
     final remaining = displayList.length > 3 ? displayList.sublist(3) : <Map<String, dynamic>>[];
 
+    final mainColumn = Column(
+      children: [
+        // ── TOP SECTION: WARM YELLOW WITH ORGANIC WAVES ──────────
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Yellow Background with subtle organic wavy curves
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: AppColors.accent, // Kuning Metro (#FAE653)
+              ),
+              child: CustomPaint(
+                painter: const _OrganicWavePainter(),
+                child: SafeArea(
+                  top: !isEmbedded,
+                  bottom: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // 1. App Bar (Menu, Search, Bell, Profile) - Sembunyikan jika di halaman Tantangan/Embedded
+                      if (!isEmbedded && (showTopAppBar ?? (tabHeader == null && onBack != null))) ...[
+                        _buildTopAppBar(context),
+                      ] else ...[
+                        SizedBox(height: isEmbedded ? 22 : 16),
+                      ],
+
+                      // Optional Tab Header (e.g. Tantangan vs Peringkat toggle)
+                      if (!isEmbedded && tabHeader != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: tabHeader!,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // 2. Title: "Leaderboard"
+                      Text(
+                        'Leaderboard',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: isEmbedded ? 25 : 27,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF0F172A), // Dark charcoal
+                          letterSpacing: -0.6,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 3. The Podium Section
+                      _buildPodiumSection(topThree),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // ── BOTTOM SECTION: DEEP EMERALD METRO CONTAINER (LIST) ────
+        Container(
+          width: double.infinity,
+          color: const Color(0xFF08261B), // Deep Emerald Dark Metro
+          padding: EdgeInsets.fromLTRB(20, 10, 20, isEmbedded ? 36 : 120),
+          child: Column(
+            children: [
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  ),
+                )
+              else
+                ...List.generate(remaining.length, (index) {
+                  final rank = index + 4;
+                  final item = remaining[index];
+                  return _buildLeaderboardListItem(rank, item);
+                }),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (isEmbedded) {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(16, 4, 16, 40),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 18,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: mainColumn,
+      );
+    }
+
     return RefreshIndicator(
       color: const Color(0xFF0F172A),
       backgroundColor: AppColors.accent,
@@ -97,89 +204,7 @@ class MetroLeaderboardView extends StatelessWidget {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
-        child: Column(
-          children: [
-            // ── TOP SECTION: WARM YELLOW WITH ORGANIC WAVES ──────────
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Yellow Background with subtle organic wavy curves
-                Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent, // Kuning Metro (#FAE653)
-                  ),
-                  child: CustomPaint(
-                    painter: const _OrganicWavePainter(),
-                    child: SafeArea(
-                      bottom: false,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // 1. App Bar (Menu, Search, Bell, Profile) - Sembunyikan jika di halaman Tantangan
-                          if (showTopAppBar ?? (tabHeader == null && onBack != null)) ...[
-                            _buildTopAppBar(context),
-                          ] else ...[
-                            const SizedBox(height: 16),
-                          ],
-
-                          // Optional Tab Header (e.g. Tantangan vs Peringkat toggle)
-                          if (tabHeader != null) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: tabHeader!,
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          // 2. Title: "Leaderboard"
-                          Text(
-                            'Leaderboard',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 27,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF0F172A), // Dark charcoal
-                              letterSpacing: -0.6,
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // 3. The Podium Section
-                          _buildPodiumSection(topThree),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // ── BOTTOM SECTION: DEEP EMERALD METRO CONTAINER (LIST) ────
-            Container(
-              width: double.infinity,
-              color: const Color(0xFF08261B), // Deep Emerald Dark Metro
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
-              child: Column(
-                children: [
-                  if (isLoading)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: Center(
-                        child: CircularProgressIndicator(color: AppColors.accent),
-                      ),
-                    )
-                  else
-                    ...List.generate(remaining.length, (index) {
-                      final rank = index + 4;
-                      final item = remaining[index];
-                      return _buildLeaderboardListItem(rank, item);
-                    }),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: mainColumn,
       ),
     );
   }
@@ -296,53 +321,63 @@ class MetroLeaderboardView extends StatelessWidget {
     final first = topThree[0];
     final third = topThree.length > 2 ? topThree[2] : (topThree.length > 1 ? topThree[1] : topThree[0]);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // ── PODIUM #2 (LEFT) ──
-        _buildPodiumPillar(
-          rank: 2,
-          percentage: second['percentage']?.toString() ?? '96 %',
-          name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Alice\nKoller',
-          avatarAsset: second['avatarAsset']?.toString(),
-          photoUrl: second['photoUrl']?.toString(),
-          isLogo: second['isLogo'] == true,
-          pillarHeight: 148,
-          pillarWidth: 104,
-          topRadius: 26,
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = constraints.maxWidth;
+        final spacing = (maxW * 0.02).clamp(4.0, 8.0);
+        final available = maxW - (spacing * 2) - 16;
+        final sideWidth = (available * 0.315).clamp(84.0, 104.0);
+        final centerWidth = (available * 0.37).clamp(94.0, 114.0);
 
-        const SizedBox(width: 8),
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // ── PODIUM #2 (LEFT) ──
+            _buildPodiumPillar(
+              rank: 2,
+              percentage: second['percentage']?.toString() ?? '96 %',
+              name: second['name']?.toString() ?? second['displayName']?.toString() ?? 'Alice\nKoller',
+              avatarAsset: second['avatarAsset']?.toString(),
+              photoUrl: second['photoUrl']?.toString(),
+              isLogo: second['isLogo'] == true,
+              pillarHeight: 148,
+              pillarWidth: sideWidth,
+              topRadius: 26,
+            ),
 
-        // ── PODIUM #1 (CENTER - TALLEST) ──
-        _buildPodiumPillar(
-          rank: 1,
-          percentage: first['percentage']?.toString() ?? '100 %',
-          name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Nikitin\nBogdan',
-          avatarAsset: first['avatarAsset']?.toString(),
-          photoUrl: first['photoUrl']?.toString(),
-          isLogo: first['isLogo'] == true,
-          pillarHeight: 184,
-          pillarWidth: 114,
-          topRadius: 30,
-        ),
+            SizedBox(width: spacing),
 
-        const SizedBox(width: 8),
+            // ── PODIUM #1 (CENTER - TALLEST) ──
+            _buildPodiumPillar(
+              rank: 1,
+              percentage: first['percentage']?.toString() ?? '100 %',
+              name: first['name']?.toString() ?? first['displayName']?.toString() ?? 'Nikitin\nBogdan',
+              avatarAsset: first['avatarAsset']?.toString(),
+              photoUrl: first['photoUrl']?.toString(),
+              isLogo: first['isLogo'] == true,
+              pillarHeight: 184,
+              pillarWidth: centerWidth,
+              topRadius: 30,
+            ),
 
-        // ── PODIUM #3 (RIGHT) ──
-        _buildPodiumPillar(
-          rank: 3,
-          percentage: third['percentage']?.toString() ?? '88 %',
-          name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Peter\nDin',
-          avatarAsset: third['avatarAsset']?.toString(),
-          photoUrl: third['photoUrl']?.toString(),
-          isLogo: third['isLogo'] == true,
-          pillarHeight: 128,
-          pillarWidth: 104,
-          topRadius: 26,
-        ),
-      ],
+            SizedBox(width: spacing),
+
+            // ── PODIUM #3 (RIGHT) ──
+            _buildPodiumPillar(
+              rank: 3,
+              percentage: third['percentage']?.toString() ?? '88 %',
+              name: third['name']?.toString() ?? third['displayName']?.toString() ?? 'Peter\nDin',
+              avatarAsset: third['avatarAsset']?.toString(),
+              photoUrl: third['photoUrl']?.toString(),
+              isLogo: third['isLogo'] == true,
+              pillarHeight: 128,
+              pillarWidth: sideWidth,
+              topRadius: 26,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -651,6 +686,15 @@ class MetroLeaderboardView extends StatelessWidget {
       for (int i = result.length; i < _sampleEntries.length; i++) {
         result.add(_sampleEntries[i]);
       }
+    }
+
+    if (searchQuery != null && searchQuery!.trim().isNotEmpty) {
+      final q = searchQuery!.trim().toLowerCase();
+      final filtered = result.where((e) {
+        final name = (e['displayName'] ?? e['name'] ?? '').toString().toLowerCase();
+        return name.contains(q);
+      }).toList();
+      return filtered;
     }
 
     return result;

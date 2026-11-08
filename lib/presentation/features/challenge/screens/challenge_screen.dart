@@ -332,23 +332,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ── TAB 2: PERINGKAT (Leaderboard View — Direproduksi Persis Sesuai Desain) ──
-    if (_activeTabIndex == 1) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF08261B), // Deep Emerald Dark Metro
-        body: MetroLeaderboardView(
-          entries: _leaderboard,
-          isLoading: _isLoadingLeaderboard,
-          onRefresh: () async {
-            await _loadLeaderboard();
-          },
-          tabHeader: _buildPeringkatTabHeader(),
-          showTopAppBar: false,
-        ),
-      );
-    }
-
-    // ── TAB 1: TANTANGAN (Lessons View) ──
     return Scaffold(
       backgroundColor: Colors.white, // Latar belakang putih bersih
       body: SafeArea(
@@ -369,80 +352,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                 // ── 1. SIGNATURE KUNING METRO HEADER CARD (WITH TABS) ─────
                 _buildHeaderCard(),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // ── 2. TAB CONTENT: TANTANGAN ────────────────────────────
-                _buildTantanganTabContent(),
+                // ── 2. TAB CONTENT: TANTANGAN vs PERINGKAT ───────────────
+                if (_activeTabIndex == 0)
+                  _buildTantanganTabContent()
+                else
+                  MetroLeaderboardView(
+                    entries: _leaderboard,
+                    isLoading: _isLoadingLeaderboard,
+                    isEmbedded: true,
+                    searchQuery: _searchQuery,
+                  ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  /// Tab Pill Header saat tab Peringkat aktif (memungkinkan toggle kembali ke Tantangan)
-  Widget _buildPeringkatTabHeader() {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.38),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.55), width: 1.2),
-      ),
-      child: Row(
-        children: [
-          // Tantangan Tab (Inactive)
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() => _activeTabIndex = 0);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Tantangan',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0D1117).withValues(alpha: 0.75),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Peringkat Tab (Active)
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF0D1117), // Deep dark / black
-                borderRadius: BorderRadius.circular(999),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x20000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Peringkat',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -503,7 +428,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        setState(() => _activeTabIndex = 0);
+                        setState(() {
+                          _activeTabIndex = 0;
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
                       },
                       child: Container(
                         height: 82,
@@ -537,7 +466,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        setState(() => _activeTabIndex = 1);
+                        setState(() {
+                          _activeTabIndex = 1;
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                        if (_leaderboard.isEmpty) {
+                          _loadLeaderboard();
+                        }
                       },
                       child: Container(
                         height: 82,
@@ -642,7 +578,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 22),
                     child: Text(
-                      'Tantangan apa yang\ningin kamu taklukkan?',
+                      activeTab == 0
+                          ? 'Tantangan apa yang\ningin kamu taklukkan?'
+                          : 'Siapa yang memimpin\nperingkat saat ini?',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -700,7 +638,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                     decoration: InputDecoration(
                                       isDense: true,
                                       border: InputBorder.none,
-                                      hintText: 'Cari tantangan...',
+                                      hintText: activeTab == 0 ? 'Cari tantangan...' : 'Cari mentee...',
                                       hintStyle: GoogleFonts.plusJakartaSans(
                                         color: const Color(0xFF9CA3AF),
                                         fontSize: 14,
