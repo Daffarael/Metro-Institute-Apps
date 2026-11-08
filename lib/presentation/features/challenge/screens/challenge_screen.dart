@@ -354,38 +354,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
                 const SizedBox(height: 16),
 
-                // ── 2. TAB CONTENT: TANTANGAN vs PERINGKAT (Smooth Transition) ──
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.04, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: _activeTabIndex == 0
-                      ? KeyedSubtree(
-                          key: const ValueKey('tab_tantangan'),
-                          child: _buildTantanganTabContent(),
-                        )
-                      : KeyedSubtree(
-                          key: const ValueKey('tab_peringkat'),
-                          child: MetroLeaderboardView(
-                            entries: _leaderboard,
-                            isLoading: _isLoadingLeaderboard,
-                            isEmbedded: true,
-                            searchQuery: _searchQuery,
-                            onRefresh: () => _loadLeaderboard(forceRefresh: true),
-                          ),
-                        ),
+                // ── 2. TAB CONTENT: TANTANGAN vs PERINGKAT (Smooth Crossfade & Morph) ──
+                AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 250),
+                  firstCurve: Curves.easeInOut,
+                  secondCurve: Curves.easeInOut,
+                  sizeCurve: Curves.easeInOutCubic,
+                  crossFadeState: _activeTabIndex == 0
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  firstChild: _buildTantanganTabContent(),
+                  secondChild: MetroLeaderboardView(
+                    entries: _leaderboard,
+                    isLoading: _isLoadingLeaderboard,
+                    isEmbedded: true,
+                    searchQuery: _searchQuery,
+                    onRefresh: () => _loadLeaderboard(forceRefresh: true),
+                  ),
                 ),
               ],
             ),
@@ -447,6 +432,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
+                        if (_activeTabIndex == 0) return;
                         HapticFeedback.selectionClick();
                         setState(() {
                           _activeTabIndex = 0;
@@ -487,13 +473,16 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
+                        if (_activeTabIndex == 1) return;
                         HapticFeedback.selectionClick();
                         setState(() {
                           _activeTabIndex = 1;
                           _searchQuery = '';
                           _searchController.clear();
                         });
-                        _loadLeaderboard(forceRefresh: true);
+                        if (_leaderboard.isEmpty) {
+                          _loadLeaderboard();
+                        }
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 260),
@@ -668,7 +657,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                     ),
                                     decoration: InputDecoration(
                                       isDense: true,
+                                      filled: false,
                                       border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      errorBorder: InputBorder.none,
+                                      focusedErrorBorder: InputBorder.none,
+                                      contentPadding: EdgeInsets.zero,
                                       hintText: activeTab == 0 ? 'Cari tantangan...' : 'Cari mentee...',
                                       hintStyle: GoogleFonts.plusJakartaSans(
                                         color: const Color(0xFF9CA3AF),
