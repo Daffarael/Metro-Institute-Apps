@@ -379,6 +379,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
+      width: double.infinity,
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.90,
       ),
@@ -388,19 +389,14 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── 1. MODAL HEADER (1:1 with Web Mentee CheckoutModal) ──────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-                ),
-              ),
-              child: Row(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── 1. MODAL HEADER (1:1 with Web Mentee CheckoutModal) ──────
+              Row(
                 children: [
                   Expanded(
                     child: Column(
@@ -448,127 +444,38 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                   ),
                 ],
               ),
-            ),
 
-            // ── 2. SCROLLABLE BODY ─────────────────────────────────────────
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(20, 18, 20, 16 + bottomInset),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Product Info Card
-                    _buildProductCard(),
+              const SizedBox(height: 14),
+              const Divider(color: Color(0xFFE2E8F0), height: 1),
+              const SizedBox(height: 16),
 
-                    const SizedBox(height: 18),
+              // ── 2. PRODUCT INFO CARD ─────────────────────────────────────
+              _buildProductCard(),
 
-                    // Voucher Section
-                    _buildVoucherSection(),
+              const SizedBox(height: 16),
 
-                    const SizedBox(height: 18),
+              // ── 3. VOUCHER SECTION ───────────────────────────────────────
+              _buildVoucherSection(),
 
-                    // Cost Summary Box
-                    _buildCostSummaryBox(),
+              const SizedBox(height: 16),
 
-                    // Error Banner
-                    if (_errorMessage != null) ...[
-                      const SizedBox(height: 14),
-                      _buildErrorBanner(),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+              // ── 4. COST SUMMARY BOX ──────────────────────────────────────
+              _buildCostSummaryBox(),
 
-            // ── 3. MODAL FOOTER ──────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Batal Button
-                  OutlinedButton(
-                    onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    ),
-                    child: Text(
-                      'Batal',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF334155),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
+              // Error Banner
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 14),
+                _buildErrorBanner(),
+              ],
 
-                  // Lanjut ke Pembayaran / Daftar Gratis Sekarang Button
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleInitiatePayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF018556),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                        shadowColor: const Color(0xFF018556).withValues(alpha: 0.25),
-                      ),
-                      child: _isLoading
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Memproses...',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  _isFree ? 'Daftar Gratis Sekarang' : 'Lanjut ke Pembayaran',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward_rounded, size: 16),
-                              ],
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              const Divider(color: Color(0xFFE2E8F0), height: 1),
+              const SizedBox(height: 16),
+
+              // ── 5. MODAL FOOTER BUTTONS ──────────────────────────────────
+              _buildFooterButtons(),
+            ],
+          ),
         ),
       ),
     );
@@ -691,7 +598,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                   child: TextField(
                     controller: _voucherController,
                     textCapitalization: TextCapitalization.characters,
-                    style: GoogleFonts.jetBrainsMono(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.5,
@@ -699,7 +606,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     ),
                     decoration: InputDecoration(
                       hintText: 'CONTOH: METROPROMO',
-                      hintStyle: GoogleFonts.jetBrainsMono(
+                      hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF94A3B8),
@@ -802,7 +709,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                 const SizedBox(width: 8),
                 Text(
                   _appliedVoucher!['code']?.toString() ?? '',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF065F46),
@@ -968,6 +875,88 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           ),
         ],
       ),
+    );
+  }
+
+  // ── FOOTER BUTTONS ───────────────────────────────────────────────────────────
+  Widget _buildFooterButtons() {
+    return Row(
+      children: [
+        // Batal Button
+        OutlinedButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          ),
+          child: Text(
+            'Batal',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF334155),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Lanjut ke Pembayaran / Daftar Gratis Sekarang Button
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _handleInitiatePayment,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF018556),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              shadowColor: const Color(0xFF018556).withValues(alpha: 0.25),
+            ),
+            child: _isLoading
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Memproses...',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isFree ? 'Daftar Gratis Sekarang' : 'Lanjut ke Pembayaran',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }
