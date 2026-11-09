@@ -153,7 +153,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                   ),
                                 ),
                                 Positioned(
-                                  left: (160 * progressFraction) - 6,
+                                  left: ((160.0 - 12.0) * progressFraction).clamp(0.0, 160.0 - 12.0),
                                   child: Container(
                                     width: 12,
                                     height: 12,

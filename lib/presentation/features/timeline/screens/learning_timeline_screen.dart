@@ -477,7 +477,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                               ),
                             ),
                             Positioned(
-                              left: (175 * progressFraction) - 7,
+                              left: ((175.0 - 14.0) * progressFraction).clamp(0.0, 175.0 - 14.0),
                               child: Container(
                                 width: 14,
                                 height: 14,
@@ -849,12 +849,15 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
                 const SizedBox(height: 18),
 
-                // Bottom Tags & Join Button Row
-                Row(
+                // Bottom Tags & Join Button (Responsive Wrap anti-overflow)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     // Duration Tag
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                       decoration: BoxDecoration(
                         color: theme['tagBg']!.withValues(alpha: 0.45),
                         borderRadius: BorderRadius.circular(999),
@@ -866,26 +869,24 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           Text(
                             durationFormatted,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF1E242B),
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 4),
                           const Icon(
                             Icons.access_time_rounded,
-                            size: 14,
+                            size: 13,
                             color: Color(0xFF1E242B),
                           ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(width: 8),
-
                     // Category Tag
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                       decoration: BoxDecoration(
                         color: theme['tagBg']!.withValues(alpha: 0.45),
                         borderRadius: BorderRadius.circular(999),
@@ -897,7 +898,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           Text(
                             category,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF1E242B),
                             ),
@@ -905,31 +906,36 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           const SizedBox(width: 4),
                           const Icon(
                             Icons.bolt_rounded,
-                            size: 15,
+                            size: 14,
                             color: Color(0xFF1E242B),
                           ),
                         ],
                       ),
                     ),
 
-                    const Spacer(),
-
                     // Tombol Gabung Live
                     if (liveUrl.isNotEmpty)
                       GestureDetector(
                         onTap: () => _openLiveUrl(liveUrl),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6.5),
                           decoration: BoxDecoration(
                             color: const Color(0xFF1E242B),
                             borderRadius: BorderRadius.circular(999),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x18000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
                                 Icons.videocam_rounded,
-                                size: 15,
+                                size: 14,
                                 color: Color(0xFFFAE653),
                               ),
                               const SizedBox(width: 4),
