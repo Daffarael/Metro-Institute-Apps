@@ -1,60 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../data/datasources/remote/user_remote_datasource.dart';
-import '../../../../data/repositories/auth_repository.dart';
-
-// ── OFFICIAL REAL VECTOR LOGOS (BCA, MANDIRI, BRI, BNI, VISA, GPN) ───────────
-const String _svgBca = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" width="110" height="32">
-  <g transform="translate(0, 1)">
-    <path d="M15 0 L30 15 L15 30 L0 15 Z" fill="#005EAA"/>
-    <path d="M15 4.5 L25.5 15 L15 25.5 L4.5 15 Z" fill="#FFFFFF"/>
-    <path d="M15 9 L21 15 L15 21 L9 15 Z" fill="#005EAA"/>
-    <path d="M15 13 L17 15 L15 17 L13 15 Z" fill="#FFFFFF"/>
-  </g>
-  <text x="38" y="24" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="1.5">BCA</text>
-</svg>''';
-
-const String _svgMandiri = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 36" width="130" height="36">
-  <path d="M82 4 C94 -1 112 1 126 9 C114 6 100 6 88 11 Z" fill="#F59E0B"/>
-  <path d="M88 9 C102 3 120 7 130 16 C116 11 102 11 92 15 Z" fill="#FBBF24"/>
-  <text x="2" y="28" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="-0.5">mandiri</text>
-</svg>''';
-
-const String _svgBri = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" width="110" height="32">
-  <rect x="0" y="2" width="28" height="28" rx="7" fill="#FFFFFF"/>
-  <path d="M6 8 C14 8 20 12 22 17 C18 15 12 13 6 15 Z" fill="#00529C"/>
-  <path d="M6 18 C16 16 22 20 25 25 C19 23 13 22 6 24 Z" fill="#F59E0B"/>
-  <text x="36" y="24" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="1">BRI</text>
-</svg>''';
-
-const String _svgBni = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 115 32" width="115" height="32">
-  <text x="0" y="24" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="1.5">BNI</text>
-  <g transform="translate(58, 2)">
-    <rect width="42" height="28" rx="6" fill="#F15A24"/>
-    <text x="21" y="20" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" letter-spacing="-0.5">46</text>
-  </g>
-</svg>''';
-
-const String _svgVisaWhite = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32" width="100" height="32">
-  <path fill="#FFFFFF" d="M38.6 30.4l6.3-29.8h10.1l-6.3 29.8H38.6zm35.2-28.9c-2-0.8-5.2-1.6-9.1-1.6-10.1 0-17.2 5.3-17.3 13-.1 5.7 5.1 8.9 9 10.8 4 1.9 5.3 3.2 5.3 4.9 0 2.6-3.2 3.8-6.1 3.8-4.1 0-6.3-0.6-9.6-2.1l-1.3-0.6-1.4 9.1c2.4 1.1 7 2.1 11.6 2.2 11 0 18.1-5.4 18.2-13.8.1-4.6-2.7-8.1-8.8-11-3.6-1.9-5.9-3.1-5.9-5.1 0-1.7 1.9-3.5 6.1-3.5 3.4 0 5.9 0.7 7.8 1.5l0.9 0.4 1.7-8.1zm24.2 19.1c0.8-2.3 4.1-11.3 4.1-11.3-.1 0.1 0.8-2.3 1.4-3.9l0.7 3.5c1.2 5.8 2.9 14.7 2.9 14.7l-9.1-3zm13.6-20h-7.8c-2.4 0-4.2 0.7-5.3 3.3L83.5 30.4h10.6s1.7-4.8 2.1-5.9h13c0.3 1.4 1.2 5.9 1.2 5.9h9.4L111.6 0.6zM30.6 0.6L20.8 21.0l-1-5.4C18 10.3 12.3 3.5 5.9 0.2l8.9 31.2h10.7l15.9-29.8H30.6z"/>
-  <path fill="#F7B600" d="M14.1 0.6H0.2L0 2c10.8 2.8 18 9.5 21 17.5l-3-15.4c-0.5-2.2-2.1-3.5-3.9-3.5z"/>
-</svg>''';
-
-const String _svgVisaBlue = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32" width="100" height="32">
-  <path fill="#1A1F71" d="M38.6 30.4l6.3-29.8h10.1l-6.3 29.8H38.6zm35.2-28.9c-2-0.8-5.2-1.6-9.1-1.6-10.1 0-17.2 5.3-17.3 13-.1 5.7 5.1 8.9 9 10.8 4 1.9 5.3 3.2 5.3 4.9 0 2.6-3.2 3.8-6.1 3.8-4.1 0-6.3-0.6-9.6-2.1l-1.3-0.6-1.4 9.1c2.4 1.1 7 2.1 11.6 2.2 11 0 18.1-5.4 18.2-13.8.1-4.6-2.7-8.1-8.8-11-3.6-1.9-5.9-3.1-5.9-5.1 0-1.7 1.9-3.5 6.1-3.5 3.4 0 5.9 0.7 7.8 1.5l0.9 0.4 1.7-8.1zm24.2 19.1c0.8-2.3 4.1-11.3 4.1-11.3-.1 0.1 0.8-2.3 1.4-3.9l0.7 3.5c1.2 5.8 2.9 14.7 2.9 14.7l-9.1-3zm13.6-20h-7.8c-2.4 0-4.2 0.7-5.3 3.3L83.5 30.4h10.6s1.7-4.8 2.1-5.9h13c0.3 1.4 1.2 5.9 1.2 5.9h9.4L111.6 0.6zM30.6 0.6L20.8 21.0l-1-5.4C18 10.3 12.3 3.5 5.9 0.2l8.9 31.2h10.7l15.9-29.8H30.6z"/>
-  <path fill="#F7B600" d="M14.1 0.6H0.2L0 2c10.8 2.8 18 9.5 21 17.5l-3-15.4c-0.5-2.2-2.1-3.5-3.9-3.5z"/>
-</svg>''';
-
-const String _svgGpn = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 40" width="68" height="40">
-  <rect width="68" height="40" rx="9" fill="#DC2626"/>
-  <path d="M12 28 C7 23 11 12 22 9 C18 14 19 20 24 23 C19 24 15 26 12 28 Z" fill="#FFFFFF"/>
-  <path d="M22 10 C26 6 34 7 38 13 C33 12 28 14 27 18 C26 14 24 11 22 10 Z" fill="#FEE2E2" opacity="0.9"/>
-  <text x="39" y="27" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" letter-spacing="0.5">GPN</text>
-</svg>''';
 
 class CustomPaymentScreen extends StatefulWidget {
   final String orderId;
@@ -94,7 +43,6 @@ enum PaymentTab { card, va }
 
 class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   final UserRemoteDataSource _userDataSource = sl<UserRemoteDataSource>();
-  final AuthRepository _authRepository = sl<AuthRepository>();
 
   PaymentTab _selectedTab = PaymentTab.card;
   bool _isLoading = false;
@@ -366,19 +314,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         _midtransPollTimer?.cancel();
         if (!mounted) return;
         Navigator.pop(context, true);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadUserName() async {
-    try {
-      final user = await _authRepository.getSavedUser();
-      if (user != null && user.name.trim().isNotEmpty) {
-        if (mounted) {
-          setState(() {
-            _nameController.text = user.name.trim();
-          });
-        }
       }
     } catch (_) {}
   }
@@ -1504,7 +1439,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   }
 
   // ── LOGO BADGE HELPER UNTUK 10 BANK VIRTUAL ACCOUNT ─────────────────────────
-  Widget _buildVaBankLogoBadge(Map<String, dynamic> bank, {double size = 26}) {
+  Widget _buildVaBankLogoBadge(Map<String, dynamic> bank) {
     final id = bank['id'] as String;
     switch (id) {
       case 'bca':
@@ -2498,30 +2433,6 @@ class _BatikKawungPatternPainter extends CustomPainter {
         );
       }
     }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ── DECORATIVE CARD WAVE PAINTER ─────────────────────────────────────────────
-class _CardWavePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.28)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-
-    final path = Path();
-    path.moveTo(size.width * 0.45, size.height);
-    path.quadraticBezierTo(
-      size.width * 0.50,
-      size.height * 0.45,
-      size.width,
-      size.height * 0.35,
-    );
-    canvas.drawPath(path, paint);
   }
 
   @override

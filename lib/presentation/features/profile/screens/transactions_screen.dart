@@ -314,7 +314,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     final status = res['status']?.toString().toUpperCase();
                     if (!mounted) return;
                     if (status == 'SUCCESS' || status == 'SETTLEMENT' || status == 'CAPTURE') {
-                      Navigator.pop(ctx);
+                      if (ctx.mounted) Navigator.pop(ctx);
                       _fetchTransactions();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -353,7 +353,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   try {
                     await _userDataSource.simulateTransaction(orderId.toString());
                     if (!mounted) return;
-                    Navigator.pop(ctx);
+                    if (ctx.mounted) Navigator.pop(ctx);
                     _fetchTransactions();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

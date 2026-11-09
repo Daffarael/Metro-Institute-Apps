@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +12,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/bootcamp_remote_datasource.dart';
 import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/wishlist_remote_datasource.dart';
-import '../widgets/chapter_activity_dropdown.dart';
 import '../widgets/checkout_bottom_sheet.dart';
 import 'video_player_screen.dart';
 
@@ -172,22 +170,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool _isWebEmbed = false;
   bool _isVideoInitialized = false;
   bool _isPlaying = false;
-  double _playbackSpeed = 1.0;
+  static const double _playbackSpeed = 1.0;
 
   // Selected Tab: 0 = Deskripsi (kiri), 1 = Silabus (kanan)
   int _selectedTab = 0;
 
-  // Track expanded chapters
-  final Set<int> _expandedChapters = {0};
-  // Chapter GlobalKeys for auto-scroll and focus
-  final Map<int, GlobalKey> _chapterKeys = {};
-
   // Fullscreen Landscape Controls
   bool _showLandscapeControls = true;
   Timer? _controlsTimer;
-
-  // Playback speeds list
-  static const List<double> _availableSpeeds = [1.0, 1.25, 1.5, 2.0];
 
   @override
   void initState() {
@@ -404,13 +394,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
   }
 
-  void _cyclePlaybackSpeed() {
-    final nextIdx = (_availableSpeeds.indexOf(_playbackSpeed) + 1) % _availableSpeeds.length;
-    final newSpeed = _availableSpeeds[nextIdx];
-    setState(() => _playbackSpeed = newSpeed);
-    _videoController?.setPlaybackSpeed(newSpeed);
-  }
-
   // ── Start Playing directly in player ───────────────────────────────────────
   void _startPlaying() {
     setState(() => _isPlaying = true);
@@ -592,39 +575,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     // yang bisa menyebabkan RenderBox crash / layar gelap kosong
     debugPrint('=== [METRO_CHECKOUT] _promptUnlockCourse -> langsung ke _openCheckout ===');
     _openCheckout(price);
-  }
-
-  Widget _buildLockPerkRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Container(
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE6F4EA),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Icon(
-              icon,
-              color: const Color(0xFF00584B),
-              size: 15,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF334155),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   void _openLearningPlayer([Map<String, dynamic>? session]) {
@@ -1343,86 +1293,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Floating Frosted Glass Control Pill
-  // ───────────────────────────────────────────────────────────────────────────
-    Widget _buildFrostedControlPill(Duration currentPos, Duration totalDur) {
-    final speedLabel = _playbackSpeed == 1.0 ? '1x' : '${_playbackSpeed.toString()}x';
-
-    final maxMs = totalDur.inMilliseconds > 0 ? totalDur.inMilliseconds.toDouble() : 1.0;
-    final currentMs = currentPos.inMilliseconds.clamp(0, totalDur.inMilliseconds).toDouble();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(36),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1),
-      ),
-      child: Row(
-            children: [
-              // 1. Playback Speed Button (e.g. "1x")
-              GestureDetector(
-                onTap: _cyclePlaybackSpeed,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    speedLabel,
-                    style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFF1E1B18),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12.5,
-                    ),
-                  ),
-                ),
-              ),
-
-              // 2. Video Seekbar Slider
-              Expanded(
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    trackHeight: 3.5,
-                    activeTrackColor: Colors.white,
-                    inactiveTrackColor: Colors.white.withValues(alpha: 0.35),
-                    thumbColor: Colors.white,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.5, elevation: 2),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                  ),
-                  child: Slider(
-                    value: currentMs,
-                    min: 0.0,
-                    max: maxMs,
-                    onChanged: (val) {
-                      if (_videoController != null && _videoController!.value.isInitialized) {
-                        _videoController!.seekTo(Duration(milliseconds: val.toInt()));
-                      }
-                    },
-                  ),
-                ),
-              ),
-
-              // 3. Fullscreen / Landscape Button
-              InkWell(
-                onTap: _playAndEnterLandscape,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(7),
-                  child: const Icon(
-                    Icons.crop_free_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
   // SEGMENTED TAB BAR (Deskripsi vs Silabus, Organic Bipartite Capsule)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSegmentedTabBar() {
@@ -2041,87 +1911,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // 3. CHAPTER / LESSONS CAPSULE CARD (ActivityDropdown with smooth animations)
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildChapterCapsule(int index, Map<String, dynamic> chapter, bool isEnrolled, int price) {
-    final chapterKey = _chapterKeys.putIfAbsent(index, () => GlobalKey());
-
-    return Container(
-      key: chapterKey,
-      child: ChapterActivityDropdown(
-        index: index,
-        chapter: chapter,
-        isExpanded: _expandedChapters.contains(index),
-        activeSessionId: _activeSession?['id']?.toString(),
-        onToggle: () {
-          final willExpand = !_expandedChapters.contains(index);
-          setState(() {
-            if (willExpand) {
-              _expandedChapters.add(index);
-            } else {
-              _expandedChapters.remove(index);
-            }
-          });
-
-          if (willExpand) {
-            // Smoothly auto-scroll to focus on the opened lesson & its contents
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Future.delayed(const Duration(milliseconds: 240), () {
-                if (!mounted) return;
-                final currentCtx = chapterKey.currentContext;
-                if (currentCtx != null) {
-                  Scrollable.ensureVisible(
-                    currentCtx,
-                    duration: const Duration(milliseconds: 450),
-                    curve: Curves.easeOutCubic,
-                    alignment: 0.05,
-                  );
-                }
-              });
-            });
-          }
-
-          // Select first session if none selected yet
-          final sessions = (chapter['sessions'] as List?) ?? [];
-          if (sessions.isNotEmpty && _activeSession?['id'] == null) {
-            final first = sessions.first as Map<String, dynamic>;
-            if (isEnrolled || first['isFreePreview'] == true) {
-              _loadSessionVideo(first, autoPlay: false);
-            }
-          }
-        },
-        onSelectSession: (session) {
-          if (isEnrolled || session['isFreePreview'] == true) {
-            _openLearningPlayer(session);
-          } else {
-            _promptUnlockCourse(price);
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyLessonsPlaceholder() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEADBCE)),
-      ),
-      child: Center(
-        child: Text(
-          'Silabus sedang dipersiapkan oleh mentor.',
-          style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFF8C827A),
-            fontSize: 13,
           ),
         ),
       ),

@@ -37,56 +37,6 @@ class MetroLeaderboardView extends StatelessWidget {
     this.searchQuery,
   });
 
-  // Default sample data mirroring the reference design if backend list is empty or minimal
-  static final List<Map<String, dynamic>> _sampleEntries = [
-    {
-      'name': 'Nikitin\nBogdan',
-      'displayName': 'Nikitin Bogdan',
-      'percentage': '100 %',
-      'xp': 2450,
-      'isLogo': true,
-    },
-    {
-      'name': 'Alice\nKoller',
-      'displayName': 'Alice Koller',
-      'percentage': '96 %',
-      'xp': 2350,
-      'avatarAsset': 'assets/images/challenge_monica_avatar.png',
-    },
-    {
-      'name': 'Peter\nDin',
-      'displayName': 'Peter Din',
-      'percentage': '88 %',
-      'xp': 2150,
-      'avatarAsset': 'assets/images/challenge_instructor_tommy.png',
-    },
-    {
-      'displayName': 'John Doe',
-      'percentage': '75 %',
-      'xp': 1850,
-    },
-    {
-      'displayName': 'Michael Kopfler',
-      'percentage': '73 %',
-      'xp': 1790,
-    },
-    {
-      'displayName': 'Alice Koller',
-      'percentage': '40 %',
-      'xp': 980,
-    },
-    {
-      'displayName': 'George Limbof',
-      'percentage': '32 %',
-      'xp': 780,
-    },
-    {
-      'displayName': 'John Doe',
-      'percentage': '20 %',
-      'xp': 490,
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     // Process display entries
@@ -614,7 +564,7 @@ class MetroLeaderboardView extends StatelessWidget {
                       fit: BoxFit.cover,
                       width: size - 7,
                       height: size - 7,
-                      errorWidget: (_, __, ___) => _buildFallbackInitial(fallbackName, size),
+                      errorWidget: (context, url, error) => _buildFallbackInitial(fallbackName, size),
                     ),
                   )
                 : (avatarAsset != null && avatarAsset.isNotEmpty)
@@ -625,7 +575,7 @@ class MetroLeaderboardView extends StatelessWidget {
                           fit: BoxFit.cover,
                           width: size - 7,
                           height: size - 7,
-                          errorBuilder: (_, __, ___) => _buildFallbackInitial(fallbackName, size),
+                          errorBuilder: (context, error, stackTrace) => _buildFallbackInitial(fallbackName, size),
                         ),
                       )
                     : _buildFallbackInitial(fallbackName, size),

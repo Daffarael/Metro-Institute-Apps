@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 /// Available animation presets matching Framer Motion TextEffect presets:
@@ -276,7 +275,6 @@ class _TextEffectState extends State<TextEffect> with SingleTickerProviderStateM
         final opacity = curvedT.clamp(0.0, 1.0);
         final y = (1.0 - curvedT) * 4.0;
         final scale = 0.96 + (0.04 * curvedT);
-        final blur = (1.0 - curvedT) * 2.0;
 
         final targetColor = style.color ?? const Color(0xFF063D2A);
         final animatedColor = Color.lerp(

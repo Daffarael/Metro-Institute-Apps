@@ -178,10 +178,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     } catch (_) {}
 
     // 1. Tunggu frame pertama benar-benar selesai di-rasterisasi oleh GPU ke layar HP
-    final rasterizedFuture = WidgetsBinding.instance.waitUntilFirstFrameRasterized;
-    if (rasterizedFuture != null) {
-      await rasterizedFuture;
-    }
+    await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
     if (!mounted) return;
 
     // 2. Jeda sangat singkat (60ms) agar mata pengguna siap

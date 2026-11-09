@@ -408,7 +408,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final activeTab = _activeTabIndex; // 0 = Tantangan, 1 = Peringkat
     const cardBgColor = AppColors.accent;       // Kuning Metro (#FAE653)
     const activeTabColor = AppColors.accent;    // Kuning Metro (#FAE653)
-    const inactiveTabColor = Colors.white;       // Pure white tab background
     const textDarkColor = Color(0xFF111827);     // Deep dark/charcoal text
     const inactiveTextColor = Color(0xFF8E8E93);  // Muted gray for inactive tab
 
@@ -576,7 +575,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                 ? CachedNetworkImage(
                                     imageUrl: _userPhotoUrl!,
                                     fit: BoxFit.cover,
-                                    errorWidget: (_, __, ___) => _buildFallbackUserIcon(),
+                                    errorWidget: (context, url, error) => _buildFallbackUserIcon(),
                                   )
                                 : _buildFallbackUserIcon(),
                           ),

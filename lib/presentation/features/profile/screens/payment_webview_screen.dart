@@ -108,7 +108,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   Future<void> _handleSimulateSuccess() async {
     setState(() => _isSimulating = true);
     try {
-      final res = await _userDs.simulateTransaction(widget.orderId);
+      await _userDs.simulateTransaction(widget.orderId);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

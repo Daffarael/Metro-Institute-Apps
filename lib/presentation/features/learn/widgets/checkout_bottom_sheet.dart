@@ -8,7 +8,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/user_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../profile/screens/custom_payment_screen.dart';
-import '../../profile/screens/payment_webview_screen.dart';
 import 'thermal_receipt_dialog.dart';
 
 class CheckoutBottomSheet extends StatefulWidget {

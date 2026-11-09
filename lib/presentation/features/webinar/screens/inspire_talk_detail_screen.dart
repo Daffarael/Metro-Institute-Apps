@@ -24,7 +24,6 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
   final _webinarDs = sl<WebinarRemoteDataSource>();
 
   Map<String, dynamic>? _detail;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -36,16 +35,13 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
     final id = widget.item['id']?.toString() ?? '';
     if (id.isEmpty) return;
 
-    setState(() => _isLoading = true);
     try {
       final res = await _webinarDs.getWebinarDetail(id);
       if (!mounted) return;
       setState(() {
         _detail = res;
-        _isLoading = false;
       });
     } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 

@@ -1,18 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/bootcamp_remote_datasource.dart';
 import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
 import '../../../../data/datasources/remote/wishlist_remote_datasource.dart';
 import 'course_detail_screen.dart';
 import '../widgets/clean_combobox.dart';
-import '../widgets/checkout_bottom_sheet.dart';
 import '../../webinar/screens/inspire_talk_detail_screen.dart';
 
 /// LearnScreen — Ruang Belajar Discovery page:
@@ -365,88 +362,6 @@ class _LearnScreenState extends State<LearnScreen> {
     } else {
       _openCourseDetail(item);
     }
-  }
-
-  void _openWebinarAttendanceDialog(String webinarId, String webinarTitle) {
-    final feedbackController = TextEditingController();
-    bool isSubmitting = false;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(
-            'Presensi Kehadiran',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                webinarTitle,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Tuliskan feedback singkat atau kesimpulan materi yang Anda dapatkan:',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: feedbackController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Contoh: Materinya sangat relevan dan aplikatif...',
-                  hintStyle: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
-            ),
-            ElevatedButton(
-              onPressed: isSubmitting
-                  ? null
-                  : () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      setModalState(() => isSubmitting = true);
-                      try {
-                        await _webinarDs.attendWebinar(webinarId, feedback: feedbackController.text.trim());
-                        if (ctx.mounted) Navigator.pop(ctx);
-                        messenger.showSnackBar(
-                          const SnackBar(content: Text('Presensi berhasil dicatat. Terima kasih!'), backgroundColor: AppColors.primary),
-                        );
-                        _loadWebinars();
-                        _loadMyClasses();
-                      } catch (e) {
-                        setModalState(() => isSubmitting = false);
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: AppColors.error),
-                        );
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: isSubmitting
-                  ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Kirim Presensi'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   // ── DYNAMIC PRICE & RATING GETTERS (Zero hardcoded bounds & 100% crash-proof) ─
