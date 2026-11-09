@@ -1,4 +1,3 @@
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -443,13 +442,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     }
   }
 
-  Future<void> _launchMidtransSimulator() async {
-    final Uri uri = Uri.parse('https://simulator.sandbox.midtrans.com/');
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {}
-  }
-
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -629,7 +621,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     setState(() => _isLoading = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Menunggu konfirmasi pembayaran dari bank/simulator...'),
+        content: const Text('Menunggu konfirmasi pembayaran dari bank...'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -1550,7 +1542,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Tersedia 10 Bank resmi sesuai Midtrans Payment Simulator',
+                'Tersedia 10 Bank transfer dengan verifikasi otomatis 24 jam',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   color: const Color(0xFF64748B),
@@ -1881,85 +1873,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         ),
         const SizedBox(height: 16),
 
-        // ── BANNER KHUSUS MIDTRANS PAYMENT SIMULATOR ───────────────────────────
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFBFDBFE)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2563EB),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.science_rounded, color: Colors.white, size: 16),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Uji di Midtrans Simulator',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF1E3A8A),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Salin nomor VA di atas, buka simulator.sandbox.midtrans.com di browser, pilih menu ${activeBank['shortName']}, lalu klik Inquire & Pay.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  color: const Color(0xFF1E40AF),
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _launchMidtransSimulator,
-                      icon: const Icon(Icons.open_in_browser_rounded, size: 16),
-                      label: const Text('Buka Simulator'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF1D4ED8),
-                        side: const BorderSide(color: Color(0xFF3B82F6)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _finalizeSuccessfulPayment(activeOrderId),
-                      icon: const Icon(Icons.flash_on_rounded, size: 16),
-                      label: const Text('Bayar Cepat'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
 
         // ── PETUNJUK CARA TRANSFER ACCORDION ─────────────────────────────────
         Container(
