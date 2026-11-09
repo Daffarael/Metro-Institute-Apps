@@ -7,6 +7,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/user_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
+import '../../profile/screens/custom_payment_screen.dart';
 import '../../profile/screens/payment_webview_screen.dart';
 import 'thermal_receipt_dialog.dart';
 
@@ -233,13 +234,16 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         throw Exception('Gagal mendapatkan halaman pembayaran dari payment gateway.');
       }
 
-      // Open Payment WebView as a full root screen
+      // Buka layar pembayaran custom (tampilan 1:1 sesuai mockup native, tanpa WebView Midtrans)
       final result = await Navigator.of(context, rootNavigator: true).push<bool?>(
         MaterialPageRoute(
-          builder: (_) => PaymentWebViewScreen(
+          builder: (_) => CustomPaymentScreen(
             orderId: orderId,
-            paymentUrl: redirectUrl,
             amount: _finalAmount,
+            productType: widget.productType,
+            productId: widget.productId,
+            title: widget.title,
+            voucherCode: _appliedVoucher?['code']?.toString(),
           ),
         ),
       );
