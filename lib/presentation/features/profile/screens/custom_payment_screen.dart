@@ -1948,7 +1948,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       label: const Text('Buka Simulator'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1D4ED8),
-                        side: const Border.all(color: Color(0xFF3B82F6)),
+                        side: const BorderSide(color: Color(0xFF3B82F6)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
