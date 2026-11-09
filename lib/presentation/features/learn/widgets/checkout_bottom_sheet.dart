@@ -45,7 +45,7 @@ class CheckoutBottomSheet extends StatefulWidget {
   }) async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      useRootNavigator: false,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => CheckoutBottomSheet(
@@ -379,6 +379,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
+      width: double.infinity,
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.90,
       ),
@@ -390,6 +391,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -715,7 +717,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    'Hemat ',
+                    'Hemat ${_formatRupiah(_discountAmount)}',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -789,7 +791,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     const Icon(Icons.auto_awesome_rounded, size: 14, color: Color(0xFF018556)),
                     const SizedBox(width: 4),
                     Text(
-                      'Diskon Voucher ()',
+                      'Diskon Voucher (${_appliedVoucher!['code']})',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -799,7 +801,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                   ],
                 ),
                 Text(
-                  '- ',
+                  '- ${_formatRupiah(_discountAmount)}',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

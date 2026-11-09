@@ -1506,18 +1506,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final maxMs = totalDur.inMilliseconds > 0 ? totalDur.inMilliseconds.toDouble() : 1.0;
     final currentMs = currentPos.inMilliseconds.clamp(0, totalDur.inMilliseconds).toDouble();
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(36),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.32),
-            borderRadius: BorderRadius.circular(36),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1),
-          ),
-          child: Row(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1),
+      ),
+      child: Row(
             children: [
               // 1. Playback Speed Button (e.g. "1x")
               GestureDetector(
@@ -2292,18 +2288,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // 4. STICKY BOTTOM BAR (Cream UI Price & CTA)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildStickyBottomBar(String priceStr, int price, bool isEnrolled, List chapters) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAF7F2).withValues(alpha: 0.95),
-            border: const Border(top: BorderSide(color: Color(0xFFEADBCE), width: 1.2)),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+      decoration: const BoxDecoration(
+        color: Color(0xFFFAF7F2),
+        border: Border(top: BorderSide(color: Color(0xFFEADBCE), width: 1.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, -4),
           ),
-          child: SafeArea(
-            top: false,
-            child: Row(
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2365,9 +2365,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
+        );
   }
 
   String _formatDuration(Duration duration) {
