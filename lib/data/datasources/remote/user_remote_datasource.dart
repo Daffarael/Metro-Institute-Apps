@@ -22,6 +22,10 @@ abstract class UserRemoteDataSource {
   });
   Future<Map<String, dynamic>> verifyTransaction(String orderId);
   Future<Map<String, dynamic>> simulateTransaction(String orderId);
+  Future<Map<String, dynamic>> chargeVirtualAccount({
+    required String orderId,
+    required String bank,
+  });
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -181,6 +185,22 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       throw Exception(msg);
     } catch (e) {
       throw Exception('Terjadi kesalahan simulasi: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> chargeVirtualAccount({
+    required String orderId,
+    required String bank,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/transactions/$orderId/charge-va',
+        data: {'bank': bank},
+      );
+      return (response.data['data'] as Map<String, dynamic>?) ?? {};
+    } catch (_) {
+      return {};
     }
   }
 }

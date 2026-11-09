@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,7 +91,7 @@ class CustomPaymentScreen extends StatefulWidget {
   State<CustomPaymentScreen> createState() => _CustomPaymentScreenState();
 }
 
-enum PaymentTab { card, gopay, qris }
+enum PaymentTab { card, va }
 
 class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   final UserRemoteDataSource _userDataSource = sl<UserRemoteDataSource>();
@@ -104,6 +105,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   Timer? _midtransPollTimer;
 
   int _selectedDebitIndex = 0;
+  int _selectedVaBankIndex = 0;
+  String? _liveVaNumber;
+  String? _liveBillKey;
+  String? _liveBillerCode;
+  bool _isLoadingVa = false;
 
   // Form Controllers
   final TextEditingController _cardNumberController = TextEditingController();
@@ -112,8 +118,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   final TextEditingController _expiryController = TextEditingController(text: '07/29');
   final TextEditingController _cvvController = TextEditingController(text: '215');
 
-  // GoPay Controller
-  final TextEditingController _phoneController = TextEditingController(text: '0812 3456 7890');
+
 
   // ── 2 PILIHAN UTAMA: VISA DEBIT & GPN DEBIT ────────────────────────────────
   final List<Map<String, dynamic>> _debitOptions = [
@@ -142,6 +147,167 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       'requiresCvv': false,
       'cardLogoAsset': 'assets/images/logo_gpn_darkmode.png',
       'comboboxLogoAsset': 'assets/images/logo_gpn_official.png',
+    },
+  ];
+
+  // ── 10 BANK VIRTUAL ACCOUNT (SESUAI MIDTRANS PAYMENT SIMULATOR) ───────────
+  final List<Map<String, dynamic>> _vaBanks = [
+    {
+      'id': 'bca',
+      'name': 'BCA Virtual Account',
+      'shortName': 'BCA VA',
+      'code': 'bca',
+      'prefix': '29857',
+      'defaultVa': '29857973062042016730685',
+      'color': const Color(0xFF005EAA),
+      'guide': [
+        'Buka aplikasi BCA Mobile / myBCA / KlikBCA.',
+        'Pilih menu m-Transfer > BCA Virtual Account.',
+        'Masukkan nomor Virtual Account BCA di atas.',
+        'Pastikan nama merchant adalah METRO INSTITUTE dan nominal tagihan sesuai.',
+        'Masukkan PIN m-BCA Anda untuk menyelesaikan pembayaran.',
+      ],
+    },
+    {
+      'id': 'bri',
+      'name': 'BRI Virtual Account (BRIVA)',
+      'shortName': 'BRI VA',
+      'code': 'bri',
+      'prefix': '29857',
+      'defaultVa': '298576297789388543',
+      'color': const Color(0xFF00529C),
+      'guide': [
+        'Buka aplikasi BRImo atau ATM BRI.',
+        'Pilih menu Pembayaran > BRIVA.',
+        'Masukkan nomor BRIVA di atas.',
+        'Konfirmasi tagihan pembayaran ke METRO INSTITUTE.',
+        'Masukkan PIN BRImo Anda untuk otorisasi.',
+      ],
+    },
+    {
+      'id': 'bni',
+      'name': 'BNI Virtual Account',
+      'shortName': 'BNI VA',
+      'code': 'bni',
+      'prefix': '988',
+      'defaultVa': '9882985791219553',
+      'color': const Color(0xFFF15A24),
+      'guide': [
+        'Buka aplikasi BNI Mobile Banking atau ATM BNI.',
+        'Pilih menu Transfer > Virtual Account Billing.',
+        'Input nomor Virtual Account BNI di atas.',
+        'Periksa detail tagihan METRO INSTITUTE.',
+        'Masukkan password transaksi / PIN BNI Anda.',
+      ],
+    },
+    {
+      'id': 'permata',
+      'name': 'Permata Virtual Account',
+      'shortName': 'Permata VA',
+      'code': 'permata',
+      'prefix': '298',
+      'defaultVa': '2980075106060711',
+      'color': const Color(0xFF4A154B),
+      'guide': [
+        'Buka aplikasi PermataMobile X atau ATM Permata.',
+        'Pilih menu Bayar Tagihan > Virtual Account.',
+        'Masukkan nomor Permata VA di atas.',
+        'Konfirmasi rincian tagihan METRO INSTITUTE.',
+        'Masukkan PIN transaksi Anda.',
+      ],
+    },
+    {
+      'id': 'cimb',
+      'name': 'CIMB Niaga Virtual Account',
+      'shortName': 'CIMB VA',
+      'code': 'cimb',
+      'prefix': '985',
+      'defaultVa': '9857288865717735',
+      'color': const Color(0xFF7D0000),
+      'guide': [
+        'Buka aplikasi OCTO Mobile by CIMB Niaga.',
+        'Pilih menu Transfer > Rekening Ponsel / Virtual Account.',
+        'Masukkan nomor Virtual Account CIMB di atas.',
+        'Periksa nominal dan nama merchant METRO INSTITUTE.',
+        'Konfirmasi dengan PIN OCTO Mobile.',
+      ],
+    },
+    {
+      'id': 'mandiri',
+      'name': 'Mandiri Bill Payment',
+      'shortName': 'Mandiri Bill',
+      'code': 'mandiri',
+      'prefix': '70012',
+      'billerCode': '70012',
+      'defaultVa': '664170613866',
+      'color': const Color(0xFF003082),
+      'guide': [
+        'Buka aplikasi Livin\' by Mandiri.',
+        'Pilih menu Bayar > Buat Pembayaran Baru > Multi Payment.',
+        'Pilih Penyedia Jasa: Midtrans (Kode 70012).',
+        'Masukkan No. Pelanggan / Bill Key di atas.',
+        'Konfirmasi tagihan METRO INSTITUTE dan masukkan PIN Livin\'.',
+      ],
+    },
+    {
+      'id': 'danamon',
+      'name': 'Danamon Virtual Account',
+      'shortName': 'Danamon VA',
+      'code': 'danamon',
+      'prefix': '890',
+      'defaultVa': '8902985712398471',
+      'color': const Color(0xFFF37021),
+      'guide': [
+        'Buka aplikasi D-Bank PRO atau ATM Danamon.',
+        'Pilih menu Pembayaran > Virtual Account.',
+        'Masukkan nomor Virtual Account Danamon di atas.',
+        'Pastikan data pembayaran sesuai, lalu konfirmasi dengan mPIN.',
+      ],
+    },
+    {
+      'id': 'bsi',
+      'name': 'Bank Syariah Indonesia Virtual Account',
+      'shortName': 'BSI VA',
+      'code': 'bsi',
+      'prefix': '298',
+      'defaultVa': '29857141907221614',
+      'color': const Color(0xFF00A39D),
+      'guide': [
+        'Buka aplikasi BSI Mobile.',
+        'Pilih menu Bayar > Institusi / Virtual Account.',
+        'Masukkan nomor Virtual Account BSI di atas.',
+        'Konfirmasi tagihan METRO INSTITUTE dan masukkan PIN BSI Mobile.',
+      ],
+    },
+    {
+      'id': 'seabank',
+      'name': 'SeaBank Virtual Account',
+      'shortName': 'SeaBank VA',
+      'code': 'seabank',
+      'prefix': '782',
+      'defaultVa': '7829857102938475',
+      'color': const Color(0xFFFF5722),
+      'guide': [
+        'Buka aplikasi SeaBank.',
+        'Pilih menu Bayar / Tagihan > Virtual Account.',
+        'Masukkan nomor SeaBank VA di atas.',
+        'Konfirmasi rincian pembayaran, lalu masukkan PIN SeaBank.',
+      ],
+    },
+    {
+      'id': 'saqu',
+      'name': 'Bank Saqu Virtual Account',
+      'shortName': 'Saqu VA',
+      'code': 'saqu',
+      'prefix': '918',
+      'defaultVa': '9182985764839201',
+      'color': const Color(0xFF10B981),
+      'guide': [
+        'Buka aplikasi Bank Saqu.',
+        'Pilih menu Transfer / Pembayaran Virtual Account.',
+        'Masukkan nomor Saqu VA di atas.',
+        'Periksa detail tagihan METRO INSTITUTE dan masukkan PIN Saqu.',
+      ],
     },
   ];
 
@@ -223,7 +389,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     _cardTypeController.dispose();
     _expiryController.dispose();
     _cvvController.dispose();
-    _phoneController.dispose();
+
     super.dispose();
   }
 
@@ -237,6 +403,63 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       _expiryController.text = option['expiry'] as String;
       _cvvController.text = option['cvv'] as String;
     });
+  }
+
+  void _selectVaBank(int index) {
+    if (index < 0 || index >= _vaBanks.length) return;
+    setState(() {
+      _selectedVaBankIndex = index;
+      _liveVaNumber = null;
+      _liveBillKey = null;
+      _liveBillerCode = null;
+    });
+    final bank = _vaBanks[index];
+    _fetchLiveVaNumber(bank['code'] as String);
+  }
+
+  Future<void> _fetchLiveVaNumber(String bankCode) async {
+    final activeOrderId = widget.orderId.isNotEmpty
+        ? widget.orderId
+        : 'METRO-${DateTime.now().millisecondsSinceEpoch}';
+
+    setState(() => _isLoadingVa = true);
+    try {
+      final res = await _userDataSource.chargeVirtualAccount(
+        orderId: activeOrderId,
+        bank: bankCode,
+      );
+      if (mounted && res.isNotEmpty) {
+        setState(() {
+          _liveVaNumber = res['vaNumber']?.toString();
+          _liveBillKey = res['billKey']?.toString();
+          _liveBillerCode = res['billerCode']?.toString();
+          _isLoadingVa = false;
+        });
+        return;
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _isLoadingVa = false);
+    }
+  }
+
+  Future<void> _launchMidtransSimulator() async {
+    final Uri uri = Uri.parse('https://simulator.sandbox.midtrans.com/');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
+  void _copyToClipboard(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label berhasil disalin'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 1500),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   String _formatRupiah(int amount) {
@@ -393,11 +616,25 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
     if (_selectedTab == PaymentTab.card) {
       _show3dSecureDialog(activeOrderId);
-    } else if (_selectedTab == PaymentTab.gopay) {
-      _showGopayPinDialog(activeOrderId);
     } else {
-      _showQrisConfirmationDialog(activeOrderId);
+      _handleCheckVaPaymentStatus(activeOrderId);
     }
+  }
+
+  Future<void> _handleCheckVaPaymentStatus(String activeOrderId) async {
+    setState(() => _isLoading = true);
+    await _checkMidtransStatus();
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Menunggu konfirmasi pembayaran dari bank/simulator...'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   // ── 1. 3D SECURE BANK VERIFICATION MODAL ─────────────────────────────────────
@@ -427,45 +664,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── 2. GOPAY PIN MODAL ───────────────────────────────────────────────────────
-  void _showGopayPinDialog(String activeOrderId) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (bottomSheetContext) {
-        return _GopayPinSheet(
-          orderId: activeOrderId,
-          phone: _phoneController.text.trim(),
-          amountText: _formatRupiah(widget.amount),
-          onVerified: () async {
-            Navigator.pop(bottomSheetContext);
-            await _finalizeSuccessfulPayment(activeOrderId);
-          },
-        );
-      },
-    );
-  }
 
-  // ── 3. QRIS CONFIRMATION MODAL ───────────────────────────────────────────────
-  void _showQrisConfirmationDialog(String activeOrderId) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (bottomSheetContext) {
-        return _QrisConfirmationSheet(
-          orderId: activeOrderId,
-          amountText: _formatRupiah(widget.amount),
-          qrString: widget.qrString,
-          onVerified: () async {
-            Navigator.pop(bottomSheetContext);
-            await _finalizeSuccessfulPayment(activeOrderId);
-          },
-        );
-      },
-    );
-  }
 
   Future<void> _finalizeSuccessfulPayment(String activeOrderId) async {
     setState(() => _isLoading = true);
@@ -560,15 +759,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: _buildCardFormFields(activeOption),
                       ),
-                    ] else if (_selectedTab == PaymentTab.gopay) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildGoPayContent(),
-                      ),
                     ] else ...[
+                      // Virtual Account Content (10 Bank Sesuai Midtrans Simulator)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildQrisGpnContent(),
+                        child: _buildVirtualAccountContent(
+                          widget.orderId.isNotEmpty ? widget.orderId : 'METRO-${DateTime.now().millisecondsSinceEpoch}',
+                        ),
                       ),
                     ],
 
@@ -633,7 +830,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           ),
                         )
                       : Text(
-                          'Payment',
+                          _selectedTab == PaymentTab.card ? 'Payment' : 'Cek Status Pembayaran',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16.5,
                             fontWeight: FontWeight.w800,
@@ -650,11 +847,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── 1. PAYMENT METHOD SELECTOR PILLS (DEBIT, GOPAY, QRIS) ──────────────────
+  // ── 1. PAYMENT METHOD SELECTOR PILLS (KARTU DEBIT & VIRTUAL ACCOUNT) ───────
   Widget _buildPaymentSelectorPills() {
     return Row(
       children: [
-        // Tab 1: Card (Debit)
+        // Tab 1: Kartu Debit
         Expanded(
           child: _selectorPill(
             isSelected: _selectedTab == PaymentTab.card,
@@ -662,14 +859,18 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.credit_card_rounded, size: 19, color: Color(0xFF0F172A)),
-                const SizedBox(width: 6),
+                Icon(
+                  Icons.credit_card_rounded,
+                  size: 19,
+                  color: _selectedTab == PaymentTab.card ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  'Debit',
+                  'Kartu Debit',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF0F172A),
+                    color: _selectedTab == PaymentTab.card ? const Color(0xFF0F172A) : const Color(0xFF64748B),
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -677,51 +878,36 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
 
-        // Tab 2: GoPay
+        // Tab 2: Virtual Account
         Expanded(
           child: _selectorPill(
-            isSelected: _selectedTab == PaymentTab.gopay,
-            onTap: () => setState(() => _selectedTab = PaymentTab.gopay),
+            isSelected: _selectedTab == PaymentTab.va,
+            onTap: () {
+              setState(() => _selectedTab = PaymentTab.va);
+              if (_liveVaNumber == null) {
+                _selectVaBank(_selectedVaBankIndex);
+              }
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 18,
-                  height: 18,
-                  decoration: const BoxDecoration(color: Color(0xFF00AED6), shape: BoxShape.circle),
-                  child: const Center(
-                    child: Icon(Icons.account_balance_wallet_rounded, size: 11, color: Colors.white),
-                  ),
+                Icon(
+                  Icons.account_balance_rounded,
+                  size: 19,
+                  color: _selectedTab == PaymentTab.va ? const Color(0xFF0F172A) : const Color(0xFF64748B),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
-                  'gopay',
+                  'Virtual Account',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF00AED6),
-                    letterSpacing: -0.3,
+                    color: _selectedTab == PaymentTab.va ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                    letterSpacing: -0.2,
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-
-        // Tab 3: QRIS / GPN
-        Expanded(
-          child: _selectorPill(
-            isSelected: _selectedTab == PaymentTab.qris,
-            onTap: () => setState(() => _selectedTab = PaymentTab.qris),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.qr_code_2_rounded, size: 19, color: Color(0xFF0F172A)),
-                const SizedBox(width: 5),
-                SvgPicture.string(_svgGpn, height: 18),
               ],
             ),
           ),
@@ -1290,123 +1476,606 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── GOPAY CONTENT ────────────────────────────────────────────────────────────
-  Widget _buildGoPayContent() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  // ── LOGO BADGE HELPER UNTUK 10 BANK VIRTUAL ACCOUNT ─────────────────────────
+  Widget _buildVaBankLogoBadge(Map<String, dynamic> bank, {double size = 26}) {
+    final id = bank['id'] as String;
+    switch (id) {
+      case 'bca':
+        return Image.asset('assets/images/logo_bca_color.png', height: 16, fit: BoxFit.contain);
+      case 'bri':
+        return Image.asset('assets/images/logo_bri_color.png', height: 16, fit: BoxFit.contain);
+      case 'bni':
+        return Image.asset('assets/images/logo_bni_color.png', height: 16, fit: BoxFit.contain);
+      case 'mandiri':
+        return Image.asset('assets/images/logo_mandiri_color.png', height: 16, fit: BoxFit.contain);
+      default:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: (bank['color'] as Color).withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: (bank['color'] as Color).withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            bank['shortName'].toString().split(' ')[0],
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
+              color: bank['color'] as Color,
+            ),
+          ),
+        );
+    }
+  }
+
+  // ── BOTTOM SHEET PILIH BANK VIRTUAL ACCOUNT (10 BANK) ──────────────────────
+  void _showVaBankPickerBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(color: Color(0xFF00AED6), shape: BoxShape.circle),
-                child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 20),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'GoPay E-Wallet',
+              const SizedBox(height: 16),
+              Text(
+                'Pilih Bank Virtual Account',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tersedia 10 Bank resmi sesuai Midtrans Payment Simulator',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: const Color(0xFF64748B),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _vaBanks.length,
+                  itemBuilder: (ctx, i) {
+                    final bank = _vaBanks[i];
+                    final isSelected = _selectedVaBankIndex == i;
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _selectVaBank(i);
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFFF8FAFC) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+                            width: isSelected ? 2.2 : 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 52,
+                              height: 32,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: _buildVaBankLogoBadge(bank),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    bank['name'] as String,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                      color: const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Verifikasi otomatis 24 jam',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFFE2E8F0) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isSelected ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                bank['shortName'] as String,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF334155),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ── VIRTUAL ACCOUNT CONTENT (10 BANK LENGKAP & SIMULATOR INTEGRATION) ────────
+  Widget _buildVirtualAccountContent(String activeOrderId) {
+    final activeBank = _vaBanks[_selectedVaBankIndex];
+    final isMandiri = activeBank['id'] == 'mandiri';
+
+    final displayVaNumber = _liveVaNumber ??
+        (widget.vaNumber?.isNotEmpty == true ? widget.vaNumber! : activeBank['defaultVa'] as String);
+    final displayBillerCode = _liveBillerCode ?? activeBank['billerCode']?.toString() ?? '70012';
+    final displayBillKey = _liveBillKey ?? _liveVaNumber ?? activeBank['defaultVa'] as String;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldLabel('Pilih Bank Virtual Account'),
+        const SizedBox(height: 5),
+        GestureDetector(
+          onTap: _showVaBankPickerBottomSheet,
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 50,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _buildVaBankLogoBadge(activeBank),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    activeBank['name'] as String,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
                       color: const Color(0xFF0F172A),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    activeBank['shortName'] as String,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF475569),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 22),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ── KARTU DETAIL VIRTUAL ACCOUNT ──────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.4),
+            boxShadow: const [
+              BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 3)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Kartu
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _buildVaBankLogoBadge(activeBank),
+                      const SizedBox(width: 8),
+                      Text(
+                        activeBank['name'] as String,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: Text(
+                      'OTOMATIS',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF047857),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              const SizedBox(height: 16),
+
+              // Nomor Virtual Account / Mandiri Bill
+              if (isMandiri) ...[
+                // Mandiri Kode Perusahaan
+                Text(
+                  'Kode Perusahaan',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      displayBillerCode,
+                      style: GoogleFonts.spaceMono(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                    ),
+                    _copyButton(() => _copyToClipboard(displayBillerCode, 'Kode Perusahaan')),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Mandiri No Pelanggan / Bill Key
+                Text(
+                  'No. Pelanggan / Bill Key',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      displayBillKey,
+                      style: GoogleFonts.spaceMono(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                    ),
+                    _copyButton(() => _copyToClipboard(displayBillKey, 'No. Pelanggan Mandiri')),
+                  ],
+                ),
+              ] else ...[
+                // Standard Virtual Account Number
+                Text(
+                  'Nomor Virtual Account',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: _isLoadingVa
+                          ? const Align(
+                              alignment: Alignment.centerLeft,
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
+                              ),
+                            )
+                          : Text(
+                              displayVaNumber,
+                              style: GoogleFonts.spaceMono(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF0F172A),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                    ),
+                    _copyButton(() => _copyToClipboard(displayVaNumber, 'Nomor Virtual Account')),
+                  ],
+                ),
+              ],
+
+              const SizedBox(height: 16),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              const SizedBox(height: 14),
+
+              // Total Pembayaran
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Total Pembayaran',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _formatRupiah(widget.amount),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF018556),
+                        ),
+                      ),
+                    ],
+                  ),
+                  _copyButton(() => _copyToClipboard(widget.amount.toString(), 'Nominal Pembayaran')),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Batas Waktu
+              Row(
+                children: [
+                  const Icon(Icons.timer_outlined, size: 15, color: Color(0xFFF59E0B)),
+                  const SizedBox(width: 6),
                   Text(
-                    'Pembayaran instan via GoPay',
+                    'Batas Waktu: 24 Jam setelah pemesanan',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
-                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFFB45309),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          _fieldLabel('Nomor Handphone Terdaftar'),
-          const SizedBox(height: 5),
-          _pillTextField(
-            controller: _phoneController,
-            hint: '0812 3456 7890',
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 14),
-          Text(
-            'Setelah menekan tombol Payment, Anda akan diarahkan untuk memvalidasi transaksi dengan aman.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), height: 1.45),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(height: 16),
 
-  // ── QRIS / GPN CONTENT ───────────────────────────────────────────────────────
-  Widget _buildQrisGpnContent() {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        // ── BANNER KHUSUS MIDTRANS PAYMENT SIMULATOR ───────────────────────────
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFBFDBFE)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SvgPicture.string(_svgGpn, height: 26),
-              const SizedBox(width: 10),
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2563EB),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.science_rounded, color: Colors.white, size: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Uji di Midtrans Simulator',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1E3A8A),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Text(
-                'QRIS Standar Nasional',
+                'Salin nomor VA di atas, buka simulator.sandbox.midtrans.com di browser, pilih menu ${activeBank['shortName']}, lalu klik Inquire & Pay.',
                 style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                  color: const Color(0xFF0F172A),
+                  fontSize: 11.5,
+                  color: const Color(0xFF1E40AF),
+                  height: 1.45,
                 ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _launchMidtransSimulator,
+                      icon: const Icon(Icons.open_in_browser_rounded, size: 16),
+                      label: const Text('Buka Simulator'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1D4ED8),
+                        side: const Border.all(color: Color(0xFF3B82F6)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _finalizeSuccessfulPayment(activeOrderId),
+                      icon: const Icon(Icons.flash_on_rounded, size: 16),
+                      label: const Text('Bayar Cepat'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
+        ),
+        const SizedBox(height: 16),
 
-          // QR Box Graphic
-          Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
-              boxShadow: const [
-                BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 4)),
+        // ── PETUNJUK CARA TRANSFER ACCORDION ─────────────────────────────────
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              initiallyExpanded: true,
+              tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: Text(
+                'Petunjuk Cara Pembayaran',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    children: List.generate(
+                      (activeBank['guide'] as List<String>).length,
+                      (idx) {
+                        final stepText = (activeBank['guide'] as List<String>)[idx];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${idx + 1}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF475569),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  stepText,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: const Color(0xFF475569),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ],
             ),
-            child: const Center(
-              child: Icon(Icons.qr_code_2_rounded, size: 140, color: Color(0xFF0F172A)),
-            ),
           ),
-          const SizedBox(height: 14),
+        ),
+      ],
+    );
+  }
 
-          Text(
-            'Mendukung semua Bank GPN (BCA, Mandiri, BRI, BNI) & E-Wallet (GoPay, OVO, Dana, ShopeePay)',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11.5,
-              color: const Color(0xFF64748B),
-              height: 1.45,
+  Widget _copyButton(VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE2E8F0),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.copy_rounded, size: 13, color: Color(0xFF334155)),
+            const SizedBox(width: 4),
+            Text(
+              'Salin',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF334155),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1702,341 +2371,6 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
                   color: const Color(0xFF64748B),
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryRow(String label, String value, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B))),
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
-            color: isBold ? const Color(0xFF018556) : const Color(0xFF0F172A),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ── 2. GOPAY PIN SHEET ───────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-class _GopayPinSheet extends StatefulWidget {
-  final String orderId;
-  final String phone;
-  final String amountText;
-  final VoidCallback onVerified;
-
-  const _GopayPinSheet({
-    required this.orderId,
-    required this.phone,
-    required this.amountText,
-    required this.onVerified,
-  });
-
-  @override
-  State<_GopayPinSheet> createState() => _GopayPinSheetState();
-}
-
-class _GopayPinSheetState extends State<_GopayPinSheet> {
-  final TextEditingController _pinController = TextEditingController(text: '123456');
-  bool _isProcessing = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _pinController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submitPin() async {
-    final pin = _pinController.text.trim();
-    if (pin.length < 6) {
-      setState(() => _error = 'Masukkan 6 digit PIN GoPay Anda');
-      return;
-    }
-
-    setState(() {
-      _isProcessing = true;
-      _error = null;
-    });
-
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    if (!mounted) return;
-    widget.onVerified();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(color: Color(0xFF00AED6), shape: BoxShape.circle),
-                child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Konfirmasi PIN GoPay',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              children: [
-                _summaryRow('Merchant', 'Metro Institute'),
-                const SizedBox(height: 6),
-                _summaryRow('Total Pembayaran', widget.amountText, isBold: true),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          Text(
-            'Masukkan 6 digit PIN GoPay untuk otorisasi pembayaran:',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569)),
-          ),
-          const SizedBox(height: 12),
-
-          Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _error != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                width: 1.5,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.center,
-            child: TextField(
-              controller: _pinController,
-              keyboardType: TextInputType.number,
-              obscureText: true,
-              textAlign: TextAlign.center,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(6),
-              ],
-              style: GoogleFonts.spaceMono(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 10,
-                color: const Color(0xFF0F172A),
-              ),
-              decoration: const InputDecoration(border: InputBorder.none, hintText: '••••••', contentPadding: EdgeInsets.zero),
-            ),
-          ),
-
-          if (_error != null) ...[
-            const SizedBox(height: 6),
-            Text(
-              _error!,
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFDC2626)),
-              textAlign: TextAlign.center,
-            ),
-          ],
-          const SizedBox(height: 18),
-
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _isProcessing ? null : _submitPin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00AED6),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-              ),
-              child: _isProcessing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
-                    )
-                  : Text('Bayar Sekarang', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryRow(String label, String value, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B))),
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
-            color: isBold ? const Color(0xFF018556) : const Color(0xFF0F172A),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ── 3. QRIS CONFIRMATION SHEET ───────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-class _QrisConfirmationSheet extends StatefulWidget {
-  final String orderId;
-  final String amountText;
-  final String? qrString;
-  final VoidCallback onVerified;
-
-  const _QrisConfirmationSheet({
-    required this.orderId,
-    required this.amountText,
-    this.qrString,
-    required this.onVerified,
-  });
-
-  @override
-  State<_QrisConfirmationSheet> createState() => _QrisConfirmationSheetState();
-}
-
-class _QrisConfirmationSheetState extends State<_QrisConfirmationSheet> {
-  bool _isProcessing = false;
-
-  Future<void> _handleConfirm() async {
-    setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    widget.onVerified();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.string(_svgGpn, height: 26),
-              const SizedBox(width: 8),
-              Text(
-                'Pembayaran QRIS',
-                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              children: [
-                _summaryRow('Merchant', 'Metro Institute'),
-                const SizedBox(height: 6),
-                _summaryRow('Total Pembayaran', widget.amountText, isBold: true),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          Text(
-            'Pastikan Anda telah memindai kode QRIS menggunakan aplikasi Bank atau E-Wallet Anda.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569), height: 1.45),
-          ),
-          const SizedBox(height: 18),
-
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _isProcessing ? null : _handleConfirm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF018556),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-              ),
-              child: _isProcessing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
-                    )
-                  : Text('Saya Sudah Membayar', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
