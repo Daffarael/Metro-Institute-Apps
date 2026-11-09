@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -171,18 +172,93 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     return 'Rp ${str.replaceAllMapped(regExp, (m) => '${m[1]}.')}';
   }
 
-  Future<void> _handleProcessPayment() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  // ── HANDLE PAYMENT: TRIGGERS REAL AUTHENTICATION STEP (NOT INSTANT!) ──────────
+  void _handleProcessPayment() {
+    setState(() => _errorMessage = null);
+
+    final activeOrderId = widget.orderId.isNotEmpty
+        ? widget.orderId
+        : 'METRO-${DateTime.now().millisecondsSinceEpoch}';
+
+    if (_selectedTab == PaymentTab.card) {
+      _show3dSecureDialog(activeOrderId);
+    } else if (_selectedTab == PaymentTab.gopay) {
+      _showGopayPinDialog(activeOrderId);
+    } else {
+      _showQrisConfirmationDialog(activeOrderId);
+    }
+  }
+
+  // ── 1. 3D SECURE BANK VERIFICATION MODAL (SEPERTI TRANSAKSI KARTU BANK ASLI) ──
+  void _show3dSecureDialog(String activeOrderId) {
+    final rawNumber = _cardNumberController.text.replaceAll(' ', '');
+    final last4 = rawNumber.length >= 4 ? rawNumber.substring(rawNumber.length - 4) : '3456';
+    final cardType = _cardTypeController.text;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return _OtpVerificationSheet(
+          orderId: activeOrderId,
+          amountText: _formatRupiah(widget.amount),
+          cardType: cardType,
+          last4Digits: last4,
+          onVerified: () async {
+            Navigator.pop(bottomSheetContext); // Close OTP sheet
+            await _finalizeSuccessfulPayment(activeOrderId);
+          },
+        );
+      },
+    );
+  }
+
+  // ── 2. GOPAY PIN VERIFICATION MODAL ──────────────────────────────────────────
+  void _showGopayPinDialog(String activeOrderId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return _GopayPinSheet(
+          orderId: activeOrderId,
+          phone: _phoneController.text.trim(),
+          amountText: _formatRupiah(widget.amount),
+          onVerified: () async {
+            Navigator.pop(bottomSheetContext); // Close PIN sheet
+            await _finalizeSuccessfulPayment(activeOrderId);
+          },
+        );
+      },
+    );
+  }
+
+  // ── 3. QRIS GPN SCAN & CONFIRMATION MODAL ────────────────────────────────────
+  void _showQrisConfirmationDialog(String activeOrderId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return _QrisConfirmationSheet(
+          orderId: activeOrderId,
+          amountText: _formatRupiah(widget.amount),
+          onVerified: () async {
+            Navigator.pop(bottomSheetContext); // Close sheet
+            await _finalizeSuccessfulPayment(activeOrderId);
+          },
+        );
+      },
+    );
+  }
+
+  // ── FINALIZE PAYMENT & TRIGGER RECEIPT ────────────────────────────────────────
+  Future<void> _finalizeSuccessfulPayment(String activeOrderId) async {
+    setState(() => _isLoading = true);
 
     try {
-      final activeOrderId = widget.orderId.isNotEmpty
-          ? widget.orderId
-          : 'METRO-${DateTime.now().millisecondsSinceEpoch}';
-
-      // Simulate payment completion in Sandbox mode
+      // Simulate/confirm payment completion in Sandbox mode
       await _userDataSource.simulateTransaction(activeOrderId);
 
       if (!mounted) return;
@@ -983,7 +1059,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     ),
                   ),
                   Text(
-                    'Pembayaran instan via aplikasi Gojek',
+                    'Pembayaran instan via otorisasi PIN GoPay',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       color: const Color(0xFF64748B),
@@ -1003,7 +1079,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            'Setelah menekan tombol Payment, transaksi Anda akan langsung diproses lunas di mode Sandbox Metro.',
+            'Tekan tombol Payment di bawah untuk memasukkan 6 digit PIN GoPay Anda dan menyelesaikan otorisasi pembayaran.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               color: const Color(0xFF64748B),
@@ -1081,6 +1157,753 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               fontSize: 12,
               color: const Color(0xFF64748B),
               height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 1. 3D SECURE OTP SHEET (VERIFIKASI BANK ASLI DENGAN DESAIN SENDIRI) ─────
+// ─────────────────────────────────────────────────────────────────────────────
+class _OtpVerificationSheet extends StatefulWidget {
+  final String orderId;
+  final String amountText;
+  final String cardType;
+  final String last4Digits;
+  final VoidCallback onVerified;
+
+  const _OtpVerificationSheet({
+    required this.orderId,
+    required this.amountText,
+    required this.cardType,
+    required this.last4Digits,
+    required this.onVerified,
+  });
+
+  @override
+  State<_OtpVerificationSheet> createState() => _OtpVerificationSheetState();
+}
+
+class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
+  final TextEditingController _otpController = TextEditingController();
+  bool _isVerifying = false;
+  String? _error;
+  int _secondsRemaining = 59;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_secondsRemaining > 0) {
+        setState(() => _secondsRemaining--);
+      } else {
+        t.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitOtp() async {
+    final code = _otpController.text.trim();
+    if (code.length < 6) {
+      setState(() => _error = 'Masukkan 6 digit kode OTP yang telah dikirim');
+      return;
+    }
+
+    setState(() {
+      _isVerifying = true;
+      _error = null;
+    });
+
+    // Realistic banking authorization delay (1.5 seconds)
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (!mounted) return;
+    widget.onVerified();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Security Header
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFECFDF5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.shield_rounded, color: Color(0xFF059669), size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Verifikasi 3D Secure Bank',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      '${widget.cardType} Authentication',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.lock_rounded, size: 12, color: Color(0xFF475569)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '256-bit SSL',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Transaction summary box
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                _summaryRow('Merchant', 'PT METRO INSTITUTE INDONESIA'),
+                const SizedBox(height: 6),
+                _summaryRow('Kartu', '${widget.cardType} •••• ${widget.last4Digits}'),
+                const SizedBox(height: 6),
+                _summaryRow('Total Pembayaran', widget.amountText, isBold: true),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            'Kode OTP 6-digit telah dikirimkan via SMS ke nomor HP terdaftar Anda (+62 812-****-7890).',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: const Color(0xFF475569),
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // OTP Input Box
+          Container(
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _error != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                width: 1.5,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.center,
+            child: TextField(
+              controller: _otpController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              style: GoogleFonts.spaceMono(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 8,
+                color: const Color(0xFF0F172A),
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: '• • • • • •',
+                hintStyle: GoogleFonts.spaceMono(
+                  fontSize: 22,
+                  letterSpacing: 8,
+                  color: const Color(0xFFCBD5E1),
+                ),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+
+          if (_error != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _error!,
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFDC2626)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 10),
+
+          // Quick Fill Demo OTP button
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _otpController.text = '112233';
+                _error = null;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.touch_app_rounded, size: 14, color: Color(0xFF475569)),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Isi Cepat OTP Simulasi (112233)',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF334155),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Countdown / Resend
+          Center(
+            child: Text(
+              _secondsRemaining > 0
+                  ? 'Kirim ulang kode dalam $_secondsRemaining detik'
+                  : 'Kirim Ulang Kode OTP',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: _secondsRemaining > 0 ? FontWeight.w500 : FontWeight.w700,
+                color: _secondsRemaining > 0 ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Submit & Cancel Buttons
+          SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isVerifying ? null : _submitOtp,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+              ),
+              child: _isVerifying
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Mengotorisasi dengan Bank...',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      'Konfirmasi & Otorisasi',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Batalkan Transaksi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: isBold ? const Color(0xFF018556) : const Color(0xFF0F172A),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 2. GOPAY PIN SHEET ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+class _GopayPinSheet extends StatefulWidget {
+  final String orderId;
+  final String phone;
+  final String amountText;
+  final VoidCallback onVerified;
+
+  const _GopayPinSheet({
+    required this.orderId,
+    required this.phone,
+    required this.amountText,
+    required this.onVerified,
+  });
+
+  @override
+  State<_GopayPinSheet> createState() => _GopayPinSheetState();
+}
+
+class _GopayPinSheetState extends State<_GopayPinSheet> {
+  final TextEditingController _pinController = TextEditingController();
+  bool _isProcessing = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitPin() async {
+    final pin = _pinController.text.trim();
+    if (pin.length < 6) {
+      setState(() => _error = 'Masukkan 6 digit PIN GoPay Anda');
+      return;
+    }
+
+    setState(() {
+      _isProcessing = true;
+      _error = null;
+    });
+
+    // Realistic GoPay verification delay
+    await Future.delayed(const Duration(milliseconds: 1400));
+
+    if (!mounted) return;
+    widget.onVerified();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF00AED6),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Konfirmasi PIN GoPay',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFBBF7D0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Nominal Transaksi',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF166534)),
+                ),
+                Text(
+                  widget.amountText,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF166534),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            'Masukkan 6 digit PIN GoPay untuk nomor ${widget.phone}:',
+            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569)),
+          ),
+          const SizedBox(height: 12),
+
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _error != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                width: 1.5,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.center,
+            child: TextField(
+              controller: _pinController,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              textAlign: TextAlign.center,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              style: GoogleFonts.spaceMono(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 10,
+                color: const Color(0xFF0F172A),
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: '••••••',
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+
+          if (_error != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _error!,
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFDC2626)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 10),
+
+          // Quick Fill Demo PIN
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _pinController.text = '123456';
+                _error = null;
+              });
+            },
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Isi Cepat PIN Demo (123456)',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF334155),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isProcessing ? null : _submitPin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00AED6),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+              ),
+              child: _isProcessing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                    )
+                  : Text(
+                      'Bayar Sekarang',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 3. QRIS CONFIRMATION SHEET ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+class _QrisConfirmationSheet extends StatefulWidget {
+  final String orderId;
+  final String amountText;
+  final VoidCallback onVerified;
+
+  const _QrisConfirmationSheet({
+    required this.orderId,
+    required this.amountText,
+    required this.onVerified,
+  });
+
+  @override
+  State<_QrisConfirmationSheet> createState() => _QrisConfirmationSheetState();
+}
+
+class _QrisConfirmationSheetState extends State<_QrisConfirmationSheet> {
+  bool _isChecking = false;
+
+  Future<void> _handleConfirm() async {
+    setState(() => _isChecking = true);
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+    widget.onVerified();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'GPN',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Konfirmasi Pembayaran QRIS',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            'Pastikan Anda telah memindai kode QRIS menggunakan aplikasi Bank GPN atau E-Wallet Anda dengan nominal ${widget.amountText}.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: const Color(0xFF475569),
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isChecking ? null : _handleConfirm,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF018556),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+              ),
+              child: _isChecking
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Mengecek Status Pembayaran...',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      'Saya Sudah Membayar',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
             ),
           ),
         ],
