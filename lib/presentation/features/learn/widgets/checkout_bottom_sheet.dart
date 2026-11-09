@@ -42,11 +42,11 @@ class CheckoutBottomSheet extends StatefulWidget {
     String? subtitle,
     VoidCallback? onSuccess,
     VoidCallback? onStartLearning,
-  }) async {
-    debugPrint('=== [METRO_CHECKOUT] CheckoutBottomSheet.show() dipanggil ===');
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+  }) {
+    debugPrint('=== [METRO_CHECKOUT] Membuka showModalBottomSheet (useRootNavigator: false) ===');
+    return showModalBottomSheet<bool>(
       context: context,
-      useRootNavigator: true,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => CheckoutBottomSheet(
@@ -58,116 +58,6 @@ class CheckoutBottomSheet extends StatefulWidget {
         subtitle: subtitle,
         onSuccess: onSuccess,
         onStartLearning: onStartLearning,
-      ),
-    );
-
-    if (result == null) return false;
-
-    if (result['success'] == true) {
-      onSuccess?.call();
-      if (context.mounted) {
-        ThermalReceiptDialog.show(
-          context,
-          orderId: result['orderId']?.toString() ?? 'METRO-${DateTime.now().millisecondsSinceEpoch}',
-          title: title,
-          amount: (result['amount'] as num?)?.toInt() ?? 0,
-          productType: productType,
-          mentorName: subtitle,
-          onStartLearning: () {
-            if (context.mounted) {
-              Navigator.of(context, rootNavigator: true).maybePop();
-            }
-            if (onStartLearning != null) {
-              onStartLearning();
-            } else {
-              onSuccess?.call();
-            }
-          },
-        );
-      }
-      return true;
-    } else if (result['pending'] == true) {
-      if (context.mounted) {
-        _showPendingDialogStatic(context, result['orderId']?.toString() ?? '');
-      }
-      return false;
-    }
-
-    return false;
-  }
-
-  static void _showPendingDialogStatic(BuildContext context, String orderId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEF3C7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 36),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Menunggu Pembayaran',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pesanan $orderId telah tersimpan. Silakan selesaikan pembayaran sesuai instruksi bank atau e-wallet pilihan Anda.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                color: const Color(0xFF64748B),
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  context.push(AppRoutes.transactions);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Lihat Riwayat Transaksi',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Tutup',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.5,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -317,11 +207,24 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
       // 2. Free Enrollment flow (Diskon 100% / Gratis)
       if (isFreeEnrollment) {
-        Navigator.pop(context, {
-          'success': true,
-          'orderId': orderId,
-          'amount': 0,
-        });
+        Navigator.pop(context, true);
+        widget.onSuccess?.call();
+        ThermalReceiptDialog.show(
+          context,
+          orderId: orderId,
+          title: widget.title,
+          amount: 0,
+          productType: widget.productType,
+          mentorName: widget.subtitle,
+          onStartLearning: () {
+            Navigator.of(context).pop();
+            if (widget.onStartLearning != null) {
+              widget.onStartLearning!();
+            } else {
+              widget.onSuccess?.call();
+            }
+          },
+        );
         return;
       }
 
@@ -345,17 +248,28 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
       if (result == true) {
         // Payment successful
-        Navigator.pop(context, {
-          'success': true,
-          'orderId': orderId,
-          'amount': _finalAmount,
-        });
+        Navigator.pop(context, true);
+        widget.onSuccess?.call();
+        ThermalReceiptDialog.show(
+          context,
+          orderId: orderId,
+          title: widget.title,
+          amount: _finalAmount,
+          productType: widget.productType,
+          mentorName: widget.subtitle,
+          onStartLearning: () {
+            Navigator.of(context).pop();
+            if (widget.onStartLearning != null) {
+              widget.onStartLearning!();
+            } else {
+              widget.onSuccess?.call();
+            }
+          },
+        );
       } else {
         // Pending or closed
-        Navigator.pop(context, {
-          'pending': true,
-          'orderId': orderId,
-        });
+        Navigator.pop(context, false);
+        _showPendingDialog(orderId);
       }
     } catch (e) {
       if (!mounted) return;
@@ -375,585 +289,658 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
     }
   }
 
+  void _showPendingDialog(String orderId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 36),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Menunggu Pembayaran',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pesanan $orderId telah tersimpan. Silakan selesaikan pembayaran sesuai instruksi bank atau e-wallet pilihan Anda.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.push(AppRoutes.transactions);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Lihat Riwayat Transaksi',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Tutup',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.90,
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
+      padding: EdgeInsets.fromLTRB(22, 16, 22, 24 + bottomInset),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── DRAG HANDLE ─────────────────────────────────────────────────
-            const SizedBox(height: 10),
-            Center(
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(10),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 4.5,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
 
-            // ── 1. MODAL HEADER ──────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              // Sheet Title
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Checkout Program',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0F172A),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _productBadge,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Product Card Summary
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: widget.thumbnailUrl != null && widget.thumbnailUrl!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: widget.thumbnailUrl!,
+                              width: 76,
+                              height: 64,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(color: const Color(0xFFE2E8F0)),
+                              errorWidget: (context, url, error) => _thumbPlaceholder(),
+                            )
+                          : _thumbPlaceholder(),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF0F172A),
+                              height: 1.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (widget.subtitle != null && widget.subtitle!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.subtitle!,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                color: const Color(0xFF64748B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
+              const SizedBox(height: 14),
+
+              // Included Benefits Pills
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  _benefitChip(Icons.all_inclusive_rounded, 'Akses Selamanya'),
+                  _benefitChip(Icons.verified_rounded, 'Sertifikat Resmi'),
+                  _benefitChip(Icons.live_help_rounded, 'Bimbingan Mentor'),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Voucher Section (High Contrast, Bold, No Faded Colors)
+              if (_appliedVoucher != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF018556), width: 1.5),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x18018556), blurRadius: 6, offset: Offset(0, 2)),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF018556),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.confirmation_num_rounded, color: Colors.white, size: 16),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  _appliedVoucher!['code']?.toString() ?? '',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13.5,
+                                    color: const Color(0xFF018556),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF018556),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    _appliedVoucher!['type'] == 'PERCENT'
+                                        ? '-${_appliedVoucher!['value']}%'
+                                        : '-${_formatRupiah(_appliedVoucher!['value'] as int? ?? 0)}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Hemat ${_formatRupiah(_discountAmount)}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF334155),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Color(0xFFDC2626), size: 22),
+                        tooltip: 'Hapus Voucher',
+                        onPressed: _handleRemoveVoucher,
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          'Konfirmasi Pendaftaran',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
-                            letterSpacing: -0.3,
+                        Expanded(
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                                width: 1.2,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.confirmation_num_outlined,
+                                  size: 18,
+                                  color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFF64748B),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _voucherController,
+                                    textCapitalization: TextCapitalization.characters,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF0F172A),
+                                      letterSpacing: 0.5,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: 'Punya kode kupon/voucher?',
+                                      hintStyle: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFF94A3B8),
+                                        letterSpacing: 0,
+                                      ),
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                    onSubmitted: (_) => _handleApplyVoucher(),
+                                    onChanged: (_) {
+                                      if (_voucherError != null) setState(() => _voucherError = null);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Periksa rincian pesanan & gunakan voucher diskon',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            color: const Color(0xFF475569),
-                            fontWeight: FontWeight.w500,
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF018556),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: _isValidatingVoucher
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : Text(
+                                    'Terapkan',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: _isLoading ? null : () => Navigator.pop(context),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                    if (_voucherError != null) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded, size: 14, color: Color(0xFFDC2626)),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              _voucherError!,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFDC2626),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: Color(0xFF475569),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── 2. SCROLLABLE BODY ───────────────────────────────────────────
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(20, 18, 20, 16 + bottomInset),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildProductCard(),
-                    const SizedBox(height: 18),
-                    _buildVoucherSection(),
-                    const SizedBox(height: 18),
-                    _buildCostSummaryBox(),
-                    if (_errorMessage != null) ...[
-                      const SizedBox(height: 14),
-                      _buildErrorBanner(),
                     ],
                   ],
                 ),
-              ),
-            ),
+              ],
+              const SizedBox(height: 16),
 
-            // ── 3. FOOTER BUTTONS ────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-                ),
-              ),
-              child: Row(
-                children: [
-                  OutlinedButton(
-                    onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-                    ),
-                    child: Text(
-                      'Batal',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF334155),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleInitiatePayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF018556),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  _isFree ? 'Daftar Gratis Sekarang' : 'Lanjut ke Pembayaran',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward_rounded, size: 16),
-                              ],
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── PRODUCT CARD ─────────────────────────────────────────────────────────────
-  Widget _buildProductCard() {
-    final mentorText = widget.subtitle?.replaceFirst('Mentor: ', '').trim();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
+              // Price Breakdown
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF018556),
-                  borderRadius: BorderRadius.circular(6),
+                  color: const Color(0xFFFAFAFA),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
                 ),
-                child: Text(
-                  _productBadge,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ),
-              if (mentorText != null && mentorText.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    mentorText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF475569),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            widget.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
-              height: 1.35,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'Harga Normal: ',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-              Text(
-                _formatRupiah(widget.price),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: _appliedVoucher != null ? const Color(0xFF94A3B8) : const Color(0xFF0F172A),
-                  decoration: _appliedVoucher != null ? TextDecoration.lineThrough : null,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── VOUCHER SECTION ──────────────────────────────────────────────────────────
-  Widget _buildVoucherSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.local_offer_outlined, size: 15, color: Color(0xFF018556)),
-            const SizedBox(width: 6),
-            Text(
-              'Punya Kode Voucher?',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (_appliedVoucher == null) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _voucherController,
-                  textCapitalization: TextCapitalization.characters,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                    color: const Color(0xFF0F172A),
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                    filled: true,
-                    fillColor: Colors.white,
-                    hintText: 'CONTOH: METROPROMO',
-                    hintStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF94A3B8),
-                      letterSpacing: 0.3,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF018556), width: 1.5),
-                    ),
-                  ),
-                  onSubmitted: (_) => _handleApplyVoucher(),
-                  onChanged: (_) {
-                    if (_voucherError != null) setState(() => _voucherError = null);
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 46,
-                child: ElevatedButton(
-                  onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF018556),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(0xFF94A3B8),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                  ),
-                  child: _isValidatingVoucher
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                child: Column(
+                  children: [
+                    _priceRow('Harga Program', _formatRupiah(widget.price)),
+                    if (_appliedVoucher != null && _discountAmount > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.discount_rounded, size: 14, color: Color(0xFF018556)),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Diskon Voucher (${_appliedVoucher!['code']})',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF018556),
+                                ),
+                              ),
+                            ],
                           ),
-                        )
-                      : Text(
-                          'Terapkan',
+                          Text(
+                            '- ${_formatRupiah(_discountAmount)}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF018556),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    _priceRow('Biaya Platform / Admin', 'Rp 0 (Gratis)'),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Pembayaran',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
+                            fontSize: 13.5,
                             fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
                           ),
                         ),
-                ),
-              ),
-            ],
-          ),
-          if (_voucherError != null) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(Icons.error_outline_rounded, size: 13, color: Color(0xFFDC2626)),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    _voucherError!,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFDC2626),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ] else ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFA7F3D0), width: 1.5),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF018556)),
-                const SizedBox(width: 8),
-                Text(
-                  _appliedVoucher!['code']?.toString() ?? '',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF065F46),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF018556),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'Hemat ${_formatRupiah(_discountAmount)}',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                InkWell(
-                  onTap: _handleRemoveVoucher,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    child: Text(
-                      'Hapus',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFFDC2626),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  // ── COST SUMMARY BOX ─────────────────────────────────────────────────────────
-  Widget _buildCostSummaryBox() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Harga',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF334155),
-                ),
-              ),
-              Text(
-                _formatRupiah(widget.price),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF334155),
-                ),
-              ),
-            ],
-          ),
-          if (_appliedVoucher != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.auto_awesome_rounded, size: 14, color: Color(0xFF018556)),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Diskon Voucher (${_appliedVoucher!['code']})',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF018556),
-                      ),
+                        Text(
+                          _isFree ? 'Rp 0 (Gratis)' : _formatRupiah(_finalAmount),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: _isFree ? const Color(0xFF018556) : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                Text(
-                  '- ${_formatRupiah(_discountAmount)}',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF018556),
+              ),
+
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline_rounded, color: AppColors.error, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w500,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_isAuthError) ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 36,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              context.push(AppRoutes.login);
+                            },
+                            icon: const Icon(Icons.login_rounded, size: 16),
+                            label: Text(
+                              'Login Sekarang',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
-            ),
-          ],
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(color: Color(0xFFCBD5E1), height: 1),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Pembayaran:',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+
+              const SizedBox(height: 20),
+
+              // CTA Button (Adaptive: Solid Green if Free, Solid Dark if Paid)
+              ElevatedButton(
+                onPressed: _isLoading ? null : _handleInitiatePayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isFree ? const Color(0xFF018556) : const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                  elevation: 0,
                 ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _isFree ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isFree
+                                ? 'Daftar Gratis Sekarang'
+                                : 'Lanjut ke Pembayaran (${_formatRupiah(_finalAmount)})',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
-              Text(
-                _isFree ? 'GRATIS (Rp 0)' : _formatRupiah(_finalAmount),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: _isFree ? const Color(0xFF018556) : const Color(0xFF0F172A),
+
+              const SizedBox(height: 10),
+              Center(
+                child: Text(
+                  _isFree
+                      ? 'Pendaftaran 100% gratis dengan kupon promo terverifikasi'
+                      : 'Transaksi aman & terenkripsi oleh Midtrans Payment Gateway',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: const Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _thumbPlaceholder() {
+    return Container(
+      width: 76,
+      height: 64,
+      color: const Color(0xFF0F172A),
+      child: const Center(
+        child: Icon(Icons.school_rounded, color: Colors.white54, size: 28),
+      ),
+    );
+  }
+
+  Widget _benefitChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: const Color(0xFF0F172A)),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF0F172A),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ── ERROR BANNER ─────────────────────────────────────────────────────────────
-  Widget _buildErrorBanner() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFFECACA)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _errorMessage!,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFFDC2626),
-              ),
-            ),
+  Widget _priceRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12.5,
+            color: const Color(0xFF64748B),
           ),
-        ],
-      ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
+      ],
     );
   }
 }
