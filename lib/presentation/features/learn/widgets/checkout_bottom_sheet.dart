@@ -45,9 +45,13 @@ class CheckoutBottomSheet extends StatefulWidget {
   }) async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      useRootNavigator: true,
+      useRootNavigator: false,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
       builder: (ctx) => CheckoutBottomSheet(
         title: title,
         price: price,
@@ -378,17 +382,14 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.90,
-      ),
-      decoration: const BoxDecoration(
+    return SafeArea(
+      top: false,
+      child: Container(
+        width: double.infinity,
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SafeArea(
-        top: false,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
           child: Column(
@@ -593,69 +594,65 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           Row(
             children: [
               Expanded(
-                child: SizedBox(
-                  height: 42,
-                  child: TextField(
-                    controller: _voucherController,
-                    textCapitalization: TextCapitalization.characters,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                      color: const Color(0xFF0F172A),
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'CONTOH: METROPROMO',
-                      hintStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.3,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                          width: 1.5,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                          width: 1.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF018556), width: 1.5),
-                      ),
-                    ),
-                    onSubmitted: (_) => _handleApplyVoucher(),
-                    onChanged: (_) {
-                      if (_voucherError != null) setState(() => _voucherError = null);
-                    },
+                child: TextField(
+                  controller: _voucherController,
+                  textCapitalization: TextCapitalization.characters,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: const Color(0xFF0F172A),
                   ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'CONTOH: METROPROMO',
+                    hintStyle: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF94A3B8),
+                      letterSpacing: 0.3,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                        width: 1.5,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF018556), width: 1.5),
+                    ),
+                  ),
+                  onSubmitted: (_) => _handleApplyVoucher(),
+                  onChanged: (_) {
+                    if (_voucherError != null) setState(() => _voucherError = null);
+                  },
                 ),
               ),
               const SizedBox(width: 8),
-              SizedBox(
-                height: 42,
-                child: ElevatedButton(
-                  onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF018556),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(0xFF94A3B8),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
+              ElevatedButton(
+                onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF018556),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFF94A3B8),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
                   child: _isValidatingVoucher
                       ? const SizedBox(
                           width: 14,
@@ -673,7 +670,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                           ),
                         ),
                 ),
-              ),
             ],
           ),
           if (_voucherError != null) ...[
@@ -824,8 +820,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 'Total Pembayaran:',
