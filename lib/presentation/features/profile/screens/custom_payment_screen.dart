@@ -1687,28 +1687,12 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                   child: Text(
                     activeBank['name'] as String,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF0F172A),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Text(
-                    activeBank['shortName'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF475569),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1735,22 +1719,22 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             children: [
               // Header Kartu
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      _buildVaBankLogoBadge(activeBank),
-                      const SizedBox(width: 8),
-                      Text(
-                        activeBank['name'] as String,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
-                        ),
+                  _buildVaBankLogoBadge(activeBank),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      activeBank['name'] as String,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
                       ),
-                    ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -1833,13 +1817,14 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           : Text(
                               displayVaNumber,
                               style: GoogleFonts.spaceMono(
-                                fontSize: 17,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.w800,
                                 color: const Color(0xFF0F172A),
-                                letterSpacing: 0.5,
+                                letterSpacing: 0.3,
                               ),
                             ),
                     ),
+                    const SizedBox(width: 8),
                     _copyButton(() => _copyToClipboard(displayVaNumber, 'Nomor Virtual Account')),
                   ],
                 ),
