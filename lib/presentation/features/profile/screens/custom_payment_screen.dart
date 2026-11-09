@@ -1,10 +1,60 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../data/datasources/remote/user_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
+
+// ── OFFICIAL REAL VECTOR LOGOS (BCA, MANDIRI, BRI, BNI, VISA, GPN) ───────────
+const String _svgBca = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" width="110" height="32">
+  <g transform="translate(0, 1)">
+    <path d="M15 0 L30 15 L15 30 L0 15 Z" fill="#005EAA"/>
+    <path d="M15 4.5 L25.5 15 L15 25.5 L4.5 15 Z" fill="#FFFFFF"/>
+    <path d="M15 9 L21 15 L15 21 L9 15 Z" fill="#005EAA"/>
+    <path d="M15 13 L17 15 L15 17 L13 15 Z" fill="#FFFFFF"/>
+  </g>
+  <text x="38" y="24" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="1.5">BCA</text>
+</svg>''';
+
+const String _svgMandiri = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 36" width="130" height="36">
+  <path d="M82 4 C94 -1 112 1 126 9 C114 6 100 6 88 11 Z" fill="#F59E0B"/>
+  <path d="M88 9 C102 3 120 7 130 16 C116 11 102 11 92 15 Z" fill="#FBBF24"/>
+  <text x="2" y="28" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="-0.5">mandiri</text>
+</svg>''';
+
+const String _svgBri = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" width="110" height="32">
+  <rect x="0" y="2" width="28" height="28" rx="7" fill="#FFFFFF"/>
+  <path d="M6 8 C14 8 20 12 22 17 C18 15 12 13 6 15 Z" fill="#00529C"/>
+  <path d="M6 18 C16 16 22 20 25 25 C19 23 13 22 6 24 Z" fill="#F59E0B"/>
+  <text x="36" y="24" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="1">BRI</text>
+</svg>''';
+
+const String _svgBni = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 115 32" width="115" height="32">
+  <text x="0" y="24" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" letter-spacing="1.5">BNI</text>
+  <g transform="translate(58, 2)">
+    <rect width="42" height="28" rx="6" fill="#F15A24"/>
+    <text x="21" y="20" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" letter-spacing="-0.5">46</text>
+  </g>
+</svg>''';
+
+const String _svgVisaWhite = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32" width="100" height="32">
+  <path fill="#FFFFFF" d="M38.6 30.4l6.3-29.8h10.1l-6.3 29.8H38.6zm35.2-28.9c-2-0.8-5.2-1.6-9.1-1.6-10.1 0-17.2 5.3-17.3 13-.1 5.7 5.1 8.9 9 10.8 4 1.9 5.3 3.2 5.3 4.9 0 2.6-3.2 3.8-6.1 3.8-4.1 0-6.3-0.6-9.6-2.1l-1.3-0.6-1.4 9.1c2.4 1.1 7 2.1 11.6 2.2 11 0 18.1-5.4 18.2-13.8.1-4.6-2.7-8.1-8.8-11-3.6-1.9-5.9-3.1-5.9-5.1 0-1.7 1.9-3.5 6.1-3.5 3.4 0 5.9 0.7 7.8 1.5l0.9 0.4 1.7-8.1zm24.2 19.1c0.8-2.3 4.1-11.3 4.1-11.3-.1 0.1 0.8-2.3 1.4-3.9l0.7 3.5c1.2 5.8 2.9 14.7 2.9 14.7l-9.1-3zm13.6-20h-7.8c-2.4 0-4.2 0.7-5.3 3.3L83.5 30.4h10.6s1.7-4.8 2.1-5.9h13c0.3 1.4 1.2 5.9 1.2 5.9h9.4L111.6 0.6zM30.6 0.6L20.8 21.0l-1-5.4C18 10.3 12.3 3.5 5.9 0.2l8.9 31.2h10.7l15.9-29.8H30.6z"/>
+  <path fill="#F7B600" d="M14.1 0.6H0.2L0 2c10.8 2.8 18 9.5 21 17.5l-3-15.4c-0.5-2.2-2.1-3.5-3.9-3.5z"/>
+</svg>''';
+
+const String _svgVisaBlue = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32" width="100" height="32">
+  <path fill="#1A1F71" d="M38.6 30.4l6.3-29.8h10.1l-6.3 29.8H38.6zm35.2-28.9c-2-0.8-5.2-1.6-9.1-1.6-10.1 0-17.2 5.3-17.3 13-.1 5.7 5.1 8.9 9 10.8 4 1.9 5.3 3.2 5.3 4.9 0 2.6-3.2 3.8-6.1 3.8-4.1 0-6.3-0.6-9.6-2.1l-1.3-0.6-1.4 9.1c2.4 1.1 7 2.1 11.6 2.2 11 0 18.1-5.4 18.2-13.8.1-4.6-2.7-8.1-8.8-11-3.6-1.9-5.9-3.1-5.9-5.1 0-1.7 1.9-3.5 6.1-3.5 3.4 0 5.9 0.7 7.8 1.5l0.9 0.4 1.7-8.1zm24.2 19.1c0.8-2.3 4.1-11.3 4.1-11.3-.1 0.1 0.8-2.3 1.4-3.9l0.7 3.5c1.2 5.8 2.9 14.7 2.9 14.7l-9.1-3zm13.6-20h-7.8c-2.4 0-4.2 0.7-5.3 3.3L83.5 30.4h10.6s1.7-4.8 2.1-5.9h13c0.3 1.4 1.2 5.9 1.2 5.9h9.4L111.6 0.6zM30.6 0.6L20.8 21.0l-1-5.4C18 10.3 12.3 3.5 5.9 0.2l8.9 31.2h10.7l15.9-29.8H30.6z"/>
+  <path fill="#F7B600" d="M14.1 0.6H0.2L0 2c10.8 2.8 18 9.5 21 17.5l-3-15.4c-0.5-2.2-2.1-3.5-3.9-3.5z"/>
+</svg>''';
+
+const String _svgGpn = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 40" width="68" height="40">
+  <rect width="68" height="40" rx="9" fill="#DC2626"/>
+  <path d="M12 28 C7 23 11 12 22 9 C18 14 19 20 24 23 C19 24 15 26 12 28 Z" fill="#FFFFFF"/>
+  <path d="M22 10 C26 6 34 7 38 13 C33 12 28 14 27 18 C26 14 24 11 22 10 Z" fill="#FEE2E2" opacity="0.9"/>
+  <text x="39" y="27" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" letter-spacing="0.5">GPN</text>
+</svg>''';
 
 class CustomPaymentScreen extends StatefulWidget {
   final String orderId;
@@ -149,11 +199,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       'expiry': '12/29',
       'cvv': '123',
       'gradient': const [
-        Color(0xFFC7D2FE), // Soft Lavender / Periwinkle
-        Color(0xFFDDD6FE),
-        Color(0xFFE0E7FF),
+        Color(0xFF1E293B), // Premium Deep Slate
+        Color(0xFF334155),
+        Color(0xFF475569),
       ],
-      'textColor': const Color(0xFF1E1B4B),
+      'textColor': Colors.white,
     },
 
     // ── KARTU DEBIT GPN (4 BANK BESAR) ──
@@ -236,11 +286,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       'expiry': '01/29',
       'cvv': '999',
       'gradient': const [
-        Color(0xFFBFE39A), // Signature Soft Mint / Lime Template!
-        Color(0xFFD7F07A),
-        Color(0xFFE5FA92),
+        Color(0xFF065F46), // Rich Emerald Green
+        Color(0xFF047857),
+        Color(0xFF059669),
       ],
-      'textColor': const Color(0xFF1E293B),
+      'textColor': Colors.white,
     },
   ];
 
@@ -397,7 +447,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Section 1: KARTU VISA
                       _pickerSectionTitle('KARTU KREDIT / DEBIT (VISA)'),
                       ...List.generate(5, (i) {
                         final card = _presetCards[i];
@@ -409,7 +458,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       }),
 
                       const SizedBox(height: 14),
-                      // Section 2: DEBIT GPN
                       _pickerSectionTitle('KARTU DEBIT NASIONAL (GPN)'),
                       ...List.generate(5, (i) {
                         final idx = i + 5;
@@ -465,16 +513,19 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 22,
+              width: 44,
+              height: 26,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(6),
                 gradient: LinearGradient(
                   colors: card['gradient'] as List<Color>,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              alignment: Alignment.center,
+              child: _buildBankLogoSmall(card['bankName'] as String),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -487,29 +538,33 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-              decoration: BoxDecoration(
-                color: isVisa ? const Color(0xFFEEF2FF) : const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                isVisa ? 'VISA' : 'GPN',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w900,
-                  color: isVisa ? const Color(0xFF4338CA) : const Color(0xFFDC2626),
-                ),
-              ),
-            ),
+            if (isVisa)
+              SvgPicture.string(_svgVisaBlue, height: 13)
+            else
+              SvgPicture.string(_svgGpn, height: 20),
             if (isSelected) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               const Icon(Icons.check_circle_rounded, color: Color(0xFF018556), size: 18),
             ],
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildBankLogoSmall(String bankName) {
+    switch (bankName) {
+      case 'BCA':
+        return SvgPicture.string(_svgBca, height: 13);
+      case 'Mandiri':
+        return SvgPicture.string(_svgMandiri, height: 13);
+      case 'BRI':
+        return SvgPicture.string(_svgBri, height: 13);
+      case 'BNI':
+        return SvgPicture.string(_svgBni, height: 13);
+      default:
+        return const Icon(Icons.account_balance_rounded, color: Colors.white, size: 14);
+    }
   }
 
   // ── TRIGGER VERIFICATION FLOW ────────────────────────────────────────────────
@@ -546,6 +601,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           amountText: _formatRupiah(widget.amount),
           cardTitle: cardTitle,
           last4Digits: last4,
+          bankName: card['bankName'] as String,
           onVerified: () async {
             Navigator.pop(bottomSheetContext);
             await _finalizeSuccessfulPayment(activeOrderId);
@@ -686,7 +742,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Card Carousel
+                      // Card Carousel with Real Bank & Network Logos
                       _buildCardCarousel(),
                       const SizedBox(height: 8),
                       _buildCarouselDots(),
@@ -787,11 +843,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── 1. PAYMENT METHOD SELECTOR PILLS (VISA/GPN, GOPAY, QRIS) ─────────────────
+  // ── 1. PAYMENT METHOD SELECTOR PILLS (REAL VISA & GPN LOGOS) ────────────────
   Widget _buildPaymentSelectorPills() {
     return Row(
       children: [
-        // Tab 1: Card (VISA / GPN - NO Mastercard)
+        // Tab 1: Card (VISA / GPN Real Logos)
         Expanded(
           child: _selectorPill(
             isSelected: _selectedTab == PaymentTab.card,
@@ -799,17 +855,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.credit_card_rounded, size: 18, color: Color(0xFF0F172A)),
-                const SizedBox(width: 5),
-                Text(
-                  'Card',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF0F172A),
-                    letterSpacing: -0.2,
-                  ),
-                ),
+                SvgPicture.string(_svgVisaBlue, height: 12),
+                const SizedBox(width: 6),
+                SvgPicture.string(_svgGpn, height: 18),
               ],
             ),
           ),
@@ -857,15 +905,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.qr_code_2_rounded, size: 19, color: Color(0xFF0F172A)),
-                const SizedBox(width: 4),
-                Text(
-                  'GPN',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFDC2626),
-                  ),
-                ),
+                const SizedBox(width: 5),
+                SvgPicture.string(_svgGpn, height: 18),
               ],
             ),
           ),
@@ -901,7 +942,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── COMBOBOX PILIH BANK & KARTU (BCA, MANDIRI, BRI, BNI, LAINNYA) ───────────
+  // ── COMBOBOX PILIH BANK & KARTU ─────────────────────────────────────────────
   Widget _buildBankCombobox(Map<String, dynamic> currentCard) {
     final isVisa = currentCard['type'] == 'VISA';
 
@@ -917,10 +958,20 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            Icon(
-              isVisa ? Icons.credit_card_rounded : Icons.account_balance_rounded,
-              size: 18,
-              color: const Color(0xFF0F172A),
+            Container(
+              width: 38,
+              height: 24,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                gradient: LinearGradient(
+                  colors: currentCard['gradient'] as List<Color>,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              alignment: Alignment.center,
+              child: _buildBankLogoSmall(currentCard['bankName'] as String),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -933,21 +984,10 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: isVisa ? const Color(0xFFEEF2FF) : const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                isVisa ? 'VISA' : 'GPN',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w900,
-                  color: isVisa ? const Color(0xFF4338CA) : const Color(0xFFDC2626),
-                ),
-              ),
-            ),
+            if (isVisa)
+              SvgPicture.string(_svgVisaBlue, height: 13)
+            else
+              SvgPicture.string(_svgGpn, height: 20),
             const SizedBox(width: 6),
             const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: Color(0xFF64748B)),
           ],
@@ -956,7 +996,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── 2. CARD CAROUSEL (DIPILIH DARI COMBOBOX / SWIPE) ─────────────────────────
+  // ── 2. CARD CAROUSEL (DIPILIH DARI COMBOBOX / SWIPE DENGAN LOGO RESMI) ──────
   Widget _buildCardCarousel() {
     return SizedBox(
       height: 192,
@@ -1025,20 +1065,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Top Row: Bank Name + Brand Logo (VISA or GPN)
+                      // ── TOP ROW: REAL OFFICIAL BANK LOGO & CARD NETWORK LOGO ──
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            cardData['bankName'] as String,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w800,
-                              color: textColor,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          _buildBrandLogo(cardData['type'] as String),
+                          _buildOfficialBankLogo(cardData['bankName'] as String, textColor),
+                          _buildOfficialNetworkLogo(cardData['type'] as String),
                         ],
                       ),
 
@@ -1071,7 +1104,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
-                              color: textColor.withValues(alpha: 0.75),
+                              color: textColor.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -1101,7 +1134,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
-                                    color: textColor.withValues(alpha: 0.65),
+                                    color: textColor.withValues(alpha: 0.7),
                                   ),
                                 ),
                                 const SizedBox(height: 1),
@@ -1128,7 +1161,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
-                                    color: textColor.withValues(alpha: 0.65),
+                                    color: textColor.withValues(alpha: 0.7),
                                   ),
                                 ),
                                 const SizedBox(height: 1),
@@ -1153,7 +1186,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
-                                    color: textColor.withValues(alpha: 0.65),
+                                    color: textColor.withValues(alpha: 0.7),
                                   ),
                                 ),
                                 const SizedBox(height: 1),
@@ -1181,40 +1214,45 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  Widget _buildBrandLogo(String type) {
+  // ── LOGO RESMI BANK ASLI (BCA, MANDIRI, BRI, BNI) ───────────────────────────
+  Widget _buildOfficialBankLogo(String bankName, Color textColor) {
+    switch (bankName) {
+      case 'BCA':
+        return SvgPicture.string(_svgBca, height: 20);
+      case 'Mandiri':
+        return SvgPicture.string(_svgMandiri, height: 21);
+      case 'BRI':
+        return SvgPicture.string(_svgBri, height: 21);
+      case 'BNI':
+        return SvgPicture.string(_svgBni, height: 20);
+      default:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.account_balance_rounded, size: 18, color: textColor),
+            const SizedBox(width: 6),
+            Text(
+              'Bank Lainnya',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: textColor,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        );
+    }
+  }
+
+  // ── LOGO RESMI JARINGAN KARTU ASLI (VISA & GPN) ─────────────────────────────
+  Widget _buildOfficialNetworkLogo(String type) {
     if (type.contains('VISA')) {
-      return Text(
-        'VISA',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 18,
-          fontWeight: FontWeight.w900,
-          fontStyle: FontStyle.italic,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
-      );
+      return SvgPicture.string(_svgVisaWhite, height: 18);
     }
 
-    // Default: Red Official GPN Badge
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDC2626),
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: const [
-          BoxShadow(color: Color(0x22000000), blurRadius: 4, offset: Offset(0, 1)),
-        ],
-      ),
-      child: Text(
-        'GPN',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
+    // Official GPN Red Badge
+    return SvgPicture.string(_svgGpn, height: 28);
   }
 
   Widget _buildCarouselDots() {
@@ -1487,22 +1525,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDC2626),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'GPN',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
+              SvgPicture.string(_svgGpn, height: 26),
+              const SizedBox(width: 10),
               Text(
                 'QRIS Standar Nasional',
                 style: GoogleFonts.plusJakartaSans(
@@ -1556,6 +1580,7 @@ class _OtpVerificationSheet extends StatefulWidget {
   final String amountText;
   final String cardTitle;
   final String last4Digits;
+  final String bankName;
   final VoidCallback onVerified;
 
   const _OtpVerificationSheet({
@@ -1563,6 +1588,7 @@ class _OtpVerificationSheet extends StatefulWidget {
     required this.amountText,
     required this.cardTitle,
     required this.last4Digits,
+    required this.bankName,
     required this.onVerified,
   });
 
@@ -2120,11 +2146,7 @@ class _QrisConfirmationSheetState extends State<_QrisConfirmationSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFFDC2626), borderRadius: BorderRadius.circular(6)),
-                child: Text('GPN', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, fontSize: 11, color: Colors.white)),
-              ),
+              SvgPicture.string(_svgGpn, height: 26),
               const SizedBox(width: 8),
               Text(
                 'Pembayaran QRIS',
