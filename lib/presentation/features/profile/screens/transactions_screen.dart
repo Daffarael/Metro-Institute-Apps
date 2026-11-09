@@ -5,6 +5,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/user_remote_datasource.dart';
 import '../../learn/widgets/thermal_receipt_dialog.dart';
+import 'payment_webview_screen.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -272,6 +273,116 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 ),
                 child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ] else if (statusInfo.$3 == 'Menunggu Pembayaran') ...[
+              if (tx['snapToken'] != null && tx['snapToken'].toString().isNotEmpty) ...[
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final snapToken = tx['snapToken'].toString();
+                    final paymentUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/$snapToken';
+                    final numVal = (tx['grossAmount'] ?? tx['amount'] as num?)?.toInt() ?? 0;
+                    final res = await Navigator.of(context, rootNavigator: true).push<bool?>(
+                      MaterialPageRoute(
+                        builder: (_) => PaymentWebViewScreen(
+                          orderId: orderId.toString(),
+                          paymentUrl: paymentUrl,
+                          amount: numVal,
+                        ),
+                      ),
+                    );
+                    if (res == true) {
+                      _fetchTransactions();
+                    }
+                  },
+                  icon: const Icon(Icons.payment_rounded, size: 18),
+                  label: const Text('Lanjutkan Pembayaran', style: TextStyle(fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F172A),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              OutlinedButton.icon(
+                onPressed: () async {
+                  try {
+                    final res = await _userDataSource.verifyTransaction(orderId.toString());
+                    final status = res['status']?.toString().toUpperCase();
+                    if (!mounted) return;
+                    if (status == 'SUCCESS' || status == 'SETTLEMENT' || status == 'CAPTURE') {
+                      Navigator.pop(ctx);
+                      _fetchTransactions();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Pembayaran berhasil dikonfirmasi!'),
+                          backgroundColor: Color(0xFF018556),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(res['message']?.toString() ?? 'Status pembayaran masih menunggu.'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal cek status: $e'), behavior: SnackBarBehavior.floating),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.sync_rounded, size: 18),
+                label: const Text('Cek Status Pembayaran', style: TextStyle(fontWeight: FontWeight.w700)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF0F172A),
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    await _userDataSource.simulateTransaction(orderId.toString());
+                    if (!mounted) return;
+                    Navigator.pop(ctx);
+                    _fetchTransactions();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Pembayaran berhasil disimulasikan lunas!'),
+                        backgroundColor: Color(0xFF018556),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal simulasi: $e'), behavior: SnackBarBehavior.floating),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.check_circle_rounded, size: 18),
+                label: const Text('Simulasi Lunas (Sandbox Test)', style: TextStyle(fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF018556),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
               ),
             ] else ...[
               ElevatedButton(

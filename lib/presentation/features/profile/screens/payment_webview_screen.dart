@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../data/datasources/remote/user_remote_datasource.dart';
 
 class PaymentWebViewScreen extends StatefulWidget {
   final String orderId;
@@ -21,9 +23,12 @@ class PaymentWebViewScreen extends StatefulWidget {
 }
 
 class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
+  final UserRemoteDataSource _userDs = sl<UserRemoteDataSource>();
   late final WebViewController _controller;
   int _loadingProgress = 0;
   bool _hasError = false;
+  bool _isSimulating = false;
+  bool _isVerifying = false;
 
   @override
   void initState() {
@@ -77,7 +82,9 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
               final uri = Uri.tryParse(url);
               if (uri != null) {
-                launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);
+                launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication).catchError((_) async {
+                  return launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);
+                });
               }
               return NavigationDecision.prevent;
             }
@@ -95,6 +102,68 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
         lower.contains('status_code=200') ||
         lower.contains('transaction_status=settlement')) {
       if (mounted) Navigator.of(context).pop(true);
+    }
+  }
+
+  Future<void> _handleSimulateSuccess() async {
+    setState(() => _isSimulating = true);
+    try {
+      final res = await _userDs.simulateTransaction(widget.orderId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pembayaran berhasil disimulasikan lunas!'),
+          backgroundColor: Color(0xFF018556),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSimulating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal simulasi: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleVerifyPayment() async {
+    setState(() => _isVerifying = true);
+    try {
+      final res = await _userDs.verifyTransaction(widget.orderId);
+      if (!mounted) return;
+      setState(() => _isVerifying = false);
+      final status = res['status']?.toString().toUpperCase();
+      if (status == 'SUCCESS' || status == 'SETTLEMENT' || status == 'CAPTURE') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pembayaran berhasil dikonfirmasi lunas!'),
+            backgroundColor: Color(0xFF018556),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.of(context).pop(true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res['message']?.toString() ?? 'Status pembayaran masih menunggu.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isVerifying = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal cek status: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -246,6 +315,61 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
                 ),
               )
             : WebViewWidget(controller: _controller),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, -3),
+              ),
+            ],
+            border: const Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: OutlinedButton.icon(
+                    onPressed: (_isVerifying || _isSimulating) ? null : _handleVerifyPayment,
+                    icon: _isVerifying
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.sync_rounded, size: 16),
+                    label: const Text('Cek Status', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0F172A),
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 6,
+                  child: ElevatedButton.icon(
+                    onPressed: (_isVerifying || _isSimulating) ? null : _handleSimulateSuccess,
+                    icon: _isSimulating
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Icon(Icons.check_circle_rounded, size: 16),
+                    label: const Text('Simulasi Lunas (Test)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF018556),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

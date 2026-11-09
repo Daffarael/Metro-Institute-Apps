@@ -42,8 +42,8 @@ class CheckoutBottomSheet extends StatefulWidget {
     String? subtitle,
     VoidCallback? onSuccess,
     VoidCallback? onStartLearning,
-  }) {
-    return showModalBottomSheet<bool>(
+  }) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       useRootNavigator: false,
       isScrollControlled: true,
@@ -57,6 +57,116 @@ class CheckoutBottomSheet extends StatefulWidget {
         subtitle: subtitle,
         onSuccess: onSuccess,
         onStartLearning: onStartLearning,
+      ),
+    );
+
+    if (result == null) return false;
+
+    if (result['success'] == true) {
+      onSuccess?.call();
+      if (context.mounted) {
+        ThermalReceiptDialog.show(
+          context,
+          orderId: result['orderId']?.toString() ?? 'METRO-${DateTime.now().millisecondsSinceEpoch}',
+          title: title,
+          amount: (result['amount'] as num?)?.toInt() ?? 0,
+          productType: productType,
+          mentorName: subtitle,
+          onStartLearning: () {
+            if (context.mounted) {
+              Navigator.of(context, rootNavigator: true).maybePop();
+            }
+            if (onStartLearning != null) {
+              onStartLearning();
+            } else {
+              onSuccess?.call();
+            }
+          },
+        );
+      }
+      return true;
+    } else if (result['pending'] == true) {
+      if (context.mounted) {
+        _showPendingDialogStatic(context, result['orderId']?.toString() ?? '');
+      }
+      return false;
+    }
+
+    return false;
+  }
+
+  static void _showPendingDialogStatic(BuildContext context, String orderId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 36),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Menunggu Pembayaran',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pesanan $orderId telah tersimpan. Silakan selesaikan pembayaran sesuai instruksi bank atau e-wallet pilihan Anda.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.push(AppRoutes.transactions);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Lihat Riwayat Transaksi',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Tutup',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -206,24 +316,11 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
       // 2. Free Enrollment flow (Diskon 100% / Gratis)
       if (isFreeEnrollment) {
-        Navigator.pop(context, true);
-        widget.onSuccess?.call();
-        ThermalReceiptDialog.show(
-          context,
-          orderId: orderId,
-          title: widget.title,
-          amount: 0,
-          productType: widget.productType,
-          mentorName: widget.subtitle,
-          onStartLearning: () {
-            Navigator.of(context).pop();
-            if (widget.onStartLearning != null) {
-              widget.onStartLearning!();
-            } else {
-              widget.onSuccess?.call();
-            }
-          },
-        );
+        Navigator.pop(context, {
+          'success': true,
+          'orderId': orderId,
+          'amount': 0,
+        });
         return;
       }
 
@@ -247,28 +344,17 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
       if (result == true) {
         // Payment successful
-        Navigator.pop(context, true);
-        widget.onSuccess?.call();
-        ThermalReceiptDialog.show(
-          context,
-          orderId: orderId,
-          title: widget.title,
-          amount: _finalAmount,
-          productType: widget.productType,
-          mentorName: widget.subtitle,
-          onStartLearning: () {
-            Navigator.of(context).pop();
-            if (widget.onStartLearning != null) {
-              widget.onStartLearning!();
-            } else {
-              widget.onSuccess?.call();
-            }
-          },
-        );
+        Navigator.pop(context, {
+          'success': true,
+          'orderId': orderId,
+          'amount': _finalAmount,
+        });
       } else {
         // Pending or closed
-        Navigator.pop(context, false);
-        _showPendingDialog(orderId);
+        Navigator.pop(context, {
+          'pending': true,
+          'orderId': orderId,
+        });
       }
     } catch (e) {
       if (!mounted) return;
@@ -286,82 +372,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         _errorMessage = msg;
       });
     }
-  }
-
-  void _showPendingDialog(String orderId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEF3C7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 36),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Menunggu Pembayaran',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pesanan $orderId telah tersimpan. Silakan selesaikan pembayaran sesuai instruksi bank atau e-wallet pilihan Anda.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                color: const Color(0xFF64748B),
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  context.push(AppRoutes.transactions);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Lihat Riwayat Transaksi',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Tutup',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.5,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
