@@ -842,12 +842,12 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
               const SizedBox(height: 20),
 
-              // CTA Button (Adaptive: Solid Green if Free, Solid Metro Yellow if Paid)
+              // CTA Button (Adaptive: Solid Green if Free, True Metro Yellow #FAE653 if Paid)
               ElevatedButton(
                 onPressed: _isLoading ? null : _handleInitiatePayment,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isFree ? const Color(0xFF018556) : const Color(0xFFD4F05A),
-                  foregroundColor: _isFree ? Colors.white : const Color(0xFF1E293B),
+                  backgroundColor: _isFree ? const Color(0xFF018556) : const Color(0xFFFAE653),
+                  foregroundColor: _isFree ? Colors.white : const Color(0xFF0F172A),
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                   elevation: 0,
@@ -857,7 +857,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                          color: _isFree ? Colors.white : const Color(0xFF1E293B),
+                          color: _isFree ? Colors.white : const Color(0xFF0F172A),
                           strokeWidth: 2.2,
                         ),
                       )
@@ -866,7 +866,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: _isFree ? Colors.white : const Color(0xFF1E293B),
+                          color: _isFree ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
               ),

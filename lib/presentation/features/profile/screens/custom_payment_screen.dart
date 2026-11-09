@@ -821,8 +821,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleProcessPayment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4F05A),
-                    foregroundColor: const Color(0xFF1E293B),
+                    backgroundColor: const Color(0xFFFAE653), // Official Metro Yellow #FAE653
+                    foregroundColor: const Color(0xFF0F172A),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
@@ -835,7 +835,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           height: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.5,
-                            color: Color(0xFF1E293B),
+                            color: Color(0xFF0F172A),
                           ),
                         )
                       : Text(
