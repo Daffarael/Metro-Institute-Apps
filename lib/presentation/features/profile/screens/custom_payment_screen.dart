@@ -105,6 +105,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
   int _selectedDebitIndex = 0;
   int _selectedVaBankIndex = 0;
+  bool _isVaGenerated = false;
   String? _liveVaNumber;
   String? _liveBillKey;
   String? _liveBillerCode;
@@ -322,7 +323,10 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     _cvvController.text = initialOption['cvv'] as String;
 
     _loadUserName();
-    _startMidtransSettlementPolling();
+    if (widget.vaNumber != null && widget.vaNumber!.isNotEmpty) {
+      _isVaGenerated = true;
+      _startMidtransSettlementPolling();
+    }
 
     _cardNumberController.addListener(() {
       final digits = _cardNumberController.text.replaceAll(' ', '');
@@ -412,8 +416,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       _liveBillKey = null;
       _liveBillerCode = null;
     });
-    final bank = _vaBanks[index];
-    _fetchLiveVaNumber(bank['code'] as String);
   }
 
   Future<void> _fetchLiveVaNumber(String bankCode) async {
@@ -609,8 +611,24 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     if (_selectedTab == PaymentTab.card) {
       _show3dSecureDialog(activeOrderId);
     } else {
-      _handleCheckVaPaymentStatus(activeOrderId);
+      if (!_isVaGenerated) {
+        _generateVirtualAccount(activeOrderId);
+      } else {
+        _handleCheckVaPaymentStatus(activeOrderId);
+      }
     }
+  }
+
+  Future<void> _generateVirtualAccount(String activeOrderId) async {
+    setState(() => _isLoading = true);
+    final bank = _vaBanks[_selectedVaBankIndex];
+    await _fetchLiveVaNumber(bank['code'] as String);
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _isVaGenerated = true;
+    });
+    _startMidtransSettlementPolling();
   }
 
   Future<void> _handleCheckVaPaymentStatus(String activeOrderId) async {
@@ -822,7 +840,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           ),
                         )
                       : Text(
-                          _selectedTab == PaymentTab.card ? 'Payment' : 'Cek Status Pembayaran',
+                          _selectedTab == PaymentTab.card ? 'Payment' : (_isVaGenerated ? 'Cek Status Pembayaran' : 'Lanjut'),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16.5,
                             fontWeight: FontWeight.w800,
@@ -876,12 +894,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         Expanded(
           child: _selectorPill(
             isSelected: _selectedTab == PaymentTab.va,
-            onTap: () {
-              setState(() => _selectedTab = PaymentTab.va);
-              if (_liveVaNumber == null) {
-                _selectVaBank(_selectedVaBankIndex);
-              }
-            },
+            onTap: () => setState(() => _selectedTab = PaymentTab.va),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1640,15 +1653,18 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── VIRTUAL ACCOUNT CONTENT (10 BANK LENGKAP & SIMULATOR INTEGRATION) ────────
+  // ── VIRTUAL ACCOUNT CONTENT: STEP 1 (PILIH) & STEP 2 (DETAIL VA SETELAH LANJUT) ──
   Widget _buildVirtualAccountContent(String activeOrderId) {
-    final activeBank = _vaBanks[_selectedVaBankIndex];
-    final isMandiri = activeBank['id'] == 'mandiri';
+    if (!_isVaGenerated) {
+      return _buildVaSelectionView(activeOrderId);
+    } else {
+      return _buildVaDetailView(activeOrderId);
+    }
+  }
 
-    final displayVaNumber = _liveVaNumber ??
-        (widget.vaNumber?.isNotEmpty == true ? widget.vaNumber! : activeBank['defaultVa'] as String);
-    final displayBillerCode = _liveBillerCode ?? activeBank['billerCode']?.toString() ?? '70012';
-    final displayBillKey = _liveBillKey ?? _liveVaNumber ?? activeBank['defaultVa'] as String;
+  // ── STEP 1: PEMILIHAN BANK VIRTUAL ACCOUNT (SEBELUM KLIK LANJUT) ───────────
+  Widget _buildVaSelectionView(String activeOrderId) {
+    final activeBank = _vaBanks[_selectedVaBankIndex];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1658,11 +1674,14 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         GestureDetector(
           onTap: _showVaBankPickerBottomSheet,
           child: Container(
-            height: 50,
+            height: 52,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(26),
               border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
+              boxShadow: const [
+                BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 2)),
+              ],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -1688,12 +1707,263 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 22),
+                const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 24),
               ],
             ),
           ),
         ),
         const SizedBox(height: 16),
+
+        // ── KARTU INFORMASI BANK TERPILIH ─────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 3)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _buildVaBankLogoBadge(activeBank),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          activeBank['name'] as String,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Transfer Bank Otomatis',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: Text(
+                      'OTOMATIS',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF047857),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              const SizedBox(height: 14),
+
+              _vaBenefitRow(Icons.bolt_rounded, 'Verifikasi instan otomatis 24 jam tanpa perlu upload bukti'),
+              const SizedBox(height: 8),
+              _vaBenefitRow(Icons.check_circle_outline_rounded, 'Dapat dibayar dari ATM, Mobile Banking, atau Internet Banking'),
+              const SizedBox(height: 8),
+              _vaBenefitRow(Icons.shield_outlined, 'Transaksi terenkripsi dan aman'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ── RINGKASAN PEMBAYARAN ──────────────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Metode Pembayaran',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF64748B)),
+                  ),
+                  Text(
+                    activeBank['name'] as String,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Biaya Layanan',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF64748B)),
+                  ),
+                  Text(
+                    'Gratis',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF047857),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Pembayaran',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  Text(
+                    _formatRupiah(widget.amount),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF018556),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Hint Box
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFDBEAFE)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF2563EB)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Nomor Virtual Account resmi akan dibuat setelah Anda menekan tombol Lanjut di bawah.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    color: const Color(0xFF1E40AF),
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _vaBenefitRow(IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF047857)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: const Color(0xFF334155),
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── STEP 2: DETAIL VIRTUAL ACCOUNT (SETELAH KLIK LANJUT) ───────────────────
+  Widget _buildVaDetailView(String activeOrderId) {
+    final activeBank = _vaBanks[_selectedVaBankIndex];
+    final isMandiri = activeBank['id'] == 'mandiri';
+
+    final displayVaNumber = _liveVaNumber ??
+        (widget.vaNumber?.isNotEmpty == true ? widget.vaNumber! : activeBank['defaultVa'] as String);
+    final displayBillerCode = _liveBillerCode ?? activeBank['billerCode']?.toString() ?? '70012';
+    final displayBillKey = _liveBillKey ?? _liveVaNumber ?? activeBank['defaultVa'] as String;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Status Menunggu Pembayaran
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBEB),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFFDE68A)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.hourglass_top_rounded, size: 20, color: Color(0xFFD97706)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Menunggu Pembayaran',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF92400E),
+                      ),
+                    ),
+                    Text(
+                      'Silakan transfer ke nomor Virtual Account di bawah.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: const Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
 
         // ── KARTU DETAIL VIRTUAL ACCOUNT ──────────────────────────────────────
         Container(
@@ -1752,7 +2022,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
               // Nomor Virtual Account / Mandiri Bill
               if (isMandiri) ...[
-                // Mandiri Kode Perusahaan
                 Text(
                   'Kode Perusahaan',
                   style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
@@ -1770,7 +2039,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Mandiri No Pelanggan / Bill Key
                 Text(
                   'No. Pelanggan / Bill Key',
                   style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
@@ -1787,7 +2055,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                   ],
                 ),
               ] else ...[
-                // Standard Virtual Account Number
                 Text(
                   'Nomor Virtual Account',
                   style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
@@ -1826,7 +2093,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               const Divider(height: 1, color: Color(0xFFE2E8F0)),
               const SizedBox(height: 14),
 
-              // Total Pembayaran
+              // Total Pembayaran (TANPA TOMBOL SALIN)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1841,14 +2108,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       Text(
                         _formatRupiah(widget.amount),
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
+                          fontSize: 17,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF018556),
                         ),
                       ),
                     ],
                   ),
-                  _copyButton(() => _copyToClipboard(widget.amount.toString(), 'Nominal Pembayaran')),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1872,7 +2138,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           ),
         ),
         const SizedBox(height: 16),
-
 
         // ── PETUNJUK CARA TRANSFER ACCORDION ─────────────────────────────────
         Container(
@@ -1943,6 +2208,23 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // ── TOMBOL GANTI METODE / BANK ───────────────────────────────────────
+        Center(
+          child: TextButton.icon(
+            onPressed: () => setState(() => _isVaGenerated = false),
+            icon: const Icon(Icons.arrow_back_rounded, size: 16, color: Color(0xFF64748B)),
+            label: Text(
+              'Ganti Bank / Metode Pembayaran',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
+              ),
             ),
           ),
         ),
