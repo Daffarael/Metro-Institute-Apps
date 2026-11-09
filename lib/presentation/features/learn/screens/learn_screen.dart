@@ -1805,21 +1805,9 @@ class _LearnScreenState extends State<LearnScreen> {
                   fit: StackFit.expand,
                   children: [
                     if (thumbnail.isNotEmpty) ...[
-                      // Ambient soft blur behind thumbnail to fill any aspect ratio gaps gracefully
-                      ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                        child: Opacity(
-                          opacity: 0.35,
-                          child: CachedNetworkImage(
-                            imageUrl: thumbnail,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      // Crisp, uncropped thumbnail displayed in its entirety
                       CachedNetworkImage(
                         imageUrl: thumbnail,
-                        fit: BoxFit.contain,
+                        fit: BoxFit.cover,
                         alignment: Alignment.center,
                         placeholder: (context, url) => Container(color: const Color(0xFFF8FAFC)),
                         errorWidget: (context, url, error) => Container(

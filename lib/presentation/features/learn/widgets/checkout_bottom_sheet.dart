@@ -376,110 +376,135 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    try {
+      final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.90,
-      ),
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ── 1. MODAL HEADER (1:1 with Web Mentee CheckoutModal) ──────
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Konfirmasi Pendaftaran',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
-                            letterSpacing: -0.3,
+      return Container(
+        width: double.infinity,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.90,
+        ),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── 1. MODAL HEADER (1:1 with Web Mentee CheckoutModal) ──────
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Konfirmasi Pendaftaran',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                              letterSpacing: -0.3,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Periksa rincian pesanan & gunakan voucher diskon',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            color: const Color(0xFF475569),
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 3),
+                          Text(
+                            'Periksa rincian pesanan & gunakan voucher diskon',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              color: const Color(0xFF475569),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: _isLoading ? null : () => Navigator.pop(context),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: Color(0xFF475569),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: _isLoading ? null : () => Navigator.pop(context),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
-              const SizedBox(height: 14),
-              const Divider(color: Color(0xFFE2E8F0), height: 1),
-              const SizedBox(height: 16),
-
-              // ── 2. PRODUCT INFO CARD ─────────────────────────────────────
-              _buildProductCard(),
-
-              const SizedBox(height: 16),
-
-              // ── 3. VOUCHER SECTION ───────────────────────────────────────
-              _buildVoucherSection(),
-
-              const SizedBox(height: 16),
-
-              // ── 4. COST SUMMARY BOX ──────────────────────────────────────
-              _buildCostSummaryBox(),
-
-              // Error Banner
-              if (_errorMessage != null) ...[
                 const SizedBox(height: 14),
-                _buildErrorBanner(),
+                const Divider(color: Color(0xFFE2E8F0), height: 1),
+                const SizedBox(height: 16),
+
+                // ── 2. PRODUCT INFO CARD ─────────────────────────────────────
+                _buildProductCard(),
+
+                const SizedBox(height: 16),
+
+                // ── 3. VOUCHER SECTION ───────────────────────────────────────
+                _buildVoucherSection(),
+
+                const SizedBox(height: 16),
+
+                // ── 4. COST SUMMARY BOX ──────────────────────────────────────
+                _buildCostSummaryBox(),
+
+                // Error Banner
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 14),
+                  _buildErrorBanner(),
+                ],
+
+                const SizedBox(height: 20),
+                const Divider(color: Color(0xFFE2E8F0), height: 1),
+                const SizedBox(height: 16),
+
+                // ── 5. MODAL FOOTER BUTTONS ──────────────────────────────────
+                _buildFooterButtons(),
               ],
-
-              const SizedBox(height: 20),
-              const Divider(color: Color(0xFFE2E8F0), height: 1),
-              const SizedBox(height: 16),
-
-              // ── 5. MODAL FOOTER BUTTONS ──────────────────────────────────
-              _buildFooterButtons(),
-            ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (e, stack) {
+      debugPrint('Error building CheckoutBottomSheet: $e\n$stack');
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+            const SizedBox(height: 12),
+            Text(
+              'Gagal memuat rincian checkout: $e',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(color: Colors.red, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   // ── PRODUCT CARD ─────────────────────────────────────────────────────────────
