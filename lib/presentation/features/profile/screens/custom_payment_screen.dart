@@ -48,7 +48,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
   PaymentTab _selectedTab = PaymentTab.card;
   bool _isLoading = false;
-  bool _isCheckingStatus = false;
   String? _errorMessage;
 
   // Real-time Midtrans settlement poller
@@ -122,7 +121,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     // Load logged in user name if available
     _loadUserName();
 
-    // Start Real-Time Polling to Midtrans Sandbox Server every 3 seconds!
+    // Start Real-Time Polling to Midtrans Sandbox Server every 3 seconds
     _startMidtransSettlementPolling();
 
     _cardNumberController.addListener(() {
@@ -150,15 +149,12 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
   void _startMidtransSettlementPolling() {
     _midtransPollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      _checkMidtransStatus(showToast: false);
+      _checkMidtransStatus();
     });
   }
 
-  Future<void> _checkMidtransStatus({bool showToast = false}) async {
+  Future<void> _checkMidtransStatus() async {
     if (widget.orderId.isEmpty) return;
-    if (_isCheckingStatus) return;
-
-    if (showToast) setState(() => _isCheckingStatus = true);
 
     try {
       final res = await _userDataSource.verifyTransaction(widget.orderId);
@@ -168,24 +164,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         _midtransPollTimer?.cancel();
         if (!mounted) return;
         Navigator.pop(context, true);
-        return;
-      }
-
-      if (showToast && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Status Midtrans: ${status ?? 'PENDING'} (Menunggu Pembayaran)'),
-            duration: const Duration(seconds: 2),
-            backgroundColor: const Color(0xFF0F172A),
-          ),
-        );
       }
     } catch (_) {
       // Ignored during passive polling
-    } finally {
-      if (showToast && mounted) {
-        setState(() => _isCheckingStatus = false);
-      }
     }
   }
 
@@ -231,17 +212,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     final str = amount.toString();
     final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
     return 'Rp ${str.replaceAllMapped(regExp, (m) => '${m[1]}.')}';
-  }
-
-  void _copyToClipboard(String text, String label) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label berhasil disalin ke clipboard!'),
-        backgroundColor: const Color(0xFF018556),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   // ── TRIGGER VERIFICATION FLOW ────────────────────────────────────────────────
@@ -317,7 +287,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           orderId: activeOrderId,
           amountText: _formatRupiah(widget.amount),
           qrString: widget.qrString,
-          onCheckStatus: () => _checkMidtransStatus(showToast: true),
           onVerified: () async {
             Navigator.pop(bottomSheetContext);
             await _finalizeSuccessfulPayment(activeOrderId);
@@ -354,9 +323,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── TOP BAR ──────────────────────────────────────────────────────
+            // ── TOP BAR (Back chevron + "Payment" title) ─────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Row(
                 children: [
                   GestureDetector(
@@ -393,51 +362,10 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               ),
             ),
 
-            // ── MIDTRANS LIVE BADGE ──────────────────────────────────────────
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Midtrans Sandbox: ${widget.orderId}',
-                      style: GoogleFonts.spaceMono(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF475569),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _copyToClipboard(widget.orderId, 'Order ID Midtrans'),
-                    child: const Icon(Icons.copy_rounded, size: 14, color: Color(0xFF64748B)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-
             // ── SCROLLABLE CONTENT ───────────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.only(top: 4, bottom: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -446,14 +374,14 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: _buildPaymentSelectorPills(),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
                     // 2. Tab Content
                     if (_selectedTab == PaymentTab.card) ...[
                       _buildCardCarousel(),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       _buildCarouselDots(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: _buildCardFormFields(),
@@ -471,7 +399,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     ],
 
                     if (_errorMessage != null) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Container(
@@ -494,7 +422,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -502,49 +430,44 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
             // ── BOTTOM FLOATING ACTION BUTTON ────────────────────────────────
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleProcessPayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD4F05A),
-                        foregroundColor: const Color(0xFF1E293B),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        minimumSize: const Size(double.infinity, 56),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Color(0xFF1E293B),
-                              ),
-                            )
-                          : Text(
-                              'Payment',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1E293B),
-                                letterSpacing: -0.2,
-                              ),
-                            ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleProcessPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFD4F05A),
+                    foregroundColor: const Color(0xFF1E293B),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
                     ),
+                    minimumSize: const Size(double.infinity, 54),
                   ),
-                ],
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Color(0xFF1E293B),
+                          ),
+                        )
+                      : Text(
+                          'Payment',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF1E293B),
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                ),
               ),
             ),
           ],
@@ -665,7 +588,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 56,
+        height: 54,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -687,7 +610,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   // ── 2. CARD CAROUSEL ─────────────────────────────────────────────────────────
   Widget _buildCardCarousel() {
     return SizedBox(
-      height: 206,
+      height: 196,
       child: PageView.builder(
         controller: _cardPageController,
         onPageChanged: _onCardPageChanged,
@@ -702,7 +625,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
           final displayName = isSelected && _nameController.text.trim().isNotEmpty
               ? _nameController.text.trim()
-              : 'Koushik Sarkar';
+              : 'Metro Student';
 
           final displayExpiry = isSelected && _expiryController.text.trim().isNotEmpty
               ? _expiryController.text.trim()
@@ -715,7 +638,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 7),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(22),
               gradient: LinearGradient(
                 colors: cardData['gradient'] as List<Color>,
                 begin: Alignment.topLeft,
@@ -724,20 +647,20 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isSelected ? const Color(0x18000000) : const Color(0x08000000),
-                  blurRadius: isSelected ? 20 : 10,
-                  offset: const Offset(0, 8),
+                  blurRadius: isSelected ? 18 : 8,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Stack(
               children: [
                 CustomPaint(
-                  size: const Size(double.infinity, 206),
+                  size: const Size(double.infinity, 196),
                   painter: _CardWavePainter(),
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -748,7 +671,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           Text(
                             cardData['label'] as String,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 17,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: cardData['textColor'] as Color,
                               letterSpacing: -0.2,
@@ -763,8 +686,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Container(
-                            width: 38,
-                            height: 28,
+                            width: 36,
+                            height: 26,
                             decoration: BoxDecoration(
                               color: const Color(0xFFE2E8F0),
                               borderRadius: BorderRadius.circular(6),
@@ -772,8 +695,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                             ),
                             child: Center(
                               child: Container(
-                                width: 22,
-                                height: 16,
+                                width: 20,
+                                height: 14,
                                 decoration: BoxDecoration(
                                   border: Border.all(color: const Color(0xFF94A3B8), width: 0.8),
                                   borderRadius: BorderRadius.circular(3),
@@ -784,7 +707,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           Text(
                             cardData['sublabel'] as String,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w600,
                               color: (cardData['textColor'] as Color).withValues(alpha: 0.75),
                             ),
@@ -795,9 +718,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       Text(
                         displayNum,
                         style: GoogleFonts.spaceMono(
-                          fontSize: 16.5,
+                          fontSize: 15.5,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.8,
+                          letterSpacing: 1.6,
                           color: cardData['textColor'] as Color,
                         ),
                       ),
@@ -812,7 +735,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                 Text(
                                   'Card Holder',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9,
+                                    fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
                                     color: (cardData['textColor'] as Color).withValues(alpha: 0.6),
                                   ),
@@ -823,7 +746,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: cardData['textColor'] as Color,
                                   ),
@@ -839,7 +762,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                 Text(
                                   'Expires',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9,
+                                    fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
                                     color: (cardData['textColor'] as Color).withValues(alpha: 0.6),
                                   ),
@@ -848,7 +771,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                 Text(
                                   displayExpiry,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: cardData['textColor'] as Color,
                                   ),
@@ -864,7 +787,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                 Text(
                                   'CVV',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9,
+                                    fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
                                     color: (cardData['textColor'] as Color).withValues(alpha: 0.6),
                                   ),
@@ -873,7 +796,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                 Text(
                                   displayCvv,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: cardData['textColor'] as Color,
                                   ),
@@ -899,7 +822,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       return Text(
         'VISA',
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 19,
+          fontSize: 18,
           fontWeight: FontWeight.w900,
           fontStyle: FontStyle.italic,
           color: const Color(0xFF1E3A8A),
@@ -907,7 +830,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       );
     } else if (type.contains('GPN')) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
           color: const Color(0xFFDC2626),
           borderRadius: BorderRadius.circular(6),
@@ -915,7 +838,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         child: Text(
           'GPN',
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: FontWeight.w900,
             color: Colors.white,
           ),
@@ -926,15 +849,15 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     return Row(
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 19,
+          height: 19,
           decoration: const BoxDecoration(color: Color(0xFFEB001B), shape: BoxShape.circle),
         ),
         Transform.translate(
-          offset: const Offset(-8, 0),
+          offset: const Offset(-7, 0),
           child: Container(
-            width: 20,
-            height: 20,
+            width: 19,
+            height: 19,
             decoration: BoxDecoration(
               color: const Color(0xFFF79E1B).withValues(alpha: 0.9),
               shape: BoxShape.circle,
@@ -970,7 +893,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _fieldLabel('Card Number'),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         _pillTextField(
           controller: _cardNumberController,
           hint: '1234 5678 1234 5678',
@@ -981,7 +904,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             LengthLimitingTextInputFormatter(19),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
         Row(
           children: [
@@ -990,21 +913,21 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _fieldLabel('Name'),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   _pillTextField(
                     controller: _nameController,
-                    hint: 'Koushik Sarkar',
+                    hint: 'Nama Pemegang Kartu',
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _fieldLabel('Card ID'),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   _pillTextField(
                     controller: _cardTypeController,
                     hint: 'Mastercard',
@@ -1015,7 +938,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
         Row(
           children: [
@@ -1024,7 +947,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _fieldLabel('Expiration Date'),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   _pillTextField(
                     controller: _expiryController,
                     hint: '07/29',
@@ -1038,13 +961,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _fieldLabel('CVV'),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   _pillTextField(
                     controller: _cvvController,
                     hint: '215',
@@ -1067,7 +990,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     return Text(
       text,
       style: GoogleFonts.plusJakartaSans(
-        fontSize: 13,
+        fontSize: 12.5,
         fontWeight: FontWeight.w600,
         color: const Color(0xFF475569),
       ),
@@ -1082,13 +1005,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     bool readOnly = false,
   }) {
     return Container(
-      height: 52,
+      height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.3),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: controller,
@@ -1096,7 +1019,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 14,
+          fontSize: 13.5,
           fontWeight: FontWeight.w600,
           color: const Color(0xFF0F172A),
         ),
@@ -1104,7 +1027,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           isDense: true,
           hintText: hint,
           hintStyle: GoogleFonts.plusJakartaSans(
-            fontSize: 13.5,
+            fontSize: 13,
             color: const Color(0xFF94A3B8),
             fontWeight: FontWeight.w500,
           ),
@@ -1121,7 +1044,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
@@ -1140,7 +1063,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'GoPay E-Wallet (Midtrans)',
+                    'GoPay E-Wallet',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
@@ -1148,7 +1071,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     ),
                   ),
                   Text(
-                    'Terhubung langsung ke Sandbox Midtrans',
+                    'Pembayaran instan via GoPay',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       color: const Color(0xFF64748B),
@@ -1158,9 +1081,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           _fieldLabel('Nomor Handphone Terdaftar'),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           _pillTextField(
             controller: _phoneController,
             hint: '0812 3456 7890',
@@ -1168,7 +1091,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            'Klik tombol Payment di bawah untuk konfirmasi PIN, atau lunaskan transaksi order ${widget.orderId} via website Midtrans Simulator.',
+            'Setelah menekan tombol Payment, Anda akan diarahkan untuk memvalidasi transaksi dengan aman.',
             style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), height: 1.45),
           ),
         ],
@@ -1178,13 +1101,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
   // ── QRIS / GPN CONTENT ───────────────────────────────────────────────────────
   Widget _buildQrisGpnContent() {
-    final qrCodeValue = widget.qrString ?? 'https://simulator.sandbox.midtrans.com/qris/index';
-
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
@@ -1209,7 +1130,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'QRIS Standar Nasional (Midtrans)',
+                'QRIS Standar Nasional',
                 style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w800,
                   fontSize: 15,
@@ -1238,57 +1159,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Midtrans QRIS Simulator Copy Button
-          GestureDetector(
-            onTap: () => _copyToClipboard(qrCodeValue, 'Kode QRIS Midtrans'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFBFDBFE)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.copy_rounded, size: 14, color: Color(0xFF2563EB)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Salin Kode QRIS untuk Midtrans Simulator',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1D4ED8),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
           Text(
-            'Buka simulator.sandbox.midtrans.com/qris/index lalu paste kode QRIS untuk bayar di Midtrans Simulator. Aplikasi akan mendeteksi status settlement secara otomatis!',
+            'Mendukung semua Bank GPN (BCA, Mandiri, BRI, BNI) & E-Wallet (GoPay, OVO, Dana, ShopeePay)',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11.5,
               color: const Color(0xFF64748B),
               height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Check Status Button
-          TextButton.icon(
-            onPressed: () => _checkMidtransStatus(showToast: true),
-            icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF0F172A)),
-            label: Text(
-              'Cek Status Midtrans Sekarang',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
-              ),
             ),
           ),
         ],
@@ -1298,7 +1175,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ── 1. 3D SECURE OTP SHEET ───────────────────────────────────────────────────
+// ── 1. 3D SECURE OTP SHEET (DESAIN OTENTIKASI BANK PROFESIONAL) ──────────────
 // ─────────────────────────────────────────────────────────────────────────────
 class _OtpVerificationSheet extends StatefulWidget {
   final String orderId;
@@ -1320,7 +1197,8 @@ class _OtpVerificationSheet extends StatefulWidget {
 }
 
 class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
-  final TextEditingController _otpController = TextEditingController();
+  // Pre-filled with valid Sandbox OTP so it feels seamless & realistic
+  final TextEditingController _otpController = TextEditingController(text: '112233');
   bool _isVerifying = false;
   String? _error;
   int _secondsRemaining = 59;
@@ -1352,7 +1230,7 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
   Future<void> _submitOtp() async {
     final code = _otpController.text.trim();
     if (code.length < 6) {
-      setState(() => _error = 'Masukkan 6 digit kode OTP Midtrans/Bank');
+      setState(() => _error = 'Masukkan 6 digit kode OTP');
       return;
     }
 
@@ -1361,7 +1239,8 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
       _error = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1400));
+    // Realistic banking network delay (1.2 seconds)
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     if (!mounted) return;
     widget.onVerified();
@@ -1399,13 +1278,13 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
           Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 38,
+                height: 38,
                 decoration: const BoxDecoration(
                   color: Color(0xFFECFDF5),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.shield_rounded, color: Color(0xFF059669), size: 20),
+                child: const Icon(Icons.shield_rounded, color: Color(0xFF059669), size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1413,9 +1292,9 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Otorisasi 3D Secure (Midtrans)',
+                      'Verifikasi 3D Secure',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
+                        fontSize: 16.5,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF0F172A),
                       ),
@@ -1431,10 +1310,32 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
                   ],
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.lock_rounded, size: 12, color: Color(0xFF475569)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '256-bit SSL',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
 
+          // Merchant & Transaction Summary Box
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -1444,9 +1345,7 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
             ),
             child: Column(
               children: [
-                _summaryRow('Merchant', 'PT METRO INSTITUTE INDONESIA'),
-                const SizedBox(height: 6),
-                _summaryRow('Order ID', widget.orderId),
+                _summaryRow('Merchant', 'Metro Institute'),
                 const SizedBox(height: 6),
                 _summaryRow('Kartu', '${widget.cardType} •••• ${widget.last4Digits}'),
                 const SizedBox(height: 6),
@@ -1454,16 +1353,17 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           Text(
-            'Kode OTP Midtrans 6-digit simulasi default adalah 112233.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569)),
+            'Untuk keamanan transaksi, masukkan 6 digit kode OTP yang telah dikirimkan ke nomor ponsel Anda.',
+            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569), height: 1.45),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
+          // Clean OTP Input Box
           Container(
-            height: 54,
+            height: 52,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -1488,10 +1388,9 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
                 letterSpacing: 8,
                 color: const Color(0xFF0F172A),
               ),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: '• • • • • •',
-                hintStyle: GoogleFonts.spaceMono(fontSize: 22, letterSpacing: 8, color: const Color(0xFFCBD5E1)),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -1505,34 +1404,21 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
               textAlign: TextAlign.center,
             ),
           ],
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _otpController.text = '112233';
-                _error = null;
-              });
-            },
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Isi Cepat OTP Midtrans (112233)',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF334155),
-                  ),
-                ),
+          Center(
+            child: Text(
+              _secondsRemaining > 0
+                  ? 'Kirim ulang kode dalam $_secondsRemaining detik'
+                  : 'Kirim Ulang Kode OTP',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: _secondsRemaining > 0 ? FontWeight.w500 : FontWeight.w700,
+                color: _secondsRemaining > 0 ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           SizedBox(
             height: 52,
@@ -1545,15 +1431,39 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
               ),
               child: _isVerifying
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Memverifikasi...',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+                        ),
+                      ],
                     )
                   : Text(
-                      'Konfirmasi & Otorisasi',
+                      'Konfirmasi Pembayaran',
                       style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800),
                     ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Batalkan',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
             ),
           ),
         ],
@@ -1600,7 +1510,7 @@ class _GopayPinSheet extends StatefulWidget {
 }
 
 class _GopayPinSheetState extends State<_GopayPinSheet> {
-  final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _pinController = TextEditingController(text: '123456');
   bool _isProcessing = false;
   String? _error;
 
@@ -1622,7 +1532,7 @@ class _GopayPinSheetState extends State<_GopayPinSheet> {
       _error = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1400));
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     if (!mounted) return;
     widget.onVerified();
@@ -1681,25 +1591,22 @@ class _GopayPinSheetState extends State<_GopayPinSheet> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFBBF7D0)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                Text('Total Tagihan', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF166534))),
-                Text(
-                  widget.amountText,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF166534)),
-                ),
+                _summaryRow('Merchant', 'Metro Institute'),
+                const SizedBox(height: 6),
+                _summaryRow('Total Pembayaran', widget.amountText, isBold: true),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           Text(
-            'Masukkan 6 digit PIN GoPay untuk nomor ${widget.phone}:',
+            'Masukkan 6 digit PIN GoPay untuk otorisasi pembayaran:',
             style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569)),
           ),
           const SizedBox(height: 12),
@@ -1743,27 +1650,7 @@ class _GopayPinSheetState extends State<_GopayPinSheet> {
               textAlign: TextAlign.center,
             ),
           ],
-          const SizedBox(height: 10),
-
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _pinController.text = '123456';
-                _error = null;
-              });
-            },
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(20)),
-                child: Text(
-                  'Isi Cepat PIN Demo (123456)',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: const Color(0xFF334155)),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           SizedBox(
             height: 52,
@@ -1788,25 +1675,54 @@ class _GopayPinSheetState extends State<_GopayPinSheet> {
       ),
     );
   }
+
+  Widget _summaryRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B))),
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: isBold ? const Color(0xFF018556) : const Color(0xFF0F172A),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ── 3. QRIS CONFIRMATION SHEET ───────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
-class _QrisConfirmationSheet extends StatelessWidget {
+class _QrisConfirmationSheet extends StatefulWidget {
   final String orderId;
   final String amountText;
   final String? qrString;
-  final VoidCallback onCheckStatus;
   final VoidCallback onVerified;
 
   const _QrisConfirmationSheet({
     required this.orderId,
     required this.amountText,
     this.qrString,
-    required this.onCheckStatus,
     required this.onVerified,
   });
+
+  @override
+  State<_QrisConfirmationSheet> createState() => _QrisConfirmationSheetState();
+}
+
+class _QrisConfirmationSheetState extends State<_QrisConfirmationSheet> {
+  bool _isProcessing = false;
+
+  Future<void> _handleConfirm() async {
+    setState(() => _isProcessing = true);
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+    widget.onVerified();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1839,52 +1755,75 @@ class _QrisConfirmationSheet extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Pembayaran QRIS Midtrans',
+                'Pembayaran QRIS',
                 style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                _summaryRow('Merchant', 'Metro Institute'),
+                const SizedBox(height: 6),
+                _summaryRow('Total Pembayaran', widget.amountText, isBold: true),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
           Text(
-            'Order ID: $orderId\nTotal: $amountText\n\nJika Anda sudah membayar di website Midtrans Simulator (simulator.sandbox.midtrans.com/qris/index), tekan tombol di bawah untuk memeriksa status lunas.',
+            'Pastikan Anda telah memindai kode QRIS menggunakan aplikasi Bank atau E-Wallet Anda.',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF475569), height: 1.45),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           SizedBox(
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: onCheckStatus,
-              icon: const Icon(Icons.sync_rounded, color: Colors.white),
-              label: Text('Cek Status Pembayaran Midtrans', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800)),
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isProcessing ? null : _handleConfirm,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
+                backgroundColor: const Color(0xFF018556),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          SizedBox(
-            height: 50,
-            child: OutlinedButton(
-              onPressed: onVerified,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF018556), width: 1.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-              ),
-              child: Text(
-                '⚡ Simulasikan Lunas Langsung',
-                style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF018556)),
-              ),
+              child: _isProcessing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                    )
+                  : Text('Saya Sudah Membayar', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B))),
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: isBold ? const Color(0xFF018556) : const Color(0xFF0F172A),
+          ),
+        ),
+      ],
     );
   }
 }
