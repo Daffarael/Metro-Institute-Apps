@@ -120,10 +120,26 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   void _openChallenge(Map<String, dynamic> challenge) {
     HapticFeedback.lightImpact();
+    final isLocked = challenge['isLocked'] == true;
+    if (isLocked) {
+      final req = challenge['unlockAtProgress'] ?? 0;
+      final classTitle = challenge['linkedClassName'] ?? 'kelas aktifmu';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tantangan ini terbuka setelah menyelesaikan $req% materi di $classTitle.'),
+          backgroundColor: const Color(0xFF0F172A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
     final id = challenge['id']?.toString() ?? '';
     final title = challenge['title'] ?? 'Tantangan';
     final xp = (challenge['xpReward'] as num?)?.toInt() ?? 100;
-    final timeLimit = (challenge['timeLimitMinutes'] as num?)?.toInt() ?? 15;
+    final timeLimitSec = (challenge['timeLimitSec'] as num?)?.toInt();
+    final timeLimit = (challenge['timeLimitMinutes'] as num?)?.toInt() ??
+        (timeLimitSec != null && timeLimitSec > 0 ? (timeLimitSec ~/ 60) : 15);
 
     Navigator.push(
       context,
@@ -131,7 +147,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         builder: (_) => ChallengeArenaScreen(
           challengeId: id,
           title: title,
-          timeLimitMinutes: timeLimit,
+          timeLimitMinutes: timeLimit > 0 ? timeLimit : 15,
           xpReward: xp,
         ),
       ),
@@ -899,15 +915,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         else
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _filteredChallenges.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, idx) {
-                final ch = _filteredChallenges[idx] as Map<String, dynamic>;
-                return _buildChallengeListItem(ch);
-              },
+            child: Column(
+              children: [
+                for (int idx = 0; idx < _filteredChallenges.length; idx++) ...[
+                  if (idx > 0) const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) {
+                      final item = _filteredChallenges[idx];
+                      final Map<String, dynamic> ch = item is Map<String, dynamic>
+                          ? item
+                          : (item is Map
+                              ? item.map((k, v) => MapEntry(k.toString(), v))
+                              : <String, dynamic>{});
+                      return _buildChallengeListItem(ch);
+                    },
+                  ),
+                ],
+              ],
             ),
           ),
       ],
@@ -946,107 +970,192 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   /// Challenge list item from database
   Widget _buildChallengeListItem(Map<String, dynamic> ch) {
-    final title = ch['title']?.toString() ?? 'Tantangan';
+    final title = (ch['title'] as String?)?.trim().isNotEmpty == true
+        ? ch['title'] as String
+        : 'Tantangan Metro Institute';
     final xp = (ch['xpReward'] as num?)?.toInt() ?? 100;
-    final level = ch['level']?.toString() ?? 'BEGINNER';
+    final level = (ch['level'] as String?)?.trim().isNotEmpty == true
+        ? ch['level'] as String
+        : 'BEGINNER';
     final isCompleted = ch['isCompleted'] == true;
+    final isLocked = ch['isLocked'] == true;
+    final unlockAt = (ch['unlockAtProgress'] as num?)?.toInt() ?? 0;
+    final timeLimitSec = (ch['timeLimitSec'] as num?)?.toInt();
+    final timeLimitMin = (ch['timeLimitMinutes'] as num?)?.toInt() ??
+        (timeLimitSec != null && timeLimitSec > 0 ? (timeLimitSec ~/ 60) : 15);
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openChallenge(ch),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
               color: isCompleted
-                  ? AppColors.primary
-                  : const Color(0xFF08261B),
-              borderRadius: BorderRadius.circular(14),
+                  ? AppColors.primary.withValues(alpha: 0.3)
+                  : const Color(0xFFE2E8F0),
+              width: 1.4,
             ),
-            child: Icon(
-              isCompleted ? Icons.check_circle_rounded : Icons.code_rounded,
-              color: isCompleted ? Colors.white : AppColors.accent,
-              size: 22,
-            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0C0F172A),
+                blurRadius: 12,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isCompleted
+                      ? AppColors.primary
+                      : (isLocked ? const Color(0xFFF1F5F9) : const Color(0xFF08261B)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Icon(
+                    isCompleted
+                        ? Icons.check_circle_rounded
+                        : (isLocked ? Icons.lock_rounded : Icons.code_rounded),
+                    color: isCompleted
+                        ? Colors.white
+                        : (isLocked ? const Color(0xFF94A3B8) : AppColors.accent),
+                    size: 24,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        level,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: isLocked ? const Color(0xFF64748B) : const Color(0xFF1E1E1E),
+                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '+$xp XP',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isLocked ? const Color(0xFFF1F5F9) : AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            level,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: isLocked ? const Color(0xFF94A3B8) : AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isLocked
+                                ? const Color(0xFFF1F5F9)
+                                : AppColors.accent.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bolt_rounded,
+                                size: 12,
+                                color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF063D2A),
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                '+$xp XP',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF063D2A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (timeLimitMin > 0)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.timer_outlined,
+                                size: 12,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '$timeLimitMin mnt',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (isLocked && unlockAt > 0)
+                          Text(
+                            '• Buka di $unlockAt%',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF94A3B8),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => _openChallenge(ch),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF101010),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-            ),
-            child: Text(
-              isCompleted ? 'Review' : 'Mulai',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
               ),
-            ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () => _openChallenge(ch),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isCompleted
+                      ? const Color(0xFFF1F5F9)
+                      : (isLocked ? const Color(0xFFF1F5F9) : const Color(0xFF101010)),
+                  foregroundColor: isCompleted
+                      ? const Color(0xFF1E1E1E)
+                      : (isLocked ? const Color(0xFF94A3B8) : Colors.white),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                ),
+                child: Text(
+                  isCompleted ? 'Review' : (isLocked ? 'Terkunci' : 'Mulai'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
