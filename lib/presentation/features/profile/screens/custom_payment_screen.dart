@@ -1491,8 +1491,16 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         return Image.asset('assets/images/logo_bri_color.png', height: 16, fit: BoxFit.contain);
       case 'bni':
         return Image.asset('assets/images/logo_bni_color.png', height: 16, fit: BoxFit.contain);
+      case 'permata':
+        return Image.asset('assets/images/logo_permata_color.png', height: 16, fit: BoxFit.contain);
+      case 'cimb':
+        return Image.asset('assets/images/logo_cimb_color.png', height: 15, fit: BoxFit.contain);
       case 'mandiri':
         return Image.asset('assets/images/logo_mandiri_color.png', height: 16, fit: BoxFit.contain);
+      case 'danamon':
+        return Image.asset('assets/images/logo_danamon_color.png', height: 16, fit: BoxFit.contain);
+      case 'bsi':
+        return Image.asset('assets/images/logo_bsi_color.png', height: 16, fit: BoxFit.contain);
       default:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
@@ -1590,7 +1598,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                         child: Row(
                           children: [
                             SizedBox(
-                              width: 52,
+                              width: 58,
                               height: 32,
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -1687,7 +1695,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             child: Row(
               children: [
                 SizedBox(
-                  width: 50,
+                  width: 58,
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: _buildVaBankLogoBadge(activeBank),
