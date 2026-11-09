@@ -103,7 +103,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   // Real-time Midtrans settlement poller
   Timer? _midtransPollTimer;
 
-  int _selectedDebitIndex = 0;
+  int _selectedDebitIndex = -1;
   int _selectedVaBankIndex = 0;
   bool _isVaGenerated = false;
   String? _liveVaNumber;
@@ -315,10 +315,10 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   void initState() {
     super.initState();
 
-    // Initial debit card setup (Visa Debit default, form inputs start empty)
-    final initialOption = _debitOptions[0];
+    // Initial debit card setup (starts unselected and completely empty)
+    _selectedDebitIndex = -1;
     _cardNumberController.text = '';
-    _cardTypeController.text = initialOption['title'] as String;
+    _cardTypeController.text = '';
     _expiryController.text = '';
     _cvvController.text = '';
     _nameController.text = '';
@@ -399,11 +399,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     if (index < 0 || index >= _debitOptions.length) return;
     setState(() {
       _selectedDebitIndex = index;
-      final option = _debitOptions[index];
-      _cardNumberController.text = option['number'] as String;
-      _cardTypeController.text = option['title'] as String;
-      _expiryController.text = option['expiry'] as String;
-      _cvvController.text = option['cvv'] as String;
+      _cardTypeController.text = _debitOptions[index]['title'] as String;
     });
   }
 
@@ -650,7 +646,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   void _show3dSecureDialog(String activeOrderId) {
     final rawNumber = _cardNumberController.text.replaceAll(' ', '');
     final last4 = rawNumber.length >= 4 ? rawNumber.substring(rawNumber.length - 4) : '3456';
-    final option = _debitOptions[_selectedDebitIndex];
+    final option = (_selectedDebitIndex >= 0 && _selectedDebitIndex < _debitOptions.length)
+        ? _debitOptions[_selectedDebitIndex]
+        : _debitOptions[0];
     final cardTitle = option['title'] as String;
 
     showModalBottomSheet(
@@ -697,7 +695,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeOption = _debitOptions[_selectedDebitIndex];
+    final activeOption = (_selectedDebitIndex >= 0 && _selectedDebitIndex < _debitOptions.length)
+        ? _debitOptions[_selectedDebitIndex]
+        : null;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -948,8 +948,9 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   }
 
   // ── 1 SINGLE CARD: CHARCOAL BATIK DEBIT CARD (VISA / GPN) ───────────────────
-  Widget _buildSingleBatikDebitCard(Map<String, dynamic> activeOption) {
-    final isVisa = activeOption['requiresCvv'] == true;
+  Widget _buildSingleBatikDebitCard(Map<String, dynamic>? activeOption) {
+    final isVisa = activeOption == null || activeOption['requiresCvv'] == true;
+    final hasLogo = activeOption != null;
 
     final displayNum = _cardNumberController.text.trim().isNotEmpty
         ? _cardNumberController.text.trim()
@@ -1041,17 +1042,19 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                         width: 65,
                         child: Align(
                           alignment: Alignment.centerRight,
-                          child: isVisa
-                              ? Image.asset(
-                                  'assets/images/logo_visa_white.png',
-                                  height: 24,
-                                  fit: BoxFit.contain,
-                                )
-                              : Image.asset(
-                                  'assets/images/logo_gpn_darkmode.png',
-                                  height: 32,
-                                  fit: BoxFit.contain,
-                                ),
+                          child: !hasLogo
+                              ? const SizedBox()
+                              : isVisa
+                                  ? Image.asset(
+                                      'assets/images/logo_visa_white.png',
+                                      height: 24,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : Image.asset(
+                                      'assets/images/logo_gpn_darkmode.png',
+                                      height: 32,
+                                      fit: BoxFit.contain,
+                                    ),
                         ),
                       ),
                     ],
@@ -1171,7 +1174,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    displayCvv.isNotEmpty ? displayCvv : '215',
+                                    displayCvv,
                                     style: GoogleFonts.spaceMono(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
@@ -1254,8 +1257,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   }
 
   // ── 3. FORM FIELDS ───────────────────────────────────────────────────────────
-  Widget _buildCardFormFields(Map<String, dynamic> activeOption) {
-    final bool isVisa = activeOption['requiresCvv'] == true;
+  Widget _buildCardFormFields(Map<String, dynamic>? activeOption) {
+    final bool isGpn = activeOption != null && activeOption['requiresCvv'] == false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1298,44 +1301,59 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                Container(
-                  width: 38,
-                  height: 24,
-                  alignment: Alignment.center,
-                  child: Image.asset(
-                    activeOption['comboboxLogoAsset'] as String,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    activeOption['title'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+                if (activeOption != null) ...[
+                  Container(
+                    width: 38,
+                    height: 24,
+                    alignment: Alignment.center,
+                    child: Image.asset(
+                      activeOption['comboboxLogoAsset'] as String,
+                      fit: BoxFit.contain,
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
-                  ),
-                  child: Text(
-                    activeOption['badge'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF334155),
-                      letterSpacing: 0.5,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      activeOption['title'] as String,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF0F172A),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+                    ),
+                    child: Text(
+                      activeOption['badge'] as String,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF334155),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ] else ...[
+                  const Icon(Icons.credit_card_outlined, size: 20, color: Color(0xFF94A3B8)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Pilih Jenis Kartu',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
                 const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 22),
               ],
             ),
@@ -1343,8 +1361,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         ),
         const SizedBox(height: 12),
 
-        if (isVisa) ...[
-          // Visa: Expiration Date + CVV
+        if (!isGpn) ...[
+          // Visa or unselected: Expiration Date + CVV
           Row(
             children: [
               Expanded(
@@ -1355,7 +1373,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     const SizedBox(height: 5),
                     _pillTextField(
                       controller: _expiryController,
-                      hint: '07/29',
+                      hint: 'MM/YY',
                       keyboardType: TextInputType.datetime,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
@@ -1375,7 +1393,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     const SizedBox(height: 5),
                     _pillTextField(
                       controller: _cvvController,
-                      hint: '215',
+                      hint: '123',
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
@@ -1617,25 +1635,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   fontSize: 14,
                                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                                   color: const Color(0xFF0F172A),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFE2E8F0) : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: isSelected ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Text(
-                                bank['shortName'] as String,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF334155),
                                 ),
                               ),
                             ),

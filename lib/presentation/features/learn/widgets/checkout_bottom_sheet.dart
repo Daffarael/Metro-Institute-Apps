@@ -628,7 +628,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                                       letterSpacing: 0.5,
                                     ),
                                     decoration: InputDecoration(
-                                      hintText: 'Punya kode kupon/voucher?',
+                                      hintText: 'Punya kode voucher?',
                                       hintStyle: GoogleFonts.plusJakartaSans(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
@@ -842,43 +842,33 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
               const SizedBox(height: 20),
 
-              // CTA Button (Adaptive: Solid Green if Free, Solid Dark if Paid)
+              // CTA Button (Adaptive: Solid Green if Free, Solid Metro Yellow if Paid)
               ElevatedButton(
                 onPressed: _isLoading ? null : _handleInitiatePayment,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isFree ? const Color(0xFF018556) : const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
+                  backgroundColor: _isFree ? const Color(0xFF018556) : const Color(0xFFD4F05A),
+                  foregroundColor: _isFree ? Colors.white : const Color(0xFF1E293B),
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                   elevation: 0,
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                        child: CircularProgressIndicator(
+                          color: _isFree ? Colors.white : const Color(0xFF1E293B),
+                          strokeWidth: 2.2,
+                        ),
                       )
                     : Text(
                         _isFree ? 'Daftar Gratis Sekarang' : 'Lanjutkan Pembayaran',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          color: _isFree ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
-              ),
-
-              const SizedBox(height: 10),
-              Center(
-                child: Text(
-                  _isFree
-                      ? 'Pendaftaran 100% gratis dengan kupon promo terverifikasi'
-                      : 'Transaksi aman & terenkripsi oleh Midtrans Payment Gateway',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: const Color(0xFF94A3B8),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
               ),
             ],
           ),
