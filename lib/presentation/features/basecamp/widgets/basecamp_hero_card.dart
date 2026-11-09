@@ -65,7 +65,7 @@ class BasecampHeroCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: const Color(0xFFFDECEF), // Soft pastel blossom pink dari referensi
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(44),
         border: Border.all(color: const Color(0xFFFCDCE3), width: 1.2),
         boxShadow: const [
           BoxShadow(
@@ -80,7 +80,7 @@ class BasecampHeroCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: handleTap,
-          borderRadius: BorderRadius.circular(36),
+          borderRadius: BorderRadius.circular(44),
           child: Stack(
             children: [
               // ── LAYER 0: Background Artwork (Lime Starburst + Whimsical Learner Art) ──
