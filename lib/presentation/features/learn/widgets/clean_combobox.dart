@@ -170,19 +170,15 @@ class _CleanComboboxState extends State<CleanCombobox> with SingleTickerProvider
                       return opt.label.toLowerCase().contains(_searchQuery.toLowerCase());
                     }).toList();
 
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(_ComboboxTokens.radiusMd + 2),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                        child: Container(
-                          constraints: const BoxConstraints(maxHeight: 280),
-                          decoration: BoxDecoration(
-                            color: _ComboboxTokens.bgElevated.withValues(alpha: 0.96),
-                            borderRadius: BorderRadius.circular(_ComboboxTokens.radiusMd + 2),
-                            border: Border.all(
-                              color: _ComboboxTokens.borderSubtle,
-                              width: 1.2,
-                            ),
+                    return Container(
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      decoration: BoxDecoration(
+                        color: _ComboboxTokens.bgElevated,
+                        borderRadius: BorderRadius.circular(_ComboboxTokens.radiusMd + 2),
+                        border: Border.all(
+                          color: _ComboboxTokens.borderSubtle,
+                          width: 1.2,
+                        ),
                             boxShadow: const [
                               BoxShadow(
                                 color: _ComboboxTokens.shadowLg,
@@ -336,9 +332,7 @@ class _CleanComboboxState extends State<CleanCombobox> with SingleTickerProvider
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    );
+                        );
                   },
                 ),
               ),

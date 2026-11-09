@@ -47,7 +47,11 @@ class CheckoutBottomSheet extends StatefulWidget {
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
       builder: (ctx) => CheckoutBottomSheet(
         title: title,
         price: price,
@@ -379,24 +383,34 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
     try {
       final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-      return Container(
-        width: double.infinity,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.90,
-        ),
-        padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
-        decoration: const BoxDecoration(
+      return SafeArea(
+        top: false,
+        child: Container(
+          width: double.infinity,
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.90,
+          ),
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 20 + bottomInset),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // ── DRAG HANDLE INDICATOR ──
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4.5,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+
                 // ── 1. MODAL HEADER (1:1 with Web Mentee CheckoutModal) ──────
                 Row(
                   children: [

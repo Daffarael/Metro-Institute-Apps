@@ -291,13 +291,6 @@ class _TextEffectState extends State<TextEffect> with SingleTickerProviderStateM
 
         Widget child = Text(displayText, style: dynamicStyle);
 
-        if (blur > 0.1) {
-          child = ImageFiltered(
-            imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-            child: child,
-          );
-        }
-
         return Transform.translate(
           offset: Offset(0, y),
           child: Transform.scale(
