@@ -1722,82 +1722,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         ),
         const SizedBox(height: 16),
 
-        // ── KARTU INFORMASI BANK TERPILIH ─────────────────────────────────────
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-            boxShadow: const [
-              BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 3)),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _buildVaBankLogoBadge(activeBank),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          activeBank['name'] as String,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          'Transfer Bank Otomatis',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
-                    ),
-                    child: Text(
-                      'OTOMATIS',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF047857),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              const SizedBox(height: 14),
-
-              _vaBenefitRow(Icons.bolt_rounded, 'Verifikasi instan otomatis 24 jam tanpa perlu upload bukti'),
-              const SizedBox(height: 8),
-              _vaBenefitRow(Icons.check_circle_outline_rounded, 'Dapat dibayar dari ATM, Mobile Banking, atau Internet Banking'),
-              const SizedBox(height: 8),
-              _vaBenefitRow(Icons.shield_outlined, 'Transaksi terenkripsi dan aman'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
         // ── RINGKASAN PEMBAYARAN ──────────────────────────────────────────────
         Container(
           padding: const EdgeInsets.all(18),
@@ -1895,26 +1819,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _vaBenefitRow(IconData icon, String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: const Color(0xFF047857)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: const Color(0xFF334155),
-              height: 1.35,
-            ),
           ),
         ),
       ],
