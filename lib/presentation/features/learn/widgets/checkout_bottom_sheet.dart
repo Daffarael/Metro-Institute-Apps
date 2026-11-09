@@ -630,21 +630,11 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         ),
         const SizedBox(height: 8),
         if (_appliedVoucher == null) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                      width: 1.5,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  alignment: Alignment.centerLeft,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
                   child: TextField(
                     controller: _voucherController,
                     textCapitalization: TextCapitalization.characters,
@@ -655,8 +645,10 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                       color: const Color(0xFF0F172A),
                     ),
                     decoration: InputDecoration(
-                      border: InputBorder.none,
                       isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      filled: true,
+                      fillColor: Colors.white,
                       hintText: 'CONTOH: METROPROMO',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
@@ -664,7 +656,24 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                         color: const Color(0xFF94A3B8),
                         letterSpacing: 0.3,
                       ),
-                      contentPadding: EdgeInsets.zero,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                          color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                          width: 1.5,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                          color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF018556), width: 1.5),
+                      ),
                     ),
                     onSubmitted: (_) => _handleApplyVoucher(),
                     onChanged: (_) {
@@ -672,11 +681,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     },
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 46,
-                child: ElevatedButton(
+                const SizedBox(width: 8),
+                ElevatedButton(
                   onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF018556),
@@ -686,7 +692,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                   ),
                   child: _isValidatingVoucher
                       ? const SizedBox(
@@ -705,8 +711,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                           ),
                         ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           if (_voucherError != null) ...[
             const SizedBox(height: 6),
