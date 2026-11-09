@@ -234,7 +234,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         throw Exception('Gagal mendapatkan halaman pembayaran dari payment gateway.');
       }
 
-      // Buka layar pembayaran custom (tampilan 1:1 sesuai mockup native, tanpa WebView Midtrans)
+      // Buka layar pembayaran custom (tampilan 1:1 sesuai mockup native, terhubung ke Midtrans Sandbox asli)
       final result = await Navigator.of(context, rootNavigator: true).push<bool?>(
         MaterialPageRoute(
           builder: (_) => CustomPaymentScreen(
@@ -244,6 +244,12 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
             productId: widget.productId,
             title: widget.title,
             voucherCode: _appliedVoucher?['code']?.toString(),
+            redirectUrl: redirectUrl,
+            snapToken: snapToken,
+            vaNumber: res['vaNumber']?.toString(),
+            bank: res['bank']?.toString(),
+            qrCodeUrl: res['qrCodeUrl']?.toString(),
+            qrString: res['qrString']?.toString(),
           ),
         ),
       );
