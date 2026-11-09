@@ -25,11 +25,8 @@ class LearningTimelineScreen extends StatefulWidget {
 
 class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
   bool _isLoading = true;
-  String? _error;
   List<Map<String, dynamic>> _allLiveSessions = [];
   int _todayPercent = 0;
-  int _totalSessionsToday = 0;
-  int _completedSessionsToday = 0;
 
   late DateTime _selectedDate;
   late DateTime _currentMonday;
@@ -49,7 +46,6 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     try {
       setState(() {
         _isLoading = true;
-        _error = null;
       });
 
       final ds = sl<BasecampRemoteDataSource>();
@@ -62,15 +58,11 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
       final todaysActivity = data['todaysActivity'] as Map<String, dynamic>?;
       final percent = (todaysActivity?['percent'] as num?)?.toInt() ?? 0;
-      final totalToday = (todaysActivity?['totalSessionsToday'] as num?)?.toInt() ?? 0;
-      final completedToday = (todaysActivity?['completedSessionsToday'] as num?)?.toInt() ?? 0;
 
       if (mounted) {
         setState(() {
           _allLiveSessions = liveSessions;
           _todayPercent = percent;
-          _totalSessionsToday = totalToday;
-          _completedSessionsToday = completedToday;
           _isLoading = false;
         });
 
@@ -106,10 +98,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
           }
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
           _isLoading = false;
         });
       }

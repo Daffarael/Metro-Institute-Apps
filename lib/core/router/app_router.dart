@@ -35,10 +35,7 @@ class AppRouter {
     required LocalKey key,
     required Widget child,
   }) {
-    return NoTransitionPage(
-      key: key,
-      child: child,
-    );
+    return NoTransitionPage(key: key, child: child);
   }
 
   static final GoRouter router = GoRouter(
@@ -59,7 +56,8 @@ class AppRouter {
           child: const LoginScreen(),
           transitionDuration: Duration.zero,
           reverseTransitionDuration: const Duration(milliseconds: 200),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              child,
         ),
       ),
       GoRoute(
@@ -100,10 +98,8 @@ class AppRouter {
           ),
           GoRoute(
             path: AppRoutes.learn,
-            pageBuilder: (context, state) => _buildTabPage(
-              key: state.pageKey,
-              child: const LearnScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(key: state.pageKey, child: const LearnScreen()),
           ),
           GoRoute(
             path: AppRoutes.transactions,
@@ -135,10 +131,8 @@ class AppRouter {
           ),
           GoRoute(
             path: AppRoutes.profile,
-            pageBuilder: (context, state) => _buildTabPage(
-              key: state.pageKey,
-              child: const ProfileScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(key: state.pageKey, child: const ProfileScreen()),
           ),
         ],
       ),
@@ -186,9 +180,7 @@ class AppRouter {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {'id': id};
-          return InspireTalkDetailScreen(
-            item: extra,
-          );
+          return InspireTalkDetailScreen(item: extra);
         },
       ),
       GoRoute(
@@ -196,9 +188,7 @@ class AppRouter {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {'id': id};
-          return InspireTalkDetailScreen(
-            item: extra,
-          );
+          return InspireTalkDetailScreen(item: extra);
         },
       ),
 
@@ -220,11 +210,9 @@ class AppRouter {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {'id': id};
-          final isBootcamp = extra['isBootcamp'] == true || extra['type'] == 'bootcamp';
-          return CourseDetailScreen(
-            item: extra,
-            isBootcamp: isBootcamp,
-          );
+          final isBootcamp =
+              extra['isBootcamp'] == true || extra['type'] == 'bootcamp';
+          return CourseDetailScreen(item: extra, isBootcamp: isBootcamp);
         },
       ),
 
@@ -234,7 +222,8 @@ class AppRouter {
         builder: (context, state) {
           final sessionId = state.pathParameters['sessionId'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {};
-          final isBootcamp = extra['isBootcamp'] == true || extra['type'] == 'bootcamp';
+          final isBootcamp =
+              extra['isBootcamp'] == true || extra['type'] == 'bootcamp';
           return VideoPlayerScreen(
             sessionId: sessionId,
             title: extra['title'] ?? 'Sesi Belajar',

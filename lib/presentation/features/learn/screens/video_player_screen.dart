@@ -153,8 +153,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           }
         }
 
-        if (data != null && data.isNotEmpty) {
-          final current = (data['currentSession'] as Map<String, dynamic>?) ?? {};
+        final sessionData = data;
+        if (sessionData != null && sessionData.isNotEmpty) {
+          final current = (sessionData['currentSession'] as Map<String, dynamic>?) ?? {};
           final rawType = (current['type'] as String?) ?? widget.sessionType ?? 'VIDEO';
           final rawUrl = (current['videoUrl'] as String?) ?? _currentVideoUrl;
           final isComp = current['isCompleted'] == true || widget.isAlreadyCompleted;
@@ -202,9 +203,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _quizOptions = parsedQuiz;
               _isLiveEnded = isLiveEnd;
               _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
-              _prevSessionId = data['prevSessionId'] as String?;
-              _nextSessionId = data['nextSessionId'] as String?;
-              _courseProgress = (data['progress'] as num?)?.toInt() ?? 0;
+              _prevSessionId = sessionData['prevSessionId'] as String?;
+              _nextSessionId = sessionData['nextSessionId'] as String?;
+              _courseProgress = (sessionData['progress'] as num?)?.toInt() ?? 0;
               _isSessionFinished = isComp;
               _isUnlocked = isComp || rawType != 'VIDEO'; // non-video unlocks immediately
               _isLoadingSessionData = false;
