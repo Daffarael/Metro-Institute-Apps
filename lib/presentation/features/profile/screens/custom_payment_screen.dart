@@ -58,58 +58,189 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   int _currentCardIndex = 0;
 
   // Form Controllers
-  final TextEditingController _cardNumberController = TextEditingController(text: '5412 7512 3412 3456');
-  final TextEditingController _nameController = TextEditingController(text: 'Koushik Sarkar');
-  final TextEditingController _cardTypeController = TextEditingController(text: 'Mastercard');
+  final TextEditingController _cardNumberController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController(text: 'Daffarael Anaqi Ali');
+  final TextEditingController _cardTypeController = TextEditingController();
   final TextEditingController _expiryController = TextEditingController(text: '07/29');
   final TextEditingController _cvvController = TextEditingController(text: '215');
 
   // GoPay Controller
   final TextEditingController _phoneController = TextEditingController(text: '0812 3456 7890');
 
-  // Preset Card Configurations
+  // ── 10 PRESET BANK CARDS (4 VISA, 4 GPN, + 2 TEMPLATES, NO MASTERCARD) ─────
   final List<Map<String, dynamic>> _presetCards = [
+    // ── KARTU VISA (4 BANK BESAR) ──
     {
-      'type': 'Mastercard',
-      'label': 'Business',
-      'sublabel': 'World',
-      'number': '5412 7512 3412 3456',
+      'id': 'bca_visa',
+      'fullName': 'BCA Visa',
+      'bankName': 'BCA',
+      'type': 'VISA',
+      'label': 'BCA Visa',
+      'sublabel': 'Platinum',
+      'number': '4111 2233 4455 6677',
       'expiry': '07/29',
       'cvv': '215',
       'gradient': const [
-        Color(0xFFBFE39A), // Soft Organic Lime/Mint
-        Color(0xFFD7F07A), // Fresh Lime
-        Color(0xFFE5FA92), // Glow Accent
+        Color(0xFF005EAA), // BCA Royal Blue
+        Color(0xFF003D73),
+        Color(0xFF002244),
       ],
-      'textColor': const Color(0xFF1E293B),
+      'textColor': Colors.white,
     },
     {
+      'id': 'mandiri_visa',
+      'fullName': 'Mandiri Visa',
+      'bankName': 'Mandiri',
       'type': 'VISA',
-      'label': 'Platinum',
-      'sublabel': 'Infinite',
-      'number': '4242 7512 8831 9024',
+      'label': 'Mandiri Visa',
+      'sublabel': 'Signature',
+      'number': '4201 9988 7766 5544',
       'expiry': '11/28',
       'cvv': '883',
       'gradient': const [
-        Color(0xFFC7D2FE), // Soft Periwinkle
-        Color(0xFFDDD6FE), // Lavender
-        Color(0xFFE0E7FF), // Pale Indigo
+        Color(0xFF002D62), // Mandiri Deep Navy
+        Color(0xFF001B3A),
+        Color(0xFFB8860B), // Gold touch
+      ],
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'bri_visa',
+      'fullName': 'BRI Visa',
+      'bankName': 'BRI',
+      'type': 'VISA',
+      'label': 'BRI Visa',
+      'sublabel': 'Infinite',
+      'number': '4333 5544 2211 8899',
+      'expiry': '08/29',
+      'cvv': '412',
+      'gradient': const [
+        Color(0xFF00529C), // BRI Vibrant Blue
+        Color(0xFF0066B3),
+        Color(0xFF003B70),
+      ],
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'bni_visa',
+      'fullName': 'BNI Visa',
+      'bankName': 'BNI',
+      'type': 'VISA',
+      'label': 'BNI Visa',
+      'sublabel': 'Emerald',
+      'number': '4455 6677 8899 0011',
+      'expiry': '04/28',
+      'cvv': '935',
+      'gradient': const [
+        Color(0xFF005E5D), // BNI Teal
+        Color(0xFF003837),
+        Color(0xFFE05A10), // Orange touch
+      ],
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'other_visa',
+      'fullName': 'Bank Lainnya (Visa)',
+      'bankName': 'Bank Lainnya',
+      'type': 'VISA',
+      'label': 'Visa Classic',
+      'sublabel': 'Classic',
+      'number': '4000 1234 5678 9010',
+      'expiry': '12/29',
+      'cvv': '123',
+      'gradient': const [
+        Color(0xFFC7D2FE), // Soft Lavender / Periwinkle
+        Color(0xFFDDD6FE),
+        Color(0xFFE0E7FF),
       ],
       'textColor': const Color(0xFF1E1B4B),
     },
+
+    // ── KARTU DEBIT GPN (4 BANK BESAR) ──
     {
-      'type': 'GPN Debit',
-      'label': 'Prioritas GPN',
+      'id': 'bca_gpn',
+      'fullName': 'BCA Debit GPN',
+      'bankName': 'BCA',
+      'type': 'GPN',
+      'label': 'BCA Paspor GPN',
       'sublabel': 'Debit GPN',
-      'number': '6011 3829 4410 7712',
+      'number': '6011 8822 3344 1122',
       'expiry': '05/27',
       'cvv': '491',
       'gradient': const [
-        Color(0xFFA7F3D0), // Soft Mint Sage
-        Color(0xFF6EE7B7), // Emerald Glow
-        Color(0xFFD1FAE5), // Pale Mint
+        Color(0xFF005EAA), // BCA Blue-Emerald GPN
+        Color(0xFF018556),
+        Color(0xFF003D73),
       ],
-      'textColor': const Color(0xFF064E3B),
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'mandiri_gpn',
+      'fullName': 'Mandiri Debit GPN',
+      'bankName': 'Mandiri',
+      'type': 'GPN',
+      'label': 'Mandiri Debit GPN',
+      'sublabel': 'Debit GPN',
+      'number': '6011 4455 6677 8899',
+      'expiry': '09/27',
+      'cvv': '732',
+      'gradient': const [
+        Color(0xFF002D62), // Mandiri Deep Teal GPN
+        Color(0xFF0F766E),
+        Color(0xFF001B3A),
+      ],
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'bri_gpn',
+      'fullName': 'BRI Debit GPN',
+      'bankName': 'BRI',
+      'type': 'GPN',
+      'label': 'BRI BritAma GPN',
+      'sublabel': 'Debit GPN',
+      'number': '6011 1122 3344 5566',
+      'expiry': '03/28',
+      'cvv': '618',
+      'gradient': const [
+        Color(0xFF00529C), // BRI Blue-Green GPN
+        Color(0xFF047857),
+        Color(0xFF003B70),
+      ],
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'bni_gpn',
+      'fullName': 'BNI Debit GPN',
+      'bankName': 'BNI',
+      'type': 'GPN',
+      'label': 'BNI Taplus GPN',
+      'sublabel': 'Debit GPN',
+      'number': '6011 7788 9900 1122',
+      'expiry': '06/28',
+      'cvv': '504',
+      'gradient': const [
+        Color(0xFF005E5D), // BNI Emerald GPN
+        Color(0xFF065F46),
+        Color(0xFF003B70),
+      ],
+      'textColor': Colors.white,
+    },
+    {
+      'id': 'other_gpn',
+      'fullName': 'Bank Lainnya (Debit GPN)',
+      'bankName': 'Bank Lainnya',
+      'type': 'GPN',
+      'label': 'Nasional GPN',
+      'sublabel': 'Debit GPN',
+      'number': '6011 0000 1111 2222',
+      'expiry': '01/29',
+      'cvv': '999',
+      'gradient': const [
+        Color(0xFFBFE39A), // Signature Soft Mint / Lime Template!
+        Color(0xFFD7F07A),
+        Color(0xFFE5FA92),
+      ],
+      'textColor': const Color(0xFF1E293B),
     },
   ];
 
@@ -118,25 +249,25 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     super.initState();
     _cardPageController = PageController(viewportFraction: 0.88, initialPage: 0);
 
-    // Load logged in user name if available
-    _loadUserName();
+    // Initial card setup
+    final initialCard = _presetCards[0];
+    _cardNumberController.text = initialCard['number'] as String;
+    _cardTypeController.text = initialCard['fullName'] as String;
+    _expiryController.text = initialCard['expiry'] as String;
+    _cvvController.text = initialCard['cvv'] as String;
 
-    // Start Real-Time Polling to Midtrans Sandbox Server every 3 seconds
+    _loadUserName();
     _startMidtransSettlementPolling();
 
     _cardNumberController.addListener(() {
       final text = _cardNumberController.text.replaceAll(' ', '');
       if (text.startsWith('4')) {
-        if (_cardTypeController.text != 'VISA') {
-          setState(() => _cardTypeController.text = 'VISA');
+        if (!_cardTypeController.text.contains('Visa')) {
+          setState(() => _cardTypeController.text = 'Visa');
         }
-      } else if (text.startsWith('5')) {
-        if (_cardTypeController.text != 'Mastercard') {
-          setState(() => _cardTypeController.text = 'Mastercard');
-        }
-      } else if (text.startsWith('6') || text.startsWith('1')) {
-        if (_cardTypeController.text != 'GPN Debit') {
-          setState(() => _cardTypeController.text = 'GPN Debit');
+      } else if (text.startsWith('6') || text.startsWith('1') || text.startsWith('5')) {
+        if (!_cardTypeController.text.contains('GPN')) {
+          setState(() => _cardTypeController.text = 'Debit GPN');
         }
       }
       setState(() {});
@@ -165,9 +296,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         if (!mounted) return;
         Navigator.pop(context, true);
       }
-    } catch (_) {
-      // Ignored during passive polling
-    }
+    } catch (_) {}
   }
 
   Future<void> _loadUserName() async {
@@ -196,15 +325,23 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     super.dispose();
   }
 
-  void _onCardPageChanged(int index) {
+  void _selectCardByIndex(int index) {
+    if (index < 0 || index >= _presetCards.length) return;
     setState(() {
       _currentCardIndex = index;
       final card = _presetCards[index];
       _cardNumberController.text = card['number'] as String;
-      _cardTypeController.text = card['type'] as String;
+      _cardTypeController.text = card['fullName'] as String;
       _expiryController.text = card['expiry'] as String;
       _cvvController.text = card['cvv'] as String;
     });
+    if (_cardPageController.hasClients) {
+      _cardPageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   String _formatRupiah(int amount) {
@@ -212,6 +349,167 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     final str = amount.toString();
     final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
     return 'Rp ${str.replaceAllMapped(regExp, (m) => '${m[1]}.')}';
+  }
+
+  void _showBankPickerBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Pilih Bank & Jenis Kartu',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section 1: KARTU VISA
+                      _pickerSectionTitle('KARTU KREDIT / DEBIT (VISA)'),
+                      ...List.generate(5, (i) {
+                        final card = _presetCards[i];
+                        final isSelected = _currentCardIndex == i;
+                        return _bankPickerItem(card, isSelected, () {
+                          Navigator.pop(ctx);
+                          _selectCardByIndex(i);
+                        });
+                      }),
+
+                      const SizedBox(height: 14),
+                      // Section 2: DEBIT GPN
+                      _pickerSectionTitle('KARTU DEBIT NASIONAL (GPN)'),
+                      ...List.generate(5, (i) {
+                        final idx = i + 5;
+                        final card = _presetCards[idx];
+                        final isSelected = _currentCardIndex == idx;
+                        return _bankPickerItem(card, isSelected, () {
+                          Navigator.pop(ctx);
+                          _selectCardByIndex(idx);
+                        });
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _pickerSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8, left: 4),
+      child: Text(
+        title,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF64748B),
+          letterSpacing: 0.6,
+        ),
+      ),
+    );
+  }
+
+  Widget _bankPickerItem(Map<String, dynamic> card, bool isSelected, VoidCallback onTap) {
+    final isVisa = card['type'] == 'VISA';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFF1F5F9) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.6 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 22,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                gradient: LinearGradient(
+                  colors: card['gradient'] as List<Color>,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                card['fullName'] as String,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+              decoration: BoxDecoration(
+                color: isVisa ? const Color(0xFFEEF2FF) : const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                isVisa ? 'VISA' : 'GPN',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  color: isVisa ? const Color(0xFF4338CA) : const Color(0xFFDC2626),
+                ),
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF018556), size: 18),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   // ── TRIGGER VERIFICATION FLOW ────────────────────────────────────────────────
@@ -235,7 +533,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   void _show3dSecureDialog(String activeOrderId) {
     final rawNumber = _cardNumberController.text.replaceAll(' ', '');
     final last4 = rawNumber.length >= 4 ? rawNumber.substring(rawNumber.length - 4) : '3456';
-    final cardType = _cardTypeController.text;
+    final card = _presetCards[_currentCardIndex];
+    final cardTitle = '${card['bankName']} (${card['type']})';
 
     showModalBottomSheet(
       context: context,
@@ -245,7 +544,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         return _OtpVerificationSheet(
           orderId: activeOrderId,
           amountText: _formatRupiah(widget.amount),
-          cardType: cardType,
+          cardTitle: cardTitle,
           last4Digits: last4,
           onVerified: () async {
             Navigator.pop(bottomSheetContext);
@@ -318,6 +617,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final activeCard = _presetCards[_currentCardIndex];
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -365,26 +666,36 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             // ── SCROLLABLE CONTENT ───────────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 4, bottom: 24),
+                padding: const EdgeInsets.only(top: 4, bottom: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 1. Selector Tabs (Card, GoPay, QRIS/GPN)
+                    // 1. Selector Tabs (Card VISA/GPN, GoPay, QRIS/GPN)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: _buildPaymentSelectorPills(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // 2. Tab Content
                     if (_selectedTab == PaymentTab.card) ...[
-                      _buildCardCarousel(),
-                      const SizedBox(height: 10),
-                      _buildCarouselDots(),
-                      const SizedBox(height: 16),
+                      // Combobox: Pilih Bank & Kartu
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildCardFormFields(),
+                        child: _buildBankCombobox(activeCard),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Card Carousel
+                      _buildCardCarousel(),
+                      const SizedBox(height: 8),
+                      _buildCarouselDots(),
+                      const SizedBox(height: 14),
+
+                      // Form Fields
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _buildCardFormFields(activeCard),
                       ),
                     ] else if (_selectedTab == PaymentTab.gopay) ...[
                       Padding(
@@ -399,7 +710,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     ],
 
                     if (_errorMessage != null) ...[
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Container(
@@ -422,7 +733,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
@@ -430,7 +741,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
             // ── BOTTOM FLOATING ACTION BUTTON ────────────────────────────────
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 16),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2)),
@@ -476,11 +787,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── 1. PAYMENT METHOD SELECTOR PILLS ─────────────────────────────────────────
+  // ── 1. PAYMENT METHOD SELECTOR PILLS (VISA/GPN, GOPAY, QRIS) ─────────────────
   Widget _buildPaymentSelectorPills() {
     return Row(
       children: [
-        // Tab 1: Card
+        // Tab 1: Card (VISA / GPN - NO Mastercard)
         Expanded(
           child: _selectorPill(
             isSelected: _selectedTab == PaymentTab.card,
@@ -488,32 +799,15 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 32,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(color: Color(0xFFEB001B), shape: BoxShape.circle),
-                        ),
-                        Transform.translate(
-                          offset: const Offset(-2, 0),
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(color: Color(0xFFF79E1B), shape: BoxShape.circle),
-                          ),
-                        ),
-                      ],
-                    ),
+                const Icon(Icons.credit_card_rounded, size: 18, color: Color(0xFF0F172A)),
+                const SizedBox(width: 5),
+                Text(
+                  'Card',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],
@@ -562,7 +856,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.qr_code_2_rounded, size: 20, color: Color(0xFF0F172A)),
+                const Icon(Icons.qr_code_2_rounded, size: 19, color: Color(0xFF0F172A)),
                 const SizedBox(width: 4),
                 Text(
                   'GPN',
@@ -588,7 +882,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 54,
+        height: 50,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -607,13 +901,77 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── 2. CARD CAROUSEL ─────────────────────────────────────────────────────────
+  // ── COMBOBOX PILIH BANK & KARTU (BCA, MANDIRI, BRI, BNI, LAINNYA) ───────────
+  Widget _buildBankCombobox(Map<String, dynamic> currentCard) {
+    final isVisa = currentCard['type'] == 'VISA';
+
+    return GestureDetector(
+      onTap: _showBankPickerBottomSheet,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(
+              isVisa ? Icons.credit_card_rounded : Icons.account_balance_rounded,
+              size: 18,
+              color: const Color(0xFF0F172A),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                currentCard['fullName'] as String,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: isVisa ? const Color(0xFFEEF2FF) : const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                isVisa ? 'VISA' : 'GPN',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  color: isVisa ? const Color(0xFF4338CA) : const Color(0xFFDC2626),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: Color(0xFF64748B)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── 2. CARD CAROUSEL (DIPILIH DARI COMBOBOX / SWIPE) ─────────────────────────
   Widget _buildCardCarousel() {
     return SizedBox(
-      height: 196,
+      height: 192,
       child: PageView.builder(
         controller: _cardPageController,
-        onPageChanged: _onCardPageChanged,
+        onPageChanged: (idx) {
+          setState(() {
+            _currentCardIndex = idx;
+            final card = _presetCards[idx];
+            _cardNumberController.text = card['number'] as String;
+            _cardTypeController.text = card['fullName'] as String;
+            _expiryController.text = card['expiry'] as String;
+            _cvvController.text = card['cvv'] as String;
+          });
+        },
         itemCount: _presetCards.length,
         itemBuilder: (context, index) {
           final cardData = _presetCards[index];
@@ -625,7 +983,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
           final displayName = isSelected && _nameController.text.trim().isNotEmpty
               ? _nameController.text.trim()
-              : 'Metro Student';
+              : 'Daffarael Anaqi Ali';
 
           final displayExpiry = isSelected && _expiryController.text.trim().isNotEmpty
               ? _expiryController.text.trim()
@@ -634,6 +992,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           final displayCvv = isSelected && _cvvController.text.trim().isNotEmpty
               ? _cvvController.text.trim()
               : cardData['cvv'] as String;
+
+          final textColor = cardData['textColor'] as Color;
 
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 7),
@@ -647,7 +1007,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isSelected ? const Color(0x18000000) : const Color(0x08000000),
-                  blurRadius: isSelected ? 18 : 8,
+                  blurRadius: isSelected ? 16 : 8,
                   offset: const Offset(0, 6),
                 ),
               ],
@@ -655,32 +1015,34 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             child: Stack(
               children: [
                 CustomPaint(
-                  size: const Size(double.infinity, 196),
+                  size: const Size(double.infinity, 192),
                   painter: _CardWavePainter(),
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Top Row: Bank Name + Brand Logo (VISA or GPN)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            cardData['label'] as String,
+                            cardData['bankName'] as String,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: cardData['textColor'] as Color,
-                              letterSpacing: -0.2,
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
+                              letterSpacing: 0.2,
                             ),
                           ),
                           _buildBrandLogo(cardData['type'] as String),
                         ],
                       ),
 
+                      // Metallic Chip + Sublabel
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -709,22 +1071,24 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
-                              color: (cardData['textColor'] as Color).withValues(alpha: 0.75),
+                              color: textColor.withValues(alpha: 0.75),
                             ),
                           ),
                         ],
                       ),
 
+                      // Card Number
                       Text(
                         displayNum,
                         style: GoogleFonts.spaceMono(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.6,
-                          color: cardData['textColor'] as Color,
+                          color: textColor,
                         ),
                       ),
 
+                      // Card Holder, Expires, CVV
                       Row(
                         children: [
                           Expanded(
@@ -737,7 +1101,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
-                                    color: (cardData['textColor'] as Color).withValues(alpha: 0.6),
+                                    color: textColor.withValues(alpha: 0.65),
                                   ),
                                 ),
                                 const SizedBox(height: 1),
@@ -748,7 +1112,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
-                                    color: cardData['textColor'] as Color,
+                                    color: textColor,
                                   ),
                                 ),
                               ],
@@ -764,7 +1128,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
-                                    color: (cardData['textColor'] as Color).withValues(alpha: 0.6),
+                                    color: textColor.withValues(alpha: 0.65),
                                   ),
                                 ),
                                 const SizedBox(height: 1),
@@ -773,7 +1137,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
-                                    color: cardData['textColor'] as Color,
+                                    color: textColor,
                                   ),
                                 ),
                               ],
@@ -789,7 +1153,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w500,
-                                    color: (cardData['textColor'] as Color).withValues(alpha: 0.6),
+                                    color: textColor.withValues(alpha: 0.65),
                                   ),
                                 ),
                                 const SizedBox(height: 1),
@@ -798,7 +1162,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
-                                    color: cardData['textColor'] as Color,
+                                    color: textColor,
                                   ),
                                 ),
                               ],
@@ -825,46 +1189,31 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           fontSize: 18,
           fontWeight: FontWeight.w900,
           fontStyle: FontStyle.italic,
-          color: const Color(0xFF1E3A8A),
-        ),
-      );
-    } else if (type.contains('GPN')) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-        decoration: BoxDecoration(
-          color: const Color(0xFFDC2626),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          'GPN',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
+          color: Colors.white,
+          letterSpacing: 0.5,
         ),
       );
     }
 
-    return Row(
-      children: [
-        Container(
-          width: 19,
-          height: 19,
-          decoration: const BoxDecoration(color: Color(0xFFEB001B), shape: BoxShape.circle),
+    // Default: Red Official GPN Badge
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDC2626),
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: const [
+          BoxShadow(color: Color(0x22000000), blurRadius: 4, offset: Offset(0, 1)),
+        ],
+      ),
+      child: Text(
+        'GPN',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+          letterSpacing: 0.3,
         ),
-        Transform.translate(
-          offset: const Offset(-7, 0),
-          child: Container(
-            width: 19,
-            height: 19,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF79E1B).withValues(alpha: 0.9),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -875,11 +1224,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         final isActive = index == _currentCardIndex;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: isActive ? 8 : 7,
-          height: isActive ? 8 : 7,
+          margin: const EdgeInsets.symmetric(horizontal: 2.5),
+          width: isActive ? 8 : 6,
+          height: isActive ? 8 : 6,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF818CF8) : const Color(0xFFCBD5E1),
+            color: isActive ? const Color(0xFF0F172A) : const Color(0xFFCBD5E1),
             shape: BoxShape.circle,
           ),
         );
@@ -888,7 +1237,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   }
 
   // ── 3. FORM FIELDS ───────────────────────────────────────────────────────────
-  Widget _buildCardFormFields() {
+  Widget _buildCardFormFields(Map<String, dynamic> currentCard) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -926,12 +1275,37 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _fieldLabel('Card ID'),
+                  _fieldLabel('Card ID / Bank'),
                   const SizedBox(height: 5),
-                  _pillTextField(
-                    controller: _cardTypeController,
-                    hint: 'Mastercard',
-                    readOnly: true,
+                  GestureDetector(
+                    onTap: _showBankPickerBottomSheet,
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.3),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              currentCard['fullName'] as String,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down, color: Color(0xFF64748B), size: 20),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1175,19 +1549,19 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ── 1. 3D SECURE OTP SHEET (DESAIN OTENTIKASI BANK PROFESIONAL) ──────────────
+// ── 1. 3D SECURE OTP SHEET ───────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
 class _OtpVerificationSheet extends StatefulWidget {
   final String orderId;
   final String amountText;
-  final String cardType;
+  final String cardTitle;
   final String last4Digits;
   final VoidCallback onVerified;
 
   const _OtpVerificationSheet({
     required this.orderId,
     required this.amountText,
-    required this.cardType,
+    required this.cardTitle,
     required this.last4Digits,
     required this.onVerified,
   });
@@ -1197,7 +1571,6 @@ class _OtpVerificationSheet extends StatefulWidget {
 }
 
 class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
-  // Pre-filled with valid Sandbox OTP so it feels seamless & realistic
   final TextEditingController _otpController = TextEditingController(text: '112233');
   bool _isVerifying = false;
   String? _error;
@@ -1239,7 +1612,6 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
       _error = null;
     });
 
-    // Realistic banking network delay (1.2 seconds)
     await Future.delayed(const Duration(milliseconds: 1200));
 
     if (!mounted) return;
@@ -1300,7 +1672,7 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
                       ),
                     ),
                     Text(
-                      '${widget.cardType} Authentication',
+                      '${widget.cardTitle} Authentication',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1347,7 +1719,7 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
               children: [
                 _summaryRow('Merchant', 'Metro Institute'),
                 const SizedBox(height: 6),
-                _summaryRow('Kartu', '${widget.cardType} •••• ${widget.last4Digits}'),
+                _summaryRow('Kartu', '${widget.cardTitle} •••• ${widget.last4Digits}'),
                 const SizedBox(height: 6),
                 _summaryRow('Total Pembayaran', widget.amountText, isBold: true),
               ],
@@ -1361,7 +1733,7 @@ class _OtpVerificationSheetState extends State<_OtpVerificationSheet> {
           ),
           const SizedBox(height: 14),
 
-          // Clean OTP Input Box
+          // OTP Input Box
           Container(
             height: 52,
             decoration: BoxDecoration(
