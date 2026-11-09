@@ -1,38 +1,140 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_routes.dart';
-import '../../../../core/theme/app_colors.dart';
 
 /// BasecampHeroCard — Menampilkan HANYA kelas yang sudah dibeli / diikuti oleh mentee.
 /// Mengadopsi visual persis dari referensi desain:
 /// • Background warna soft pastel rose/pink (#FDECEF) dengan border halus
 /// • Aksen starburst lime-green (#C6F24D) dan ilustrasi estetik di sisi kanan
 /// • Headline judul kelas tebal & tegas
-/// • Teks sebutan progres lesson: "X/Y Lesson Selesai" (e.g. "37/40 Lesson Selesai")
-/// • Indikator persentase circular gelap di pojok kanan atas dengan ring pink (e.g. "78%")
-/// • Avatar stack peserta & nama instruktur "By [Mentor]"
-/// • Jika user belum beli kelas (continueLearning == null), widget tidak menampilkan apa-apa.
-class BasecampHeroCard extends StatelessWidget {
+/// • Teks sebutan progres lesson: "X/Y Lesson Selesai" (e.g. "0/3 Lesson Selesai")
+/// • Indikator persentase circular gelap di pojok kanan atas dengan ring pink (e.g. "0%")
+/// • Tombol LANJUT di sebelah KIRI berwarna Kuning Metro (#FAE653)
+/// • Auto-carousel berganti tiap 5 detik sesuai kelas yang dibeli (urut persentase terendah)
+/// • Jika mentee belum beli kelas, widget tidak menampilkan apa-apa.
+class BasecampHeroCard extends StatefulWidget {
+  final List<Map<String, dynamic>>? courses;
   final Map<String, dynamic>? continueLearning;
 
-  const BasecampHeroCard({super.key, this.continueLearning});
+  const BasecampHeroCard({
+    super.key,
+    this.courses,
+    this.continueLearning,
+  });
+
+  @override
+  State<BasecampHeroCard> createState() => _BasecampHeroCardState();
+}
+
+class _BasecampHeroCardState extends State<BasecampHeroCard> {
+  late PageController _pageController;
+  int _currentPage = 0;
+  Timer? _autoPlayTimer;
+
+  List<Map<String, dynamic>> get _items {
+    if (widget.courses != null && widget.courses!.isNotEmpty) {
+      return widget.courses!;
+    }
+    if (widget.continueLearning != null) {
+      return [widget.continueLearning!];
+    }
+    return const [];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _autoPlayTimer?.cancel();
+    if (_items.length > 1) {
+      _autoPlayTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (!mounted || !_pageController.hasClients) return;
+        final next = (_currentPage + 1) % _items.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 550),
+          curve: Curves.easeInOutCubic,
+        );
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant BasecampHeroCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.courses?.length != widget.courses?.length) {
+      _startTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _autoPlayTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (continueLearning == null) {
+    final items = _items;
+    if (items.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final data = continueLearning!;
+    if (items.length == 1) {
+      return _buildSingleCard(context, items.first);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 182,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: items.length,
+            onPageChanged: (idx) {
+              setState(() => _currentPage = idx);
+              // Reset timer when manually swiped
+              _startTimer();
+            },
+            itemBuilder: (context, index) {
+              return _buildSingleCard(context, items[index]);
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(items.length, (idx) {
+            final isActive = idx == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: isActive ? 18 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: isActive ? const Color(0xFF111827) : const Color(0xFFD1D5DB),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSingleCard(BuildContext context, Map<String, dynamic> data) {
     final title = (data['title'] as String?)?.trim().isNotEmpty == true
         ? data['title'] as String
         : 'Bootcamp Metro Institute';
-
-    final mentorName = (data['mentorName'] as String?)?.trim().isNotEmpty == true
-        ? data['mentorName'] as String
-        : 'Mentor Metro';
 
     final rawProgress = (data['progress'] as num?)?.toDouble() ?? 0.0;
     final progress = (rawProgress / 100).clamp(0.0, 1.0);
@@ -43,7 +145,7 @@ class BasecampHeroCard extends StatelessWidget {
 
     // Fallback realistis jika backend belum menghitung session count
     if (totalSessions == 0) {
-      totalSessions = 40;
+      totalSessions = 3;
       completedSessions = ((percent / 100) * totalSessions).round();
       if (percent > 0 && completedSessions == 0) completedSessions = 1;
     }
@@ -84,9 +186,9 @@ class BasecampHeroCard extends StatelessWidget {
           child: Stack(
             children: [
               // ── LAYER 0: Background Artwork (Lime Starburst + Whimsical Learner Art) ──
-              Positioned.fill(
+              const Positioned.fill(
                 child: CustomPaint(
-                  painter: const _HeroLearnerArtPainter(),
+                  painter: _HeroLearnerArtPainter(),
                 ),
               ),
 
@@ -95,7 +197,7 @@ class BasecampHeroCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(22, 22, 20, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Top Row: Title + Lesson Count (Left) & Circular Progress Tracker (Right)
                     Row(
@@ -109,7 +211,7 @@ class BasecampHeroCard extends StatelessWidget {
                               Text(
                                 title,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 20,
+                                  fontSize: 19,
                                   fontWeight: FontWeight.w800,
                                   color: const Color(0xFF111827),
                                   letterSpacing: -0.4,
@@ -139,39 +241,20 @@ class BasecampHeroCard extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 20),
-
-                    // Avatar stack + "+33" (Persis Referensi)
-                    Row(
-                      children: [
-                        _buildAvatarStack(totalSessions),
-                      ],
-                    ),
-
                     const SizedBox(height: 14),
 
-                    // Bottom Row: "By [Mentor]" + "LANJUT BELAJAR" Pill
+                    // Bottom Row: Button LANJUT di SEBELAH KIRI (Kuning Metro)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text(
-                          'By $mentorName',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF111827),
-                            letterSpacing: -0.2,
-                          ),
-                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.5),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: const Color(0xFFFAE653), // Kuning Metro (#FAE653)
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x28018556),
+                                color: Color(0x1F000000),
                                 blurRadius: 6,
                                 offset: Offset(0, 2),
                               ),
@@ -182,16 +265,16 @@ class BasecampHeroCard extends StatelessWidget {
                             children: [
                               const Icon(
                                 Icons.play_arrow_rounded,
-                                color: Colors.white,
-                                size: 16,
+                                color: Color(0xFF111827),
+                                size: 17,
                               ),
-                              const SizedBox(width: 3),
+                              const SizedBox(width: 4),
                               Text(
                                 'LANJUT',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w800,
-                                  color: Colors.white,
+                                  color: const Color(0xFF111827),
                                   letterSpacing: 0.4,
                                 ),
                               ),
@@ -244,73 +327,6 @@ class BasecampHeroCard extends StatelessWidget {
       ),
     );
   }
-
-  /// Stack of small colorful circular avatar bubbles (+33 badge) persis referensi
-  Widget _buildAvatarStack(int totalCount) {
-    final avatarColors = [
-      const Color(0xFFFED7AA), // warm peach
-      const Color(0xFFDDD6FE), // pastel lavender
-      const Color(0xFFFEF08A), // pastel yellow
-    ];
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 78,
-          height: 28,
-          child: Stack(
-            children: [
-              for (int i = 0; i < avatarColors.length; i++)
-                Positioned(
-                  left: i * 16.0,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: avatarColors[i],
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        i == 0
-                            ? Icons.face_rounded
-                            : (i == 1 ? Icons.face_3_rounded : Icons.face_6_rounded),
-                        size: 16,
-                        color: const Color(0xFF334155),
-                      ),
-                    ),
-                  ),
-                ),
-              Positioned(
-                left: 3 * 16.0,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E242B),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '+${totalCount > 3 ? totalCount - 3 : 12}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 /// CustomPainter untuk circular progress badge: Dark disk center dengan outer pink arc
@@ -324,9 +340,9 @@ class _CircularProgressPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // 1. Dark center disk
+    // 1. Dark circular center disk (#1A2129)
     final diskPaint = Paint()
-      ..color = const Color(0xFF1E242B)
+      ..color = const Color(0xFF192028)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius - 4.5, diskPaint);
 

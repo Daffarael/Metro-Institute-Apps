@@ -114,8 +114,32 @@ class _BasecampScreenState extends State<BasecampScreen> {
     final recommendations = (_data?['recommendations'] as List?) ?? [];
     final dailyMissions = _data?['dailyMissions'] as Map<String, dynamic>?;
     final hasPhoto = user?['photoUrl'] != null && (user!['photoUrl'] as String).isNotEmpty;
-    final hasPurchasedCourse = continueLearning != null || activeCourses.isNotEmpty;
-    final primaryEnrolledCourse = continueLearning ?? (activeCourses.isNotEmpty ? (activeCourses.first as Map<String, dynamic>) : null);
+
+    // Gabungkan continueLearning & activeCourses tanpa duplikasi
+    final List<Map<String, dynamic>> enrolledCourses = [];
+    final Set<String> enrolledIds = {};
+    if (continueLearning != null && continueLearning['id'] != null) {
+      enrolledCourses.add(continueLearning);
+      enrolledIds.add(continueLearning['id'].toString());
+    }
+    for (final item in activeCourses) {
+      if (item is Map<String, dynamic> && item['id'] != null) {
+        final id = item['id'].toString();
+        if (!enrolledIds.contains(id)) {
+          enrolledCourses.add(item);
+          enrolledIds.add(id);
+        }
+      }
+    }
+
+    // Urutkan dari persentase terendah (0% -> 100%) agar mentee termotivasi
+    enrolledCourses.sort((a, b) {
+      final pA = (a['progress'] as num?)?.toDouble() ?? 0.0;
+      final pB = (b['progress'] as num?)?.toDouble() ?? 0.0;
+      return pA.compareTo(pB);
+    });
+
+    final hasPurchasedCourse = enrolledCourses.isNotEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F5), // Light warm pastel canvas (Reference Image)
@@ -166,9 +190,9 @@ class _BasecampScreenState extends State<BasecampScreen> {
                       ),
 
                     // ── 2. Lanjutkan Belajar (HANYA tampil jika mentee sudah beli / memiliki kelas aktif) ─
-                    if (hasPurchasedCourse && primaryEnrolledCourse != null) ...[
+                    if (hasPurchasedCourse) ...[
                       BasecampHeroCard(
-                        continueLearning: primaryEnrolledCourse,
+                        courses: enrolledCourses,
                       ),
                     ],
 
