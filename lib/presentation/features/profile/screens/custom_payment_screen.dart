@@ -315,14 +315,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   void initState() {
     super.initState();
 
-    // Initial debit card setup (Visa Debit default)
+    // Initial debit card setup (Visa Debit default, form inputs start empty)
     final initialOption = _debitOptions[0];
-    _cardNumberController.text = initialOption['number'] as String;
+    _cardNumberController.text = '';
     _cardTypeController.text = initialOption['title'] as String;
-    _expiryController.text = initialOption['expiry'] as String;
-    _cvvController.text = initialOption['cvv'] as String;
-
-    _loadUserName();
+    _expiryController.text = '';
+    _cvvController.text = '';
+    _nameController.text = '';
     if (widget.vaNumber != null && widget.vaNumber!.isNotEmpty) {
       _isVaGenerated = true;
       _startMidtransSettlementPolling();
@@ -954,19 +953,19 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
     final displayNum = _cardNumberController.text.trim().isNotEmpty
         ? _cardNumberController.text.trim()
-        : activeOption['number'] as String;
+        : '•••• •••• •••• ••••';
 
     final displayName = _nameController.text.trim().isNotEmpty
         ? _nameController.text.trim()
-        : 'Daffarael Anaqi Ali';
+        : 'NAMA LENGKAP';
 
     final displayExpiry = _expiryController.text.trim().isNotEmpty
         ? _expiryController.text.trim()
-        : activeOption['expiry'] as String;
+        : 'MM/YY';
 
     final displayCvv = _cvvController.text.trim().isNotEmpty
         ? _cvvController.text.trim()
-        : activeOption['cvv'] as String;
+        : '•••';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -1293,8 +1292,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -1448,13 +1447,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     bool readOnly = false,
   }) {
     return Container(
-      height: 48,
+      height: 50,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.3),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: controller,
@@ -1462,7 +1461,7 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 13.5,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
           color: const Color(0xFF0F172A),
         ),
@@ -1470,11 +1469,16 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
           isDense: true,
           hintText: hint,
           hintStyle: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
+            fontSize: 13.5,
             color: const Color(0xFF94A3B8),
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
           ),
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          filled: false,
           contentPadding: EdgeInsets.zero,
         ),
       ),
@@ -1685,8 +1689,8 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             height: 52,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
               boxShadow: const [
                 BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 2)),
               ],
@@ -1790,33 +1794,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Hint Box
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFDBEAFE)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF2563EB)),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Nomor Virtual Account resmi akan dibuat setelah Anda menekan tombol Lanjut di bawah.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    color: const Color(0xFF1E40AF),
-                    height: 1.4,
-                  ),
-                ),
               ),
             ],
           ),
