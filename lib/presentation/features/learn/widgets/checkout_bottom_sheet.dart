@@ -658,8 +658,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                         ElevatedButton(
                           onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF018556),
-                            foregroundColor: Colors.white,
+                            backgroundColor: const Color(0xFFFAE653), // Official Metro Yellow #FAE653
+                            foregroundColor: const Color(0xFF0F172A),
                             elevation: 0,
                             minimumSize: const Size(90, 50),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -670,14 +670,14 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(color: Color(0xFF0F172A), strokeWidth: 2),
                                 )
                               : Text(
                                   'Terapkan',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: const Color(0xFF0F172A),
                                   ),
                                 ),
                         ),
