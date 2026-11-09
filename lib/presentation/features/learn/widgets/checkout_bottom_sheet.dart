@@ -858,24 +858,12 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                         width: 20,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
                       )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isFree ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isFree
-                                ? 'Daftar Gratis Sekarang'
-                                : 'Lanjut ke Pembayaran (${_formatRupiah(_finalAmount)})',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
+                    : Text(
+                        _isFree ? 'Daftar Gratis Sekarang' : 'Lanjutkan Pembayaran',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
               ),
 

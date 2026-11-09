@@ -1611,25 +1611,13 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    bank['name'] as String,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 14,
-                                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                      color: const Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Verifikasi otomatis 24 jam',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      color: const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                bank['name'] as String,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  color: const Color(0xFF0F172A),
+                                ),
                               ),
                             ),
                             Container(
