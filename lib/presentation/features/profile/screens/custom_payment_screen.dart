@@ -121,6 +121,24 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
   final List<Map<String, dynamic>> _presetCards = [
     // ── KARTU VISA (4 BANK BESAR) ──
     {
+      'id': 'mandiri_visa',
+      'fullName': 'Mandiri Visa (Debit Bisnis)',
+      'bankName': 'Mandiri',
+      'type': 'VISA',
+      'label': 'Mandiri Debit Bisnis',
+      'sublabel': 'Platinum',
+      'number': '4837 0088 7766 5544',
+      'expiry': '11/28',
+      'cvv': '883',
+      'bgImage': 'assets/images/mandiri_card_bg.png',
+      'gradient': const [
+        Color(0xFF1A1C1E), // Authentic Mandiri Bisnis Dark
+        Color(0xFF0F172A),
+        Color(0xFF002D62),
+      ],
+      'textColor': Colors.white,
+    },
+    {
       'id': 'bca_visa',
       'fullName': 'BCA Visa',
       'bankName': 'BCA',
@@ -134,23 +152,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         Color(0xFF005EAA), // BCA Royal Blue
         Color(0xFF003D73),
         Color(0xFF002244),
-      ],
-      'textColor': Colors.white,
-    },
-    {
-      'id': 'mandiri_visa',
-      'fullName': 'Mandiri Visa',
-      'bankName': 'Mandiri',
-      'type': 'VISA',
-      'label': 'Mandiri Visa',
-      'sublabel': 'Signature',
-      'number': '4201 9988 7766 5544',
-      'expiry': '11/28',
-      'cvv': '883',
-      'gradient': const [
-        Color(0xFF002D62), // Mandiri Deep Navy
-        Color(0xFF001B3A),
-        Color(0xFFB8860B), // Gold touch
       ],
       'textColor': Colors.white,
     },
@@ -208,6 +209,24 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
     // ── KARTU DEBIT GPN (4 BANK BESAR) ──
     {
+      'id': 'mandiri_gpn',
+      'fullName': 'Mandiri Debit GPN (Bisnis)',
+      'bankName': 'Mandiri',
+      'type': 'GPN',
+      'label': 'Mandiri Debit GPN',
+      'sublabel': 'Debit GPN',
+      'number': '6011 4837 6677 8899',
+      'expiry': '09/27',
+      'cvv': '732',
+      'bgImage': 'assets/images/mandiri_gpn_card_bg.png',
+      'gradient': const [
+        Color(0xFF1A1C1E),
+        Color(0xFF0F766E),
+        Color(0xFF002D62),
+      ],
+      'textColor': Colors.white,
+    },
+    {
       'id': 'bca_gpn',
       'fullName': 'BCA Debit GPN',
       'bankName': 'BCA',
@@ -221,23 +240,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         Color(0xFF005EAA), // BCA Blue-Emerald GPN
         Color(0xFF018556),
         Color(0xFF003D73),
-      ],
-      'textColor': Colors.white,
-    },
-    {
-      'id': 'mandiri_gpn',
-      'fullName': 'Mandiri Debit GPN',
-      'bankName': 'Mandiri',
-      'type': 'GPN',
-      'label': 'Mandiri Debit GPN',
-      'sublabel': 'Debit GPN',
-      'number': '6011 4455 6677 8899',
-      'expiry': '09/27',
-      'cvv': '732',
-      'gradient': const [
-        Color(0xFF002D62), // Mandiri Deep Teal GPN
-        Color(0xFF0F766E),
-        Color(0xFF001B3A),
       ],
       'textColor': Colors.white,
     },
@@ -517,15 +519,25 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
               height: 26,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
-                gradient: LinearGradient(
-                  colors: card['gradient'] as List<Color>,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                image: card['bgImage'] != null
+                    ? DecorationImage(
+                        image: AssetImage(card['bgImage'] as String),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+                gradient: card['bgImage'] == null
+                    ? LinearGradient(
+                        colors: card['gradient'] as List<Color>,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 4),
               alignment: Alignment.center,
-              child: _buildBankLogoSmall(card['bankName'] as String),
+              child: card['bgImage'] != null
+                  ? null
+                  : _buildBankLogoSmall(card['bankName'] as String),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1035,6 +1047,16 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
           final textColor = cardData['textColor'] as Color;
 
+          if (cardData['bgImage'] != null) {
+            return _buildMandiriBisnisCard(
+              cardData: cardData,
+              displayNum: displayNum,
+              displayName: displayName,
+              displayExpiry: displayExpiry,
+              isSelected: isSelected,
+            );
+          }
+
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 7),
             decoration: BoxDecoration(
@@ -1075,30 +1097,12 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                         ],
                       ),
 
-                      // Metallic Chip + Sublabel
+                      // Metallic Gold Chip + Sublabel
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            width: 36,
-                            height: 26,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 20,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: const Color(0xFF94A3B8), width: 0.8),
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                              ),
-                            ),
-                          ),
+                          _buildRealisticGoldChip(),
                           Text(
                             cardData['sublabel'] as String,
                             style: GoogleFonts.plusJakartaSans(
@@ -1210,6 +1214,208 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  // ── KARTU KHUSUS BANK MANDIRI DEBIT BISNIS NUSANTARA (1:1 ASLI) ────────────
+  Widget _buildMandiriBisnisCard({
+    required Map<String, dynamic> cardData,
+    required String displayNum,
+    required String displayName,
+    required String displayExpiry,
+    required bool isSelected,
+  }) {
+    final isGpn = cardData['type'] == 'GPN';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 7),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        image: DecorationImage(
+          image: AssetImage(cardData['bgImage'] as String),
+          fit: BoxFit.fill,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isSelected ? const Color(0x35000000) : const Color(0x15000000),
+            blurRadius: isSelected ? 18 : 10,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 1. Spacing at top (Mandiri wave ribbon + mandiri debit bisnis is printed on the card at top-right)
+              const SizedBox(height: 38),
+
+              // 2. Mid spacing (Gold EMV chip is printed on the card at mid-left)
+              const SizedBox(height: 6),
+
+              // 3. Embossed Card Number (1:1 physical card typography)
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Text(
+                  displayNum,
+                  style: GoogleFonts.spaceMono(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2.0,
+                    color: Colors.white,
+                    shadows: const [
+                      Shadow(offset: Offset(0, 1.3), blurRadius: 3, color: Colors.black87),
+                      Shadow(offset: Offset(0, -0.6), blurRadius: 1, color: Colors.white24),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 4. Bottom row: Cardholder Name (left), VALID THRU (middle), VISA / GPN logo (right)
+              Padding(
+                padding: const EdgeInsets.only(left: 6, bottom: 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Cardholder Name (Uppercase embossed)
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        displayName.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.spaceMono(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                          shadows: const [
+                            Shadow(offset: Offset(0, 1.2), blurRadius: 2.5, color: Colors.black87),
+                            Shadow(offset: Offset(0, -0.5), blurRadius: 1, color: Colors.white24),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // VALID THRU & Expiry Date
+                    Expanded(
+                      flex: 4,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'MONTH/YEAR',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              Text(
+                                'VALID\nTHRU',
+                                textAlign: TextAlign.right,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 5.5,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.0,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            displayExpiry,
+                            style: GoogleFonts.spaceMono(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              shadows: const [
+                                Shadow(offset: Offset(0, 1.2), blurRadius: 2.5, color: Colors.black87),
+                                Shadow(offset: Offset(0, -0.5), blurRadius: 1, color: Colors.white24),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Right card network mark:
+                    // If GPN, overlay the official GPN vector badge; if Visa, it's already printed on the background
+                    if (isGpn)
+                      SvgPicture.string(_svgGpn, height: 23)
+                    else
+                      const SizedBox(width: 68),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── REALISTIC GOLD EMV SMART CHIP ──────────────────────────────────────────
+  Widget _buildRealisticGoldChip() {
+    return Container(
+      width: 38,
+      height: 28,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFFFDF7A),
+            Color(0xFFD4AF37),
+            Color(0xFFAA8012),
+            Color(0xFFF3E5AB),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF8B6914), width: 0.9),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x35000000),
+            blurRadius: 3,
+            offset: Offset(0, 1.5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: Container(
+              width: 22,
+              height: 16,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF7A5C0E), width: 0.8),
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 13.5,
+            child: Container(height: 0.8, color: const Color(0xFF7A5C0E)),
+          ),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 18.5,
+            child: Container(width: 0.8, color: const Color(0xFF7A5C0E)),
+          ),
+        ],
       ),
     );
   }
