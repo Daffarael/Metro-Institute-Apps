@@ -47,11 +47,7 @@ class CheckoutBottomSheet extends StatefulWidget {
       context: context,
       useRootNavigator: false,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
+      backgroundColor: Colors.transparent,
       builder: (ctx) => CheckoutBottomSheet(
         title: title,
         price: price,
@@ -382,16 +378,18 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return SafeArea(
-      top: false,
-      child: Container(
-        width: double.infinity,
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.90,
+      ),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.88,
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -594,69 +592,65 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _voucherController,
-                  textCapitalization: TextCapitalization.characters,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                    color: const Color(0xFF0F172A),
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: 'CONTOH: METROPROMO',
-                    hintStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF94A3B8),
-                      letterSpacing: 0.3,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF018556), width: 1.5),
+                child: Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _voucherError != null ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                      width: 1.5,
                     ),
                   ),
-                  onSubmitted: (_) => _handleApplyVoucher(),
-                  onChanged: (_) {
-                    if (_voucherError != null) setState(() => _voucherError = null);
-                  },
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  alignment: Alignment.centerLeft,
+                  child: TextField(
+                    controller: _voucherController,
+                    textCapitalization: TextCapitalization.characters,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                      color: const Color(0xFF0F172A),
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      hintText: 'CONTOH: METROPROMO',
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF94A3B8),
+                        letterSpacing: 0.3,
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onSubmitted: (_) => _handleApplyVoucher(),
+                    onChanged: (_) {
+                      if (_voucherError != null) setState(() => _voucherError = null);
+                    },
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF018556),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(0xFF94A3B8),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              SizedBox(
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF018556),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF94A3B8),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                ),
                   child: _isValidatingVoucher
                       ? const SizedBox(
-                          width: 14,
-                          height: 14,
+                          width: 16,
+                          height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
@@ -670,6 +664,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                           ),
                         ),
                 ),
+              ),
             ],
           ),
           if (_voucherError != null) ...[
@@ -820,7 +815,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 'Total Pembayaran:',
@@ -875,31 +869,11 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
 
   // ── FOOTER BUTTONS ───────────────────────────────────────────────────────────
   Widget _buildFooterButtons() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Batal Button
-        OutlinedButton(
-          onPressed: _isLoading ? null : () => Navigator.pop(context),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          ),
-          child: Text(
-            'Batal',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF334155),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-
-        // Lanjut ke Pembayaran / Daftar Gratis Sekarang Button
-        Expanded(
+        SizedBox(
+          width: double.infinity,
           child: ElevatedButton(
             onPressed: _isLoading ? null : _handleInitiatePayment,
             style: ElevatedButton.styleFrom(
@@ -907,32 +881,19 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               shadowColor: const Color(0xFF018556).withValues(alpha: 0.25),
             ),
             child: _isLoading
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Memproses...',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -940,7 +901,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                       Text(
                         _isFree ? 'Daftar Gratis Sekarang' : 'Lanjut ke Pembayaran',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -949,6 +910,28 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                       const Icon(Icons.arrow_forward_rounded, size: 16),
                     ],
                   ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: _isLoading ? null : () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
+              ),
+            ),
           ),
         ),
       ],
