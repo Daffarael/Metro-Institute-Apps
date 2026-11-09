@@ -22,17 +22,23 @@ class BasecampTodaysActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Hitung persentase dinamis dari dailyMissions jika ada
+    // Hitung persentase dinamis dari database (dailyMissions)
     final missionsList = (dailyMissions?['missions'] as List?) ?? [];
     int completedCount = 0;
     for (final m in missionsList) {
       if (m is Map && m['completed'] == true) completedCount++;
     }
-    final int percent = missionsList.isNotEmpty
-        ? ((completedCount / missionsList.length) * 100).round()
-        : 73; // Fallback 73% persis referensi
+    int percent = 0;
+    if (missionsList.isNotEmpty) {
+      percent = ((completedCount / missionsList.length) * 100).round();
+    } else {
+      int score = 0;
+      if (dailyMissions?['watchedVideo'] == true) score++;
+      if (dailyMissions?['didChallenge'] == true) score++;
+      percent = ((score / 2) * 100).round();
+    }
 
-    final progressFraction = (percent / 100).clamp(0.05, 1.0);
+    final progressFraction = (percent / 100).clamp(0.02, 1.0);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -259,3 +265,4 @@ class _CardWafflePainter extends CustomPainter {
   bool shouldRepaint(covariant _CardWafflePainter oldDelegate) =>
       oldDelegate.color != color;
 }
+
