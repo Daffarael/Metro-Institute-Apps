@@ -27,6 +27,7 @@ class AppRoutes {
   static const String learningPlayer= '/learn/player/:sessionId';
   static const String wishlist      = '/learn/wishlist';
   static const String myCourses    = '/learn/my-courses';
+  static const String learningTimeline = '/timeline';
 
   // ── Sub-routes: Challenge ─────────────────────────────────────────────────
   static const String challengeArena    = '/challenge/arena/:id';

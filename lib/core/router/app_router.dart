@@ -22,6 +22,7 @@ import '../../presentation/features/webinar/screens/webinar_screen.dart';
 import '../../presentation/features/webinar/screens/inspire_talk_detail_screen.dart';
 import '../../presentation/features/wishlist/screens/wishlist_screen.dart';
 import '../../presentation/features/my_courses/screens/my_courses_screen.dart';
+import '../../presentation/features/timeline/screens/learning_timeline_screen.dart';
 import '../../presentation/common/widgets/main_shell.dart';
 import '../../presentation/common/widgets/splash_screen.dart';
 
@@ -242,6 +243,15 @@ class AppRouter {
             isBootcamp: extra['isBootcamp'] == true,
             isAlreadyCompleted: extra['isCompleted'] == true,
           );
+        },
+      ),
+
+      // ── Learning Timeline ───────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.learningTimeline,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>?;
+          return LearningTimelineScreen(initialData: data);
         },
       ),
     ],

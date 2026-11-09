@@ -10,6 +10,7 @@ import '../widgets/basecamp_daily_missions.dart';
 import '../widgets/basecamp_discord_card.dart';
 import '../widgets/basecamp_header.dart';
 import '../widgets/basecamp_hero_card.dart';
+import '../widgets/basecamp_todays_activity_card.dart';
 import '../widgets/basecamp_recommendations.dart';
 import '../widgets/basecamp_upcoming_live.dart';
 
@@ -193,9 +194,16 @@ class _BasecampScreenState extends State<BasecampScreen> {
                       BasecampHeroCard(
                         courses: enrolledCourses,
                       ),
+                      const SizedBox(height: 20),
                     ],
 
-                    // ── 3. Jadwal Live Terdekat (Only if upcomingLive is not empty) ──
+                    // ── 3. Todays Activity / Learning Timeline Card (Pengganti Kelas Aktif) ─
+                    BasecampTodaysActivityCard(
+                      dailyMissions: dailyMissions,
+                      basecampData: _data,
+                    ),
+
+                    // ── 4. Jadwal Live Terdekat (Only if upcomingLive is not empty) ──
                     if (upcomingLive.isNotEmpty) ...[
                       const SizedBox(height: 22),
                       BasecampUpcomingLive(
