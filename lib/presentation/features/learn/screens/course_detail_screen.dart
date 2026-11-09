@@ -505,6 +505,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void _openCheckout(int price) {
+    debugPrint('=== [METRO_CHECKOUT] _openCheckout dipanggil dengan price: $price ===');
     try {
       final actualIsBootcamp = _detail?['isBootcamp'] == true ||
           widget.isBootcamp ||
@@ -539,6 +540,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         mentorName = instr;
       }
       mentorName ??= (_detail?['mentorName'] ?? widget.item['mentorName'])?.toString();
+
+      debugPrint('=== [METRO_CHECKOUT] Membuka modal CheckoutBottomSheet: id: $id, title: $title, type: ${actualIsBootcamp ? 'BOOTCAMP' : 'MINI_COURSE'} ===');
 
       CheckoutBottomSheet.show(
         context,
@@ -2330,6 +2333,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
+                      debugPrint('=== [METRO_CHECKOUT] Tombol Beli Sekarang diklik! price: $price, isEnrolled: $isEnrolled ===');
                       if (isEnrolled) {
                         _openLearningPlayer();
                       } else {
