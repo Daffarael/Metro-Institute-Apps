@@ -158,6 +158,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   final WishlistRemoteDataSource _wishlistDs = sl<WishlistRemoteDataSource>();
 
   bool _isLoading = true;
+  bool _isBootcampActual = false;
   Map<String, dynamic>? _detail;
   bool _isWishlisted = false;
 
@@ -182,6 +183,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _isBootcampActual = widget.isBootcamp ||
+        widget.item['isBootcamp'] == true ||
+        widget.item['type'] == 'bootcamp' ||
+        widget.item['productType'] == 'BOOTCAMP';
     _isWishlisted = widget.item['isWishlisted'] == true;
     _fetchDetailAndInitVideo();
   }
@@ -233,6 +238,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       if (!mounted) return;
       setState(() {
         _detail = res;
+        _isBootcampActual = res['field'] != null ||
+            res['isBootcamp'] == true ||
+            res['type'] == 'BOOTCAMP' ||
+            _isBootcampActual;
         _isLoading = false;
         if (res.containsKey('isWishlisted')) {
           _isWishlisted = res['isWishlisted'] == true;
@@ -602,7 +611,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             courseTitle: courseTitle,
             videoUrl: targetSession['videoUrl']?.toString(),
             courseId: courseId,
-            isBootcamp: widget.isBootcamp,
+            isBootcamp: _isBootcampActual,
+            sessionType: targetSession['type']?.toString(),
             onCompleted: () => _fetchDetailAndInitVideo(),
           ),
         ),

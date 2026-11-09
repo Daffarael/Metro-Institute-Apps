@@ -220,7 +220,7 @@ class AppRouter {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {'id': id};
-          final isBootcamp = extra['isBootcamp'] == true;
+          final isBootcamp = extra['isBootcamp'] == true || extra['type'] == 'bootcamp';
           return CourseDetailScreen(
             item: extra,
             isBootcamp: isBootcamp,
@@ -234,13 +234,15 @@ class AppRouter {
         builder: (context, state) {
           final sessionId = state.pathParameters['sessionId'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {};
+          final isBootcamp = extra['isBootcamp'] == true || extra['type'] == 'bootcamp';
           return VideoPlayerScreen(
             sessionId: sessionId,
             title: extra['title'] ?? 'Sesi Belajar',
             courseTitle: extra['courseTitle'] ?? 'Kelas Metro',
             videoUrl: extra['videoUrl'],
             courseId: extra['courseId'],
-            isBootcamp: extra['isBootcamp'] == true,
+            isBootcamp: isBootcamp,
+            sessionType: extra['sessionType'] ?? extra['type'],
             isAlreadyCompleted: extra['isCompleted'] == true,
           );
         },

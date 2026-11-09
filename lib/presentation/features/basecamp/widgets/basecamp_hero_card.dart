@@ -152,12 +152,24 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
 
     final courseId = data['id']?.toString() ?? '';
     final sessionId = data['sessionId']?.toString() ?? '';
+    final isBootcamp = data['type'] == 'bootcamp' || data['isBootcamp'] == true;
 
     void handleTap() {
       if (sessionId.isNotEmpty) {
-        context.push('/learn/player/$sessionId');
+        context.push('/learn/player/$sessionId', extra: {
+          'courseId': courseId,
+          'isBootcamp': isBootcamp,
+          'title': data['sessionTitle'] ?? title,
+          'courseTitle': title,
+          'sessionType': data['sessionType'] ?? data['type'],
+        });
       } else if (courseId.isNotEmpty) {
-        context.push('/learn/course/$courseId');
+        context.push('/learn/course/$courseId', extra: {
+          'id': courseId,
+          'title': title,
+          'isBootcamp': isBootcamp,
+          'isEnrolled': true,
+        });
       } else {
         context.go(AppRoutes.learn);
       }

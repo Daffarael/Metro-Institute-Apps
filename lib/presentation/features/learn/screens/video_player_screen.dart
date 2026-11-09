@@ -20,6 +20,7 @@ class VideoPlayerScreen extends StatefulWidget {
   final bool isAlreadyCompleted;
   final VoidCallback? onCompleted;
   final bool isBootcamp;
+  final String? sessionType;
 
   const VideoPlayerScreen({
     super.key,
@@ -31,6 +32,7 @@ class VideoPlayerScreen extends StatefulWidget {
     this.isAlreadyCompleted = false,
     this.onCompleted,
     this.isBootcamp = false,
+    this.sessionType,
   });
 
   @override
@@ -96,6 +98,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     _currentVideoUrl = widget.videoUrl;
     _isUnlocked = widget.isAlreadyCompleted;
     _isSessionFinished = widget.isAlreadyCompleted;
+    if (widget.sessionType != null && widget.sessionType!.isNotEmpty) {
+      _sessionType = widget.sessionType!;
+      if (_sessionType != 'VIDEO') {
+        _isUnlocked = true;
+      }
+    }
 
     _loadSessionAndPlayer();
   }
@@ -126,68 +134,84 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     if (cId != null && sId != null) {
       setState(() => _isLoadingSessionData = true);
       try {
-        final Map<String, dynamic> data;
+        Map<String, dynamic>? data;
         if (widget.isBootcamp) {
-          data = await _bootcampDs.getBootcampSession(cId, sId);
-        } else {
-          data = await _courseDs.getCourseSession(cId, sId);
-        }
-
-        final current = (data['currentSession'] as Map<String, dynamic>?) ?? {};
-        final rawType = (current['type'] as String?) ?? 'VIDEO';
-        final rawUrl = (current['videoUrl'] as String?) ?? _currentVideoUrl;
-        final isComp = current['isCompleted'] == true || widget.isAlreadyCompleted;
-
-        // Parse materials
-        List<dynamic> parsedMaterials = [];
-        if (current['materials'] != null) {
-          if (current['materials'] is String) {
+          try {
+            data = await _bootcampDs.getBootcampSession(cId, sId);
+          } catch (e) {
             try {
-              parsedMaterials = jsonDecode(current['materials']) as List<dynamic>;
-            } catch (_) {
-              parsedMaterials = [];
-            }
-          } else if (current['materials'] is List) {
-            parsedMaterials = current['materials'];
+              data = await _courseDs.getCourseSession(cId, sId);
+            } catch (_) {}
+          }
+        } else {
+          try {
+            data = await _courseDs.getCourseSession(cId, sId);
+          } catch (e) {
+            try {
+              data = await _bootcampDs.getBootcampSession(cId, sId);
+            } catch (_) {}
           }
         }
 
-        // Parse quiz
-        List<dynamic> parsedQuiz = [];
-        if (current['quizOptions'] != null && current['quizOptions'] is List) {
-          parsedQuiz = current['quizOptions'];
-        }
+        if (data != null && data.isNotEmpty) {
+          final current = (data['currentSession'] as Map<String, dynamic>?) ?? {};
+          final rawType = (current['type'] as String?) ?? widget.sessionType ?? 'VIDEO';
+          final rawUrl = (current['videoUrl'] as String?) ?? _currentVideoUrl;
+          final isComp = current['isCompleted'] == true || widget.isAlreadyCompleted;
 
-        bool isLiveEnd = current['isLiveEnded'] == true || current['isChapterLiveEnded'] == true || current['isEnded'] == true;
-        final liveSched = current['liveScheduledAt'] ?? current['scheduledAt'];
-        if (liveSched != null) {
-          final sched = DateTime.tryParse(liveSched.toString());
-          if (sched != null) {
-            final dur = (current['videoDuration'] as num?)?.toInt() ?? (current['durationMinutes'] as num?)?.toInt() ?? 5400;
-            final durMin = dur > 300 ? (dur ~/ 60) : dur;
-            if (DateTime.now().isAfter(sched.add(Duration(minutes: durMin > 0 ? durMin : 90)))) {
-              isLiveEnd = true;
+          // Parse materials
+          List<dynamic> parsedMaterials = [];
+          if (current['materials'] != null) {
+            if (current['materials'] is String) {
+              try {
+                parsedMaterials = jsonDecode(current['materials']) as List<dynamic>;
+              } catch (_) {
+                parsedMaterials = [];
+              }
+            } else if (current['materials'] is List) {
+              parsedMaterials = current['materials'];
             }
           }
-        }
 
-        if (mounted) {
-          setState(() {
-            _sessionType = rawType;
-            _currentTitle = current['title'] ?? _currentTitle;
-            _currentVideoUrl = rawUrl;
-            _sessionDescription = current['description'] ?? current['assignmentDescription'];
-            _materials = parsedMaterials;
-            _quizOptions = parsedQuiz;
-            _isLiveEnded = isLiveEnd;
-            _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
-            _prevSessionId = data['prevSessionId'] as String?;
-            _nextSessionId = data['nextSessionId'] as String?;
-            _courseProgress = (data['progress'] as num?)?.toInt() ?? 0;
-            _isSessionFinished = isComp;
-            _isUnlocked = isComp || rawType != 'VIDEO'; // non-video unlocks immediately
-            _isLoadingSessionData = false;
-          });
+          // Parse quiz
+          List<dynamic> parsedQuiz = [];
+          if (current['quizOptions'] != null && current['quizOptions'] is List) {
+            parsedQuiz = current['quizOptions'];
+          }
+
+          bool isLiveEnd = current['isLiveEnded'] == true || current['isChapterLiveEnded'] == true || current['isEnded'] == true;
+          final liveSched = current['liveScheduledAt'] ?? current['scheduledAt'];
+          if (liveSched != null) {
+            final sched = DateTime.tryParse(liveSched.toString());
+            if (sched != null) {
+              final dur = (current['videoDuration'] as num?)?.toInt() ?? (current['durationMinutes'] as num?)?.toInt() ?? 5400;
+              final durMin = dur > 300 ? (dur ~/ 60) : dur;
+              if (DateTime.now().isAfter(sched.add(Duration(minutes: durMin > 0 ? durMin : 90)))) {
+                isLiveEnd = true;
+              }
+            }
+          }
+
+          if (mounted) {
+            setState(() {
+              _sessionType = rawType;
+              _currentTitle = current['title'] ?? _currentTitle;
+              _currentVideoUrl = rawUrl;
+              _sessionDescription = current['description'] ?? current['assignmentDescription'];
+              _materials = parsedMaterials;
+              _quizOptions = parsedQuiz;
+              _isLiveEnded = isLiveEnd;
+              _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
+              _prevSessionId = data['prevSessionId'] as String?;
+              _nextSessionId = data['nextSessionId'] as String?;
+              _courseProgress = (data['progress'] as num?)?.toInt() ?? 0;
+              _isSessionFinished = isComp;
+              _isUnlocked = isComp || rawType != 'VIDEO'; // non-video unlocks immediately
+              _isLoadingSessionData = false;
+            });
+          }
+        } else {
+          if (mounted) setState(() => _isLoadingSessionData = false);
         }
       } catch (_) {
         if (mounted) {
@@ -206,6 +230,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     } else {
       setState(() {
         _isPlayerInitializing = false;
+        _playerErrorMessage = null;
         _isUnlocked = true;
       });
     }
