@@ -302,7 +302,6 @@ class BasecampHeader extends StatelessWidget {
             iconColor: AppColors.primary, // Hijau Metro
             cardBgColor: AppColors.primary, // Hijau Metro (#018556)
             isDarkBg: true,
-            isCloudShape: false,
             onTap: () {
               HapticFeedback.lightImpact();
               context.go(AppRoutes.learn);
@@ -323,7 +322,6 @@ class BasecampHeader extends StatelessWidget {
             iconColor: Colors.white, // Putih kontras di atas hijau
             cardBgColor: AppColors.accent, // Kuning Metro (#FAE653)
             isDarkBg: false,
-            isCloudShape: true,
             onTap: () {
               HapticFeedback.lightImpact();
               context.go(AppRoutes.certificate);
@@ -343,7 +341,6 @@ class BasecampHeader extends StatelessWidget {
     required Color iconColor,
     required Color cardBgColor,
     required bool isDarkBg,
-    required bool isCloudShape,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -364,20 +361,8 @@ class BasecampHeader extends StatelessWidget {
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            // Decorative background shape in bottom right corner
-            Positioned.fill(
-              child: CustomPaint(
-                painter: isCloudShape
-                    ? const _OrganicCloudPainter(color: Color(0x40E6D13A))
-                    : const _GeometricShapePainter(color: Color(0x18FFFFFF)),
-              ),
-            ),
-
-            // Card Content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -422,8 +407,6 @@ class BasecampHeader extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
       ),
     );
   }
@@ -455,56 +438,4 @@ class BasecampHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DECORATIVE BACKGROUND PAINTERS (Matching Reference Image)
-// ─────────────────────────────────────────────────────────────────────────────
-class _OrganicCloudPainter extends CustomPainter {
-  final Color color;
-  const _OrganicCloudPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.addOval(Rect.fromCircle(center: Offset(size.width * 0.90, size.height * 0.90), radius: 52));
-    path.addOval(Rect.fromCircle(center: Offset(size.width * 0.98, size.height * 0.60), radius: 40));
-    path.addOval(Rect.fromCircle(center: Offset(size.width * 0.70, size.height * 1.00), radius: 44));
-    path.addOval(Rect.fromCircle(center: Offset(size.width * 0.60, size.height * 0.75), radius: 32));
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _GeometricShapePainter extends CustomPainter {
-  final Color color;
-  const _GeometricShapePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-    final path = Path();
-    path.moveTo(w * 0.55, h);
-    path.lineTo(w * 0.70, h * 0.72);
-    path.lineTo(w * 0.98, h * 0.62);
-    path.lineTo(w * 0.82, h * 0.42);
-    path.lineTo(w, h * 0.32);
-    path.lineTo(w, h);
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

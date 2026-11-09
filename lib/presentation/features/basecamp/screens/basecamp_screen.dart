@@ -6,7 +6,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/basecamp_remote_datasource.dart';
 import '../../../../data/datasources/remote/certificate_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
-import '../widgets/basecamp_active_courses.dart';
 import '../widgets/basecamp_daily_missions.dart';
 import '../widgets/basecamp_discord_card.dart';
 import '../widgets/basecamp_header.dart';
@@ -196,15 +195,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
                       ),
                     ],
 
-                    // ── 3. Kelas Aktif (Only if activeCourses is not empty) ──
-                    if (activeCourses.isNotEmpty) ...[
-                      const SizedBox(height: 22),
-                      BasecampActiveCourses(
-                        activeCourses: activeCourses,
-                      ),
-                    ],
-
-                    // ── 4. Jadwal Live Terdekat (Only if upcomingLive is not empty) ──
+                    // ── 3. Jadwal Live Terdekat (Only if upcomingLive is not empty) ──
                     if (upcomingLive.isNotEmpty) ...[
                       const SizedBox(height: 22),
                       BasecampUpcomingLive(

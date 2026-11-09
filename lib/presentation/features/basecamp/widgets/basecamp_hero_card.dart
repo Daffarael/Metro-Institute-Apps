@@ -121,7 +121,7 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
               width: isActive ? 18 : 6,
               height: 6,
               decoration: BoxDecoration(
-                color: isActive ? const Color(0xFF111827) : const Color(0xFFD1D5DB),
+                color: isActive ? const Color(0xFF018556) : const Color(0xFFD1D5DB),
                 borderRadius: BorderRadius.circular(999),
               ),
             );
@@ -166,12 +166,12 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDECEF), // Soft pastel blossom pink dari referensi
+        color: const Color(0xFF018556), // Hijau Metro Institute (#018556)
         borderRadius: BorderRadius.circular(44),
-        border: Border.all(color: const Color(0xFFFCDCE3), width: 1.2),
+        border: Border.all(color: const Color(0xFF016B44), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x120F172A),
+            color: Color(0x28018556),
             blurRadius: 18,
             offset: Offset(0, 6),
           ),
@@ -183,117 +183,105 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
         child: InkWell(
           onTap: handleTap,
           borderRadius: BorderRadius.circular(44),
-          child: Stack(
-            children: [
-              // ── LAYER 0: Background Artwork (Lime Starburst + Whimsical Learner Art) ──
-              const Positioned.fill(
-                child: CustomPaint(
-                  painter: _HeroLearnerArtPainter(),
-                ),
-              ),
-
-              // ── LAYER 1: Card Content ──
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 22, 20, 20),
-                child: Column(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Top Row: Title + Lesson Count (Left) & Circular Progress Tracker (Right)
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Top Row: Title + Lesson Count (Left) & Circular Progress Tracker (Right)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: Title & Lesson count
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF111827),
-                                  letterSpacing: -0.4,
-                                  height: 1.22,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '$completedSessions/$totalSessions Lesson Selesai',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF4B5563),
-                                  letterSpacing: -0.1,
-                                ),
-                              ),
-                            ],
+                    // Left: Title & Lesson count
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.4,
+                              height: 1.22,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-
-                        const SizedBox(width: 14),
-
-                        // Right: Circular Dark Progress Indicator with Pink Arc (Persis Referensi)
-                        _buildCircularProgressIndicator(progress, percent),
-                      ],
+                          const SizedBox(height: 6),
+                          Text(
+                            '$completedSessions/$totalSessions Lesson Selesai',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFE2F4E9),
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(width: 14),
 
-                    // Bottom Row: Button LANJUT di SEBELAH KIRI (Kuning Metro)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFAE653), // Kuning Metro (#FAE653)
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x1F000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
+                    // Right: Circular Dark Progress Indicator with Kuning Metro Arc
+                    _buildCircularProgressIndicator(progress, percent),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // Bottom Row: Button LANJUT di SEBELAH KIRI (Kuning Metro)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAE653), // Kuning Metro (#FAE653)
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.play_arrow_rounded,
-                                color: Color(0xFF111827),
-                                size: 17,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'LANJUT',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF111827),
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                            ],
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.play_arrow_rounded,
+                            color: Color(0xFF111827),
+                            size: 17,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            'LANJUT',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF111827),
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Circular dark badge with outer pink/coral ring arc (e.g. 78%)
+  /// Circular dark badge with outer Kuning Metro arc
   Widget _buildCircularProgressIndicator(double progress, int percent) {
     return SizedBox(
       width: 66,
@@ -317,7 +305,7 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: const Color(0xFFFAE653),
                   ),
                 ),
               ],
@@ -329,7 +317,7 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
   }
 }
 
-/// CustomPainter untuk circular progress badge: Dark disk center dengan outer pink arc
+/// CustomPainter untuk circular progress badge: Dark emerald disk center dengan Kuning Metro arc
 class _CircularProgressPainter extends CustomPainter {
   final double progress;
 
@@ -340,22 +328,22 @@ class _CircularProgressPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // 1. Dark circular center disk (#1A2129)
+    // 1. Dark emerald circular center disk (#063D2A)
     final diskPaint = Paint()
-      ..color = const Color(0xFF192028)
+      ..color = const Color(0xFF063D2A)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius - 4.5, diskPaint);
 
     // 2. Track background ring
     final trackPaint = Paint()
-      ..color = const Color(0xFFFF3377).withValues(alpha: 0.18)
+      ..color = const Color(0xFFFAE653).withValues(alpha: 0.22)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.2;
     canvas.drawCircle(center, radius - 2.5, trackPaint);
 
-    // 3. Active Progress Arc (Bright Coral/Pink #FF3377 dari referensi)
+    // 3. Active Progress Arc (Kuning Metro #FAE653)
     final arcPaint = Paint()
-      ..color = const Color(0xFFFF3377)
+      ..color = const Color(0xFFFAE653)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.5
       ..strokeCap = StrokeCap.round;
@@ -373,84 +361,4 @@ class _CircularProgressPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CircularProgressPainter oldDelegate) =>
       oldDelegate.progress != progress;
-}
-
-/// CustomPainter untuk Starburst Lime-Green & Whimsical Learner Artwork di sisi kanan
-class _HeroLearnerArtPainter extends CustomPainter {
-  const _HeroLearnerArtPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // 1. Starburst Lime-Green Shape di latar kanan (#C6F24D / #D4F768)
-    final starPaint = Paint()
-      ..color = const Color(0xFFD4F768).withValues(alpha: 0.82)
-      ..style = PaintingStyle.fill;
-
-    final starCenter = Offset(w - 38, h - 35);
-    final starPath = Path();
-    const int points = 10;
-    const double outerR = 64.0;
-    const double innerR = 36.0;
-
-    for (int i = 0; i < points * 2; i++) {
-      final angle = (i * math.pi) / points - (math.pi / 2);
-      final r = (i % 2 == 0) ? outerR : innerR;
-      final x = starCenter.dx + r * math.cos(angle);
-      final y = starCenter.dy + r * math.sin(angle);
-      if (i == 0) {
-        starPath.moveTo(x, y);
-      } else {
-        starPath.lineTo(x, y);
-      }
-    }
-    starPath.close();
-    canvas.drawPath(starPath, starPaint);
-
-    // 2. Whimsical Pie Chart Outline (near student)
-    final pieLinePaint = Paint()
-      ..color = const Color(0xFF1E242B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
-
-    final pieFillPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-
-    final pieCenter = Offset(w - 110, h - 85);
-    const pieR = 14.0;
-    canvas.drawCircle(pieCenter, pieR, pieFillPaint);
-    canvas.drawCircle(pieCenter, pieR, pieLinePaint);
-    canvas.drawLine(pieCenter, Offset(pieCenter.dx, pieCenter.dy - pieR), pieLinePaint);
-    canvas.drawLine(pieCenter, Offset(pieCenter.dx + pieR * 0.8, pieCenter.dy + pieR * 0.4), pieLinePaint);
-
-    // 3. Laptop outline di meja
-    final laptopPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    final laptopStroke = Paint()
-      ..color = const Color(0xFF1E242B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final laptopPath = Path()
-      ..moveTo(w - 95, h - 18)
-      ..lineTo(w - 65, h - 48)
-      ..lineTo(w - 32, h - 45)
-      ..lineTo(w - 62, h - 15)
-      ..close();
-    canvas.drawPath(laptopPath, laptopPaint);
-    canvas.drawPath(laptopPath, laptopStroke);
-
-    // Laptop base / keyboard line
-    canvas.drawLine(Offset(w - 98, h - 15), Offset(w - 55, h - 12), laptopStroke);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
