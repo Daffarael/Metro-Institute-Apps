@@ -588,7 +588,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                       children: [
                         Expanded(
                           child: Container(
-                            height: 44,
+                            height: 50,
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(12),
@@ -597,7 +597,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                                 width: 1.2,
                               ),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            alignment: Alignment.centerLeft,
                             child: Row(
                               children: [
                                 Icon(
@@ -639,32 +640,31 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF018556),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: _isValidatingVoucher
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                  )
-                                : Text(
-                                    'Terapkan',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                        ElevatedButton(
+                          onPressed: _isValidatingVoucher ? null : _handleApplyVoucher,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF018556),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            minimumSize: const Size(90, 50),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
+                          child: _isValidatingVoucher
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : Text(
+                                  'Terapkan',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ],
                     ),
@@ -796,28 +796,27 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                       ),
                       if (_isAuthError) ...[
                         const SizedBox(height: 10),
-                        SizedBox(
-                          height: 36,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              context.push(AppRoutes.login);
-                            },
-                            icon: const Icon(Icons.login_rounded, size: 16),
-                            label: Text(
-                              'Login Sekarang',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            context.push(AppRoutes.login);
+                          },
+                          icon: const Icon(Icons.login_rounded, size: 16),
+                          label: Text(
+                            'Login Sekarang',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              elevation: 0,
-                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(0, 38),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
                           ),
                         ),
                       ],
