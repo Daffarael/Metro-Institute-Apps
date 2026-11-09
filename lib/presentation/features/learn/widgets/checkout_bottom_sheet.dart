@@ -43,24 +43,24 @@ class CheckoutBottomSheet extends StatefulWidget {
     VoidCallback? onSuccess,
     VoidCallback? onStartLearning,
   }) async {
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      builder: (ctx) => CheckoutBottomSheet(
-        title: title,
-        price: price,
-        productType: productType,
-        productId: productId,
-        thumbnailUrl: thumbnailUrl,
-        subtitle: subtitle,
-        onSuccess: onSuccess,
-        onStartLearning: onStartLearning,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.65),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: CheckoutBottomSheet(
+          title: title,
+          price: price,
+          productType: productType,
+          productId: productId,
+          thumbnailUrl: thumbnailUrl,
+          subtitle: subtitle,
+          onSuccess: onSuccess,
+          onStartLearning: onStartLearning,
+        ),
       ),
     );
 
@@ -383,34 +383,32 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
     try {
       final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-      return SafeArea(
-        top: false,
-        child: Container(
-          width: double.infinity,
+      return Container(
+        width: double.infinity,
+        constraints: BoxConstraints(
+          maxWidth: 440,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        decoration: BoxDecoration(
           color: Colors.white,
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.90,
-          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 24,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 20 + bottomInset),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomInset),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── DRAG HANDLE INDICATOR ──
-                Center(
-                  child: Container(
-                    width: 38,
-                    height: 4.5,
-                    margin: const EdgeInsets.only(bottom: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-
                 // ── 1. MODAL HEADER (1:1 with Web Mentee CheckoutModal) ──────
                 Row(
                   children: [
