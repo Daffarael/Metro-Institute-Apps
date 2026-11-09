@@ -451,9 +451,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         return const Icon(Icons.account_balance_rounded, color: Colors.white, size: 14);
     }
   }
-        return const Icon(Icons.account_balance_rounded, color: Colors.white, size: 14);
-    }
-  }
 
   // ── TRIGGER VERIFICATION FLOW ────────────────────────────────────────────────
   void _handleProcessPayment() {
