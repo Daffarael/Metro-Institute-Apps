@@ -305,11 +305,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                     margin: const EdgeInsets.symmetric(vertical: 5),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFF1F5F9) : Colors.white,
+                      color: isSelected ? const Color(0xFFF8FAFC) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
-                        width: isSelected ? 1.6 : 1,
+                        width: isSelected ? 2.2 : 1.2,
                       ),
                     ),
                     child: Row(
@@ -353,11 +353,14 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: isSelected ? const Color(0xFFE2E8F0) : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFCBD5E1), width: 0.8),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1),
+                              width: 0.8,
+                            ),
                           ),
                           child: Text(
                             option['badge'] as String,
@@ -368,10 +371,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                             ),
                           ),
                         ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 10),
-                          const Icon(Icons.check_circle_rounded, color: Color(0xFF018556), size: 20),
-                        ],
                       ],
                     ),
                   ),
@@ -552,18 +551,11 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
                     // 2. Tab Content
                     if (_selectedTab == PaymentTab.card) ...[
-                      // Combobox: Pilih Jenis Kartu Debit (Visa Debit / GPN Debit)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildDebitTypeCombobox(activeOption),
-                      ),
-                      const SizedBox(height: 14),
-
                       // Single Charcoal Card with Indonesian Batik Kawung Motif
                       _buildSingleBatikDebitCard(activeOption),
                       const SizedBox(height: 18),
 
-                      // Form Fields (Dynamic: CVV only for Visa Debit)
+                      // Form Fields (Card Number, Name, Jenis Kartu, Expiry/CVV)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: _buildCardFormFields(activeOption),
@@ -765,89 +757,6 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
     );
   }
 
-  // ── COMBOBOX PILIH JENIS KARTU DEBIT (VISA DEBIT / GPN DEBIT) ───────────────
-  Widget _buildDebitTypeCombobox(Map<String, dynamic> activeOption) {
-    return GestureDetector(
-      onTap: _showDebitTypePickerBottomSheet,
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: const [
-                  BoxShadow(color: Color(0x0A000000), blurRadius: 4, offset: Offset(0, 1)),
-                ],
-              ),
-              padding: const EdgeInsets.all(4),
-              alignment: Alignment.center,
-              child: Image.asset(
-                activeOption['comboboxLogoAsset'] as String,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    activeOption['title'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  Text(
-                    activeOption['subtitle'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF64748B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                activeOption['badge'] as String,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF334155),
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 22, color: Color(0xFF64748B)),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ── 1 SINGLE CARD: CHARCOAL BATIK DEBIT CARD (VISA / GPN) ───────────────────
   Widget _buildSingleBatikDebitCard(Map<String, dynamic> activeOption) {
     final isVisa = activeOption['requiresCvv'] == true;
@@ -936,19 +845,25 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                         ],
                       ),
 
-                      // ONLY OFFICIAL LOGO (No bank text or card text on card face)
-                      if (isVisa)
-                        Image.asset(
-                          'assets/images/logo_visa_white.png',
-                          height: 25,
-                          fit: BoxFit.contain,
-                        )
-                      else
-                        Image.asset(
-                          'assets/images/logo_gpn_darkmode.png',
-                          height: 33,
-                          fit: BoxFit.contain,
+                      // Fixed container for the logo so height and position never shift
+                      SizedBox(
+                        height: 32,
+                        width: 65,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: isVisa
+                              ? Image.asset(
+                                  'assets/images/logo_visa_white.png',
+                                  height: 24,
+                                  fit: BoxFit.contain,
+                                )
+                              : Image.asset(
+                                  'assets/images/logo_gpn_darkmode.png',
+                                  height: 32,
+                                  fit: BoxFit.contain,
+                                ),
                         ),
+                      ),
                     ],
                   ),
 
@@ -969,12 +884,10 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
 
                   // ── BOTTOM ROW: CARD HOLDER & EXPIRES & (CVV IF VISA) ──
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Card Holder Name
+                      // ── LEFT: Card Holder Name (Beri ruang luas, nama jangan disingkat) ──
                       Expanded(
-                        flex: 4,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -987,87 +900,103 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
                                 color: Colors.white.withValues(alpha: 0.72),
                               ),
                             ),
-                            const SizedBox(height: 1),
-                            Text(
-                              displayName.toUpperCase(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.spaceMono(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 0.8,
-                                shadows: const [
-                                  Shadow(offset: Offset(0, 1), blurRadius: 2, color: Colors.black45),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Expiration Date
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Expires',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withValues(alpha: 0.72),
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              displayExpiry,
-                              style: GoogleFonts.spaceMono(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                shadows: const [
-                                  Shadow(offset: Offset(0, 1), blurRadius: 2, color: Colors.black45),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // CVV (Shown ONLY for Visa Debit)
-                      if (isVisa)
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'CVV',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white.withValues(alpha: 0.72),
-                                ),
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                displayCvv,
+                            const SizedBox(height: 2),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                displayName.toUpperCase(),
                                 style: GoogleFonts.spaceMono(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
+                                  letterSpacing: 0.4,
                                   shadows: const [
                                     Shadow(offset: Offset(0, 1), blurRadius: 2, color: Colors.black45),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                      ),
+
+                      const SizedBox(width: 14),
+
+                      // ── RIGHT CLUSTER: EXPIRES & CVV (Geser ke kanan, posisi stabil tanpa gerakan) ──
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // Expiration Date (Geser ke kanan, posisi stabil di Visa maupun GPN)
+                          SizedBox(
+                            width: 52,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Expires',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withValues(alpha: 0.72),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  displayExpiry,
+                                  style: GoogleFonts.spaceMono(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    shadows: const [
+                                      Shadow(offset: Offset(0, 1), blurRadius: 2, color: Colors.black45),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          // CVV Slot (Posisi tetap 34px; jika Visa ada CVV, jika GPN slot transparan)
+                          // Menjamin tidak ada pergeseran / gerakan apapun saat berganti Visa <-> GPN!
+                          SizedBox(
+                            width: 34,
+                            child: Opacity(
+                              opacity: isVisa ? 1.0 : 0.0,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'CVV',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white.withValues(alpha: 0.72),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    displayCvv.isNotEmpty ? displayCvv : '215',
+                                    style: GoogleFonts.spaceMono(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      shadows: const [
+                                        Shadow(offset: Offset(0, 1), blurRadius: 2, color: Colors.black45),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
@@ -1155,68 +1084,72 @@ class _CustomPaymentScreenState extends State<CustomPaymentScreen> {
         ),
         const SizedBox(height: 12),
 
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _fieldLabel('Name'),
-                  const SizedBox(height: 5),
-                  _pillTextField(
-                    controller: _nameController,
-                    hint: 'Nama Pemegang Kartu',
-                  ),
-                ],
-              ),
+        // ── NAME (Full width agar nama tidak kepotong sama sekali) ──
+        _fieldLabel('Name'),
+        const SizedBox(height: 5),
+        _pillTextField(
+          controller: _nameController,
+          hint: 'Nama Pemegang Kartu',
+        ),
+        const SizedBox(height: 12),
+
+        // ── JENIS KARTU (Full width combobox, ID Card dihapus, hanya Jenis Kartu) ──
+        _fieldLabel('Jenis Kartu'),
+        const SizedBox(height: 5),
+        GestureDetector(
+          onTap: _showDebitTypePickerBottomSheet,
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.3),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _fieldLabel('Card ID / Jenis Kartu'),
-                  const SizedBox(height: 5),
-                  GestureDetector(
-                    onTap: _showDebitTypePickerBottomSheet,
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.3),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            activeOption['comboboxLogoAsset'] as String,
-                            height: 16,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              activeOption['title'] as String,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Icon(Icons.arrow_drop_down, color: Color(0xFF64748B), size: 20),
-                        ],
-                      ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    activeOption['comboboxLogoAsset'] as String,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    activeOption['title'] as String,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+                  ),
+                  child: Text(
+                    activeOption['badge'] as String,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF334155),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 22),
+              ],
             ),
-          ],
+          ),
         ),
         const SizedBox(height: 12),
 
