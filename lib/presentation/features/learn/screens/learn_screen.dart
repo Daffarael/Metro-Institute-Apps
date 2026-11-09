@@ -469,12 +469,80 @@ class _LearnScreenState extends State<LearnScreen> {
     if (itemOrRating is Map) {
       raw = itemOrRating['rating'];
     }
-    if (raw == null) return 5.0;
+    if (raw == null) return 0.0;
     if (raw is num) return raw.toDouble();
     if (raw is String) {
-      return double.tryParse(raw) ?? 5.0;
+      return double.tryParse(raw) ?? 0.0;
     }
-    return 5.0;
+    return 0.0;
+  }
+
+  int _parseItemReviewCount(dynamic item) {
+    if (item is! Map) return 0;
+    final raw = item['reviewCount'] ?? item['reviewsCount'] ?? item['totalReviews'] ?? item['_count']?['reviews'];
+    if (raw == null) return 0;
+    if (raw is num) return raw.toInt();
+    if (raw is String) return int.tryParse(raw) ?? 0;
+    return 0;
+  }
+
+  bool _isAvailableForPurchase(Map<String, dynamic> item) {
+    // Pengguna yang sudah pernah membeli program ini tetap dapat mengaksesnya secara penuh
+    if (_isItemEnrolled(item)) return true;
+
+    final now = DateTime.now();
+
+    // 1. Program Bootcamp
+    if (_isBootcampItem(item)) {
+      final status = (item['batchStatus'] ?? item['status'] ?? '').toString().toUpperCase();
+      if (status == 'COMPLETED') return false;
+
+      final endStr = item['batchEndDate'];
+      if (endStr != null) {
+        final endDate = DateTime.tryParse(endStr.toString());
+        if (endDate != null && now.isAfter(endDate)) return false;
+      }
+      final startStr = item['batchStartDate'];
+      if (startStr != null && endStr == null) {
+        final startDate = DateTime.tryParse(startStr.toString());
+        if (startDate != null && now.isAfter(startDate.add(const Duration(hours: 24)))) return false;
+      }
+
+      // Dalam 24 jam setelah pendaftaran ditutup, program dihapus dari katalog pembelian
+      final deadlineStr = item['registrationDeadline'] ?? item['purchaseCloseAt'];
+      if (deadlineStr != null) {
+        final deadline = DateTime.tryParse(deadlineStr.toString());
+        if (deadline != null) {
+          final effectiveDeadline = DateTime(deadline.year, deadline.month, deadline.day, 23, 59, 59);
+          final cutoff = effectiveDeadline.add(const Duration(hours: 24));
+          if (now.isAfter(cutoff)) return false;
+        }
+      }
+    }
+
+    // 2. Program Inspire Talk / Webinar
+    if (_isWebinarItem(item)) {
+      if (item['isEnded'] == true) return false;
+      final status = (item['status'] ?? '').toString().toUpperCase();
+      if (status == 'COMPLETED') return false;
+
+      final schedStr = item['scheduledAt'] ?? item['eventDate'];
+      if (schedStr != null) {
+        final sched = DateTime.tryParse(schedStr.toString());
+        if (sched != null) {
+          final durMin = (item['duration'] as num?)?.toInt() ?? 90;
+          final eventEnd = sched.add(Duration(minutes: durMin));
+          if (now.isAfter(eventEnd)) return false;
+
+          // Batas pendaftaran H-2 jam; hapus dari katalog jika melewati 24 jam setelah penutupan pendaftaran
+          final regClose = sched.subtract(const Duration(hours: 2));
+          final cutoff = regClose.add(const Duration(hours: 24));
+          if (now.isAfter(cutoff)) return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   DateTime _parseItemDate(dynamic item) {
@@ -1105,7 +1173,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final price = _parseItemPrice(item);
     final priceStr = price == 0 ? 'GRATIS' : _formatRupiah(price);
     final rating = _parseItemRating(item);
-    final reviewCount = (item['reviewCount'] ?? 12).toString();
+    final reviewCount = _parseItemReviewCount(item);
     final duration = isWebinar ? 'Live Session' : (isBootcamp ? '8 Minggu' : '12 Materi');
     final isEnrolled = _isItemEnrolled(item);
 
@@ -1194,29 +1262,31 @@ class _LearnScreenState extends State<LearnScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded, size: 15, color: Color(0xFFFBBF24)),
-                      const SizedBox(width: 3),
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                  if (rating > 0 && reviewCount > 0) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded, size: 15, color: Color(0xFFFBBF24)),
+                        const SizedBox(width: 3),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '($reviewCount)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: const Color(0xFF8C827A),
+                        const SizedBox(width: 4),
+                        Text(
+                          '($reviewCount)',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: const Color(0xFF8C827A),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1285,6 +1355,15 @@ class _LearnScreenState extends State<LearnScreen> {
     } else {
       // 'Semua' — Combine courses, bootcamps, and webinars
       activeItems = [..._courses, ..._bootcamps, ..._webinars];
+    }
+
+    // Filter out items yang telah berakhir atau pendaftaran telah ditutup > 24 jam untuk pengguna yang belum membeli
+    if (_selectedProgram != 'Kelas Saya') {
+      activeItems = activeItems.where((it) {
+        if (it is! Map) return true;
+        final map = it is Map<String, dynamic> ? it : Map<String, dynamic>.from(it);
+        return _isAvailableForPurchase(map);
+      }).toList();
     }
 
     // 2. Filter by selected field / bidang
@@ -1768,7 +1847,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final programType = isWebinar ? 'Inspire Talk' : (isBootcamp ? 'Bootcamp' : 'Mini Course');
     final thumbnail = _getItemImage(item);
     final rating = _parseItemRating(item);
-    final reviewCount = (item['reviewCount'] ?? 143).toString();
+    final reviewCount = _parseItemReviewCount(item);
     final id = item['id']?.toString() ?? '';
     final isWishlisted = _wishlistIds.contains(id);
     final isEnrolled = _isItemEnrolled(item);
@@ -1961,35 +2040,37 @@ class _LearnScreenState extends State<LearnScreen> {
                     // 4. Rating & Modules / Duration Row
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 16),
-                        const SizedBox(width: 3),
-                        Text(
-                          rating.toStringAsFixed(1),
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF0F172A),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                        if (rating > 0 && reviewCount > 0) ...[
+                          const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 16),
+                          const SizedBox(width: 3),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(0xFF0F172A),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '($reviewCount)',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF94A3B8),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(width: 4),
+                          Text(
+                            '($reviewCount)',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(0xFF94A3B8),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 3,
-                          height: 3,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFCBD5E1),
-                            shape: BoxShape.circle,
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFCBD5E1),
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
+                          const SizedBox(width: 8),
+                        ],
                         Icon(
                           isWebinar ? Icons.videocam_outlined : (isBootcamp ? Icons.calendar_today_rounded : Icons.menu_book_rounded),
                           size: 13,
@@ -2119,7 +2200,7 @@ class _LearnScreenState extends State<LearnScreen> {
     final price = _parseItemPrice(item);
     final priceStr = price == 0 ? 'Gratis' : _formatRupiah(price);
     final rating = _parseItemRating(item);
-    final reviewCount = (item['reviewCount'] ?? 56).toString();
+    final reviewCount = _parseItemReviewCount(item);
     final duration = isWebinar ? 'Live Session' : (isBootcamp ? '8 Minggu' : '12 Materi');
     final id = item['id']?.toString() ?? '';
     final isWishlisted = _wishlistIds.contains(id);
@@ -2281,34 +2362,36 @@ class _LearnScreenState extends State<LearnScreen> {
                     // C. Rating & Duration Row
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFBBF24)),
-                        const SizedBox(width: 3),
-                        Text(
-                          rating.toStringAsFixed(1),
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                        if (rating > 0 && reviewCount > 0) ...[
+                          const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFBBF24)),
+                          const SizedBox(width: 3),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF0F172A),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          '($reviewCount)',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            color: const Color(0xFF94A3B8),
+                          const SizedBox(width: 3),
+                          Text(
+                            '($reviewCount)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              color: const Color(0xFF94A3B8),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 3,
-                          height: 3,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFCBD5E1),
-                            shape: BoxShape.circle,
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFCBD5E1),
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
+                          const SizedBox(width: 6),
+                        ],
                         Icon(
                           isWebinar ? Icons.videocam_outlined : (isBootcamp ? Icons.calendar_today_rounded : Icons.menu_book_rounded),
                           size: 11.5,

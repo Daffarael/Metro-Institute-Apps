@@ -52,6 +52,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   List<dynamic> _materials = [];
   List<dynamic> _quizOptions = [];
   String? _liveMeetingUrl;
+  bool _isLiveEnded = false;
   String? _prevSessionId;
   String? _nextSessionId;
   int _courseProgress = 0;
@@ -157,6 +158,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           parsedQuiz = current['quizOptions'];
         }
 
+        bool isLiveEnd = current['isLiveEnded'] == true || current['isChapterLiveEnded'] == true || current['isEnded'] == true;
+        final liveSched = current['liveScheduledAt'] ?? current['scheduledAt'];
+        if (liveSched != null) {
+          final sched = DateTime.tryParse(liveSched.toString());
+          if (sched != null) {
+            final dur = (current['videoDuration'] as num?)?.toInt() ?? (current['durationMinutes'] as num?)?.toInt() ?? 5400;
+            final durMin = dur > 300 ? (dur ~/ 60) : dur;
+            if (DateTime.now().isAfter(sched.add(Duration(minutes: durMin > 0 ? durMin : 90)))) {
+              isLiveEnd = true;
+            }
+          }
+        }
+
         if (mounted) {
           setState(() {
             _sessionType = rawType;
@@ -165,7 +179,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             _sessionDescription = current['description'] ?? current['assignmentDescription'];
             _materials = parsedMaterials;
             _quizOptions = parsedQuiz;
-            _liveMeetingUrl = current['meetingUrl'] ?? current['liveUrl'];
+            _isLiveEnded = isLiveEnd;
+            _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
             _prevSessionId = data['prevSessionId'] as String?;
             _nextSessionId = data['nextSessionId'] as String?;
             _courseProgress = (data['progress'] as num?)?.toInt() ?? 0;
@@ -1367,7 +1382,53 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 16),
-          if (_liveMeetingUrl != null && _liveMeetingUrl!.isNotEmpty)
+          if (_isLiveEnded)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.videocam_off_rounded, color: Color(0xFF64748B), size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sesi Live Telah Berakhir',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Sesi tatap muka Google Meet telah usai. Rekaman materi dan kuis tetap dapat diakses.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: const Color(0xFF64748B),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (_liveMeetingUrl != null && _liveMeetingUrl!.isNotEmpty)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

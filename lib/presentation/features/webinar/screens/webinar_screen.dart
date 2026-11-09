@@ -508,13 +508,14 @@ class _WebinarCard extends StatelessWidget {
 
   bool get _isEnded {
     final isEnded = webinar['isEnded'] as bool? ?? false;
-    if (isEnded) return true;
+    final status = (webinar['status'] ?? '').toString().toUpperCase();
+    if (isEnded || status == 'COMPLETED') return true;
     final scheduled = webinar['scheduledAt'] as String?;
     if (scheduled == null) return false;
-    return DateTime.tryParse(scheduled)
-            ?.add(const Duration(hours: 24))
-            .isBefore(DateTime.now()) ??
-        false;
+    final sched = DateTime.tryParse(scheduled);
+    if (sched == null) return false;
+    final durMin = (webinar['duration'] as num?)?.toInt() ?? 90;
+    return DateTime.now().isAfter(sched.add(Duration(minutes: durMin)));
   }
 
   String _formatRupiah(dynamic price) {
@@ -684,7 +685,7 @@ class _WebinarCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        _isEnded ? 'Selesai' : 'Live',
+                        _isEnded ? 'Berakhir' : 'Live',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,

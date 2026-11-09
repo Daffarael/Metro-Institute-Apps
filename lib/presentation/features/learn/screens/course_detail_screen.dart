@@ -932,7 +932,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         : (rawThumb.startsWith('/') ? 'https://api.metroinstitute.site$rawThumb' : (rawThumb.isNotEmpty ? 'https://$rawThumb' : ''));
     final mentorName = (_detail?['instructor']?['name'] ?? _detail?['mentorName'] ?? widget.item['instructor']?['name'] ?? widget.item['mentorName']) as String? ?? 'Mentor Metro';
     final mentorPhoto = (_detail?['instructor']?['avatar'] ?? _detail?['mentorPhotoUrl'] ?? widget.item['instructor']?['avatar'] ?? widget.item['mentorPhotoUrl']) as String? ?? '';
-    final rating = ((_detail?['rating'] ?? widget.item['rating']) as num?)?.toDouble() ?? 5.0;
+    final rating = ((_detail?['rating'] ?? widget.item['rating']) as num?)?.toDouble() ?? 0.0;
     final price = ((_detail?['price'] ?? widget.item['price']) as num?)?.toInt() ?? 0;
     final priceStr = price == 0 ? 'GRATIS' : 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
     final isEnrolled = _detail?['isEnrolled'] == true || widget.item['isEnrolled'] == true;
@@ -1801,26 +1801,27 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           ),
         ),
 
-        // Rating with yellow star
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              rating.toStringAsFixed(1),
-              style: GoogleFonts.plusJakartaSans(
-                color: const Color(0xFF1E1B18),
-                fontSize: 15.5,
-                fontWeight: FontWeight.w700,
+        // Rating with yellow star (only if rating > 0)
+        if (rating > 0)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                rating.toStringAsFixed(1),
+                style: GoogleFonts.plusJakartaSans(
+                  color: const Color(0xFF1E1B18),
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(width: 5),
-            const Icon(
-              Icons.star_rounded,
-              color: Color(0xFFF59E0B),
-              size: 20,
-            ),
-          ],
-        ),
+              const SizedBox(width: 5),
+              const Icon(
+                Icons.star_rounded,
+                color: Color(0xFFF59E0B),
+                size: 20,
+              ),
+            ],
+          ),
       ],
     );
   }

@@ -58,13 +58,13 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
 
   bool get _isEnded {
     final data = _activeData;
-    if (data['isEnded'] == true) return true;
-    final scheduled = data['scheduledAt'] as String?;
+    if (data['isEnded'] == true || (data['status'] ?? '').toString().toUpperCase() == 'COMPLETED') return true;
+    final scheduled = (data['scheduledAt'] ?? data['eventDate']) as String?;
     if (scheduled == null) return false;
-    return DateTime.tryParse(scheduled)
-            ?.add(const Duration(hours: 24))
-            .isBefore(DateTime.now()) ??
-        false;
+    final sched = DateTime.tryParse(scheduled);
+    if (sched == null) return false;
+    final durMin = (data['duration'] as num?)?.toInt() ?? 90;
+    return DateTime.now().isAfter(sched.add(Duration(minutes: durMin)));
   }
 
   String _formatDate(String? raw) {
@@ -386,7 +386,7 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
                         ),
                       ),
                       child: Text(
-                        isEnded ? 'SELESAI' : 'LIVE INTERAKTIF',
+                        isEnded ? 'BERAKHIR' : 'LIVE INTERAKTIF',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
@@ -630,27 +630,50 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             flex: 2,
-                            child: ElevatedButton(
-                              onPressed: _openMeetingUrl,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF00584B),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(vertical: 13),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.videocam_rounded, size: 18, color: Colors.white),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Masuk Sesi Live',
-                                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                            child: isEnded
+                                ? ElevatedButton(
+                                    onPressed: null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFF1F5F9),
+                                      disabledBackgroundColor: const Color(0xFFF1F5F9),
+                                      disabledForegroundColor: const Color(0xFF94A3B8),
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(vertical: 13),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.videocam_off_rounded, size: 18, color: Color(0xFF94A3B8)),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Sesi Live Telah Berakhir',
+                                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ElevatedButton(
+                                    onPressed: _openMeetingUrl,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF00584B),
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(vertical: 13),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.videocam_rounded, size: 18, color: Colors.white),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Masuk Sesi Live',
+                                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ),
                           ),
                         ],
                       )
