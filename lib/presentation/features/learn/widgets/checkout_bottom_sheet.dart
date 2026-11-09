@@ -749,7 +749,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                       ),
                     ],
                     const SizedBox(height: 8),
-                    _priceRow('Biaya Platform / Admin', 'Rp 0 (Gratis)'),
+                    _priceRow('Biaya Platform / Admin', 'Gratis', valueColor: const Color(0xFF018556)),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
                       child: Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -766,7 +766,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                           ),
                         ),
                         Text(
-                          _isFree ? 'Rp 0 (Gratis)' : _formatRupiah(_finalAmount),
+                          _isFree ? 'Gratis' : _formatRupiah(_finalAmount),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
@@ -923,7 +923,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
     );
   }
 
-  Widget _priceRow(String label, String value) {
+  Widget _priceRow(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -939,7 +939,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12.5,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF0F172A),
+            color: valueColor ?? const Color(0xFF0F172A),
           ),
         ),
       ],
