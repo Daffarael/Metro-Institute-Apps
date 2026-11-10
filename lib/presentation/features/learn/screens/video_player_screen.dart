@@ -613,14 +613,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       );
     }
   }
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-    }
-  }
 
   void _showCompletionDialog(dynamic xp) {
     showDialog(
