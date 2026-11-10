@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -57,7 +58,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   bool _isLiveEnded = false;
   String? _prevSessionId;
   String? _nextSessionId;
-  int _courseProgress = 0;
   bool _isLoadingSessionData = true;
 
   // Player Controllers
@@ -93,6 +93,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _isBootcampActual = widget.isBootcamp;
     _currentSessionId = widget.sessionId;
     _currentTitle = widget.title;
@@ -218,7 +221,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
               _prevSessionId = sessionData['prevSessionId'] as String?;
               _nextSessionId = sessionData['nextSessionId'] as String?;
-              _courseProgress = (sessionData['progress'] as num?)?.toInt() ?? 0;
               _isSessionFinished = isComp;
               _isUnlocked = isComp || rawType != 'VIDEO'; // non-video unlocks immediately
               _isLoadingSessionData = false;
@@ -806,50 +808,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ],
         ),
-        actions: [
-          if (_courseProgress > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: _courseProgress == 100
-                        ? AppColors.primary.withValues(alpha: 0.18)
-                        : const Color(0xFFFFDD00).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _courseProgress == 100
-                          ? AppColors.primary.withValues(alpha: 0.5)
-                          : const Color(0xFFFFDD00).withValues(alpha: 0.4),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: _courseProgress == 100 ? AppColors.primary : const Color(0xFFFFDD00),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '$_courseProgress% Selesai',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+        actions: const [
+          SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -858,13 +818,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             // Top: Video Frame or Media Banner
             _buildTopMediaFrame(),
 
-            // Bottom: Tab Navigation & Content Body
+            // Bottom: Browser-Tab Style Container & Tab Content (Web Mentee CardTabs Style)
             Expanded(
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
                       color: Color(0x18000000),
@@ -873,70 +833,114 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     ),
                   ],
                 ),
-                child: Column(
-                  children: [
-                    // Segmented Tab Bar (Apple / Linear Precision Style)
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-                      height: 42,
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: TabBar(
-                        controller: _tabController,
-                        indicator: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x12000000),
-                              blurRadius: 5,
-                              offset: Offset(0, 1.5),
-                            ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Column(
+                    children: [
+                      // Browser-Tab Header (CardTabs Overview, Kurikulum, Ulasan style)
+                      _buildBrowserCardTabs(),
+
+                      // Tab Views
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildOverviewTab(),
+                            _buildNotesTab(),
+                            _buildQnaTab(),
                           ],
                         ),
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        dividerColor: Colors.transparent,
-                        labelColor: const Color(0xFF0F172A),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        labelStyle: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12.5,
-                          letterSpacing: -0.1,
-                        ),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.5,
-                        ),
-                        tabs: const [
-                          Tab(text: 'Modul'),
-                          Tab(text: 'Catatan'),
-                          Tab(text: 'Tanya Jawab'),
-                        ],
                       ),
-                    ),
 
-                    // Tab Views
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildOverviewTab(),
-                          _buildNotesTab(),
-                          _buildQnaTab(),
-                        ],
-                      ),
-                    ),
-
-                    // Bottom Navigation Bar (Prev / Next & Complete)
-                    _buildBottomActionDock(),
-                  ],
+                      // Bottom Navigation Bar (3D Tactile Push-Down Buttons)
+                      _buildBottomActionDock(),
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ── Browser CardTabs Style (like web mentee Overview, Kurikulum, Ulasan) ──
+  Widget _buildBrowserCardTabs() {
+    final activeIndex = _tabController.index;
+
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFE2E8F0),
+      child: Stack(
+        alignment: Alignment.bottomLeft,
+        children: [
+          // Background bottom border line across the entire header
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: 1,
+              color: const Color(0xFFCBD5E1),
+            ),
+          ),
+          // Tab items row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _buildCardTabItem(index: 0, label: 'Modul', isActive: activeIndex == 0),
+                const SizedBox(width: 4),
+                _buildCardTabItem(index: 1, label: 'Catatan', isActive: activeIndex == 1),
+                const SizedBox(width: 4),
+                _buildCardTabItem(index: 2, label: 'Tanya Jawab', isActive: activeIndex == 2),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardTabItem({
+    required int index,
+    required String label,
+    required bool isActive,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        if (_tabController.index != index) {
+          _tabController.animateTo(index);
+          setState(() {});
+        }
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white : Colors.transparent,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+          border: isActive
+              ? const Border(
+                  top: BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                  left: BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                  right: BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                  bottom: BorderSide(color: Colors.white, width: 1.5),
+                )
+              : null,
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+            color: isActive ? const Color(0xFF0F172A) : const Color(0xFF475569),
+            letterSpacing: -0.1,
+          ),
         ),
       ),
     );
@@ -2564,13 +2568,36 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 
-  // ── Bottom Action Dock: Prev / Next & Complete Button ─────────────────────
+  // ── Bottom Action Dock: 3D Tactile Push-Down Buttons ──────────────────────
   Widget _buildBottomActionDock() {
     final bool isQuiz = _sessionType == 'QUIZ';
     final bool canCompleteVideo = _isUnlocked || _currentProgressFraction >= 0.95;
     final bool canSubmitQuiz = _selectedQuizOptionId != null;
     final bool isActionActive = isQuiz ? canSubmitQuiz : canCompleteVideo;
     final bool canGoNext = _isSessionFinished;
+
+    final String buttonLabel = _isSessionFinished
+        ? 'Modul Selesai'
+        : (isQuiz ? 'Kirim Jawaban' : 'Selesaikan Modul');
+
+    final VoidCallback? onMainPressed = _isSessionFinished
+        ? null
+        : (isQuiz
+            ? (canSubmitQuiz ? _submitQuizAnswer : null)
+            : (canCompleteVideo
+                ? (_isSubmittingProgress ? null : _handleCompleteSession)
+                : () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
+                        backgroundColor: const Color(0xFF1E293B),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  }));
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -2587,131 +2614,241 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       ),
       child: Row(
         children: [
-          // Prev Button
+          // Prev Button (3D Tactile Push)
           if (_prevSessionId != null) ...[
-            InkWell(
-              onTap: () => _goToPrevSession(_prevSessionId!),
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: const Center(
-                  child: Icon(Icons.chevron_left_rounded, color: Color(0xFF334155), size: 22),
-                ),
-              ),
+            TactileMetroIconButton(
+              onPressed: () => _goToPrevSession(_prevSessionId!),
+              icon: Icons.chevron_left_rounded,
+              iconColor: const Color(0xFF334155),
+              backgroundColor: Colors.white,
+              baseColor: const Color(0xFFCBD5E1),
+              borderColor: const Color(0xFFE2E8F0),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
           ],
 
-          // Main Action / Status Button (No faded colors, clean Metro identity)
+          // Main Action CTA (3D Tactile Push-Down with Metro Palette)
           Expanded(
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: _isSessionFinished
-                    ? Colors.white
-                    : (isActionActive ? AppColors.primary : const Color(0xFFF1F5F9)),
-                borderRadius: BorderRadius.circular(14),
-                border: _isSessionFinished
-                    ? Border.all(color: AppColors.primary, width: 1.5)
-                    : null,
-                boxShadow: (!_isSessionFinished && isActionActive)
-                    ? const [
-                        BoxShadow(
-                          color: Color(0x28018556),
-                          blurRadius: 10,
-                          offset: Offset(0, 3),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: _isSessionFinished
-                      ? null
-                      : (isQuiz
-                          ? (canSubmitQuiz ? _submitQuizAnswer : null)
-                          : (canCompleteVideo
-                              ? (_isSubmittingProgress ? null : _handleCompleteSession)
-                              : () {
-                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
-                                      backgroundColor: const Color(0xFF1E293B),
-                                      behavior: SnackBarBehavior.floating,
-                                      duration: const Duration(seconds: 2),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    ),
-                                  );
-                                })),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Center(
-                      child: _isSubmittingProgress
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : Text(
-                              _isSessionFinished
-                                  ? 'Modul Selesai'
-                                  : (isQuiz
-                                      ? 'Kirim Jawaban'
-                                      : 'Selesaikan Modul'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                color: _isSessionFinished
-                                    ? AppColors.primary
-                                    : (isActionActive
-                                        ? Colors.white
-                                        : const Color(0xFF94A3B8)),
-                              ),
-                            ),
+            child: _isSessionFinished
+                ? TactileMetroButton(
+                    onPressed: null,
+                    isDisabled: true,
+                    backgroundColor: Colors.white,
+                    baseColor: const Color(0xFFA7F3D0),
+                    borderColor: AppColors.primary,
+                    child: Text(
+                      'Modul Selesai ✓',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13.5,
+                        color: AppColors.primary,
+                        letterSpacing: 0.2,
+                      ),
                     ),
+                  )
+                : TactileMetroButton(
+                    onPressed: onMainPressed,
+                    isDisabled: !isActionActive,
+                    backgroundColor: isActionActive ? AppColors.primary : const Color(0xFFF1F5F9),
+                    baseColor: isActionActive ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
+                    borderColor: isActionActive ? null : const Color(0xFFE2E8F0),
+                    child: _isSubmittingProgress
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            buttonLabel,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13.5,
+                              color: isActionActive ? Colors.white : const Color(0xFF94A3B8),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
                   ),
-                ),
-              ),
-            ),
           ),
 
-          // Next Button (Solid Metro Primary Green when unlocked)
+          // Next Button (3D Tactile Push)
           if (_nextSessionId != null) ...[
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: () => _goToNextSession(_nextSessionId!),
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: canGoNext ? AppColors.primary : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(14),
-                  border: canGoNext ? null : Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.chevron_right_rounded,
-                    color: canGoNext ? Colors.white : const Color(0xFF94A3B8),
-                    size: 22,
-                  ),
-                ),
-              ),
+            const SizedBox(width: 10),
+            TactileMetroIconButton(
+              onPressed: canGoNext ? () => _goToNextSession(_nextSessionId!) : null,
+              isDisabled: !canGoNext,
+              icon: Icons.chevron_right_rounded,
+              iconColor: canGoNext ? Colors.white : const Color(0xFF94A3B8),
+              backgroundColor: canGoNext ? AppColors.primary : const Color(0xFFF1F5F9),
+              baseColor: canGoNext ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
+              borderColor: canGoNext ? null : const Color(0xFFE2E8F0),
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ── 3D Tactile Push-Down Button (kids.metroinstitute.site style) ────────────
+class TactileMetroButton extends StatefulWidget {
+  final VoidCallback? onPressed;
+  final Widget child;
+  final Color backgroundColor;
+  final Color baseColor;
+  final Color? borderColor;
+  final double height;
+  final BorderRadius? borderRadius;
+  final bool isFullWidth;
+  final bool isDisabled;
+
+  const TactileMetroButton({
+    super.key,
+    required this.onPressed,
+    required this.child,
+    required this.backgroundColor,
+    required this.baseColor,
+    this.borderColor,
+    this.height = 46,
+    this.borderRadius,
+    this.isFullWidth = true,
+    this.isDisabled = false,
+  });
+
+  @override
+  State<TactileMetroButton> createState() => _TactileMetroButtonState();
+}
+
+class _TactileMetroButtonState extends State<TactileMetroButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = widget.borderRadius ?? BorderRadius.circular(14);
+    final bool canPress = !widget.isDisabled && widget.onPressed != null;
+
+    final double pushDepth = _isPressed && canPress ? 3.0 : 0.0;
+    final double baseDepth = _isPressed && canPress ? 1.0 : 4.0;
+
+    return GestureDetector(
+      onTapDown: canPress
+          ? (_) {
+              setState(() => _isPressed = true);
+              HapticFeedback.lightImpact();
+            }
+          : null,
+      onTapUp: canPress
+          ? (_) {
+              setState(() => _isPressed = false);
+              widget.onPressed?.call();
+            }
+          : null,
+      onTapCancel: canPress
+          ? () {
+              setState(() => _isPressed = false);
+            }
+          : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 70),
+        curve: Curves.easeOutQuad,
+        height: widget.height,
+        width: widget.isFullWidth ? double.infinity : null,
+        transform: Matrix4.translationValues(0, pushDepth, 0),
+        decoration: BoxDecoration(
+          color: widget.backgroundColor,
+          borderRadius: radius,
+          border: widget.borderColor != null
+              ? Border.all(color: widget.borderColor!, width: 1.2)
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: widget.baseColor,
+              offset: Offset(0, baseDepth),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: Center(child: widget.child),
+      ),
+    );
+  }
+}
+
+class TactileMetroIconButton extends StatefulWidget {
+  final VoidCallback? onPressed;
+  final IconData icon;
+  final Color iconColor;
+  final Color backgroundColor;
+  final Color baseColor;
+  final Color? borderColor;
+  final double size;
+  final bool isDisabled;
+
+  const TactileMetroIconButton({
+    super.key,
+    required this.onPressed,
+    required this.icon,
+    required this.iconColor,
+    required this.backgroundColor,
+    required this.baseColor,
+    this.borderColor,
+    this.size = 46,
+    this.isDisabled = false,
+  });
+
+  @override
+  State<TactileMetroIconButton> createState() => _TactileMetroIconButtonState();
+}
+
+class _TactileMetroIconButtonState extends State<TactileMetroIconButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool canPress = !widget.isDisabled && widget.onPressed != null;
+    final double pushDepth = _isPressed && canPress ? 3.0 : 0.0;
+    final double baseDepth = _isPressed && canPress ? 1.0 : 4.0;
+
+    return GestureDetector(
+      onTapDown: canPress
+          ? (_) {
+              setState(() => _isPressed = true);
+              HapticFeedback.lightImpact();
+            }
+          : null,
+      onTapUp: canPress
+          ? (_) {
+              setState(() => _isPressed = false);
+              widget.onPressed?.call();
+            }
+          : null,
+      onTapCancel: canPress
+          ? () {
+              setState(() => _isPressed = false);
+            }
+          : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 70),
+        curve: Curves.easeOutQuad,
+        width: widget.size,
+        height: widget.size,
+        transform: Matrix4.translationValues(0, pushDepth, 0),
+        decoration: BoxDecoration(
+          color: widget.backgroundColor,
+          borderRadius: BorderRadius.circular(14),
+          border: widget.borderColor != null
+              ? Border.all(color: widget.borderColor!, width: 1.2)
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: widget.baseColor,
+              offset: Offset(0, baseDepth),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(widget.icon, color: widget.iconColor, size: 22),
+        ),
       ),
     );
   }
