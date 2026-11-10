@@ -504,7 +504,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Anti-skip aktif: Tonton minimal 90% sebelum dapat melewati video.'),
+          content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
           backgroundColor: AppColors.warning,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
@@ -526,7 +526,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       });
     }
 
-    if (!_isUnlocked && (_currentProgressFraction >= 0.90 || fraction >= 0.90)) {
+    // Unlock jika video telah selesai disimak sampai tuntas
+    if (!_isUnlocked && (_currentProgressFraction >= 0.98 || fraction >= 0.98)) {
       setState(() => _isUnlocked = true);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -536,7 +537,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('🎉 Syarat 90% terpenuhi! Silakan selesaikan modul untuk membuka modul berikutnya.'),
+                child: Text('🎉 Materi telah selesai disimak! Silakan klik selesaikan modul untuk membuka modul berikutnya.'),
               ),
             ],
           ),
@@ -1889,7 +1890,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Bottom Action Dock: Prev / Next & Complete Button ─────────────────────
   Widget _buildBottomActionDock() {
-    final progressPct = (_currentProgressFraction * 100).toInt();
     final bool canGoNext = _isSessionFinished;
 
     return Container(
@@ -1995,7 +1995,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                                         ? 'Modul Selesai ✓'
                                         : _isUnlocked
                                             ? 'Selesaikan Modul (+15 XP)'
-                                            : 'Tonton 90% ($progressPct%)',
+                                            : 'Selesaikan Modul',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
