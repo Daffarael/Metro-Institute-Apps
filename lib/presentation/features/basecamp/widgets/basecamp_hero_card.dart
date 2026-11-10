@@ -217,8 +217,8 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
             ),
 
           // ── Darkening Overlay Gradient ────────────────────────
-          // Menyelimuti thumbnail dengan lapisan gelap transparan agar foto terlihat samar di belakang
-          // namun teks putih, progress meter, dan tombol LANJUT tetap super tajam & kontras tinggi.
+          // Lapisan gelap transparan yang seimbang (tidak terlalu gelap) agar thumbnail
+          // tetap terlihat hidup & jelas, sementara teks tetap terbaca dengan nyaman.
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -226,8 +226,8 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF061810).withValues(alpha: 0.76),
-                    Colors.black.withValues(alpha: 0.88),
+                    const Color(0xFF061810).withValues(alpha: 0.42),
+                    Colors.black.withValues(alpha: 0.58),
                   ],
                 ),
               ),
@@ -263,6 +263,13 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                                   color: Colors.white,
                                   letterSpacing: -0.4,
                                   height: 1.22,
+                                  shadows: const [
+                                    Shadow(
+                                      color: Color(0x8A000000),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 1),
+                                    ),
+                                  ],
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -275,6 +282,13 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFFE2F4E9),
                                   letterSpacing: -0.1,
+                                  shadows: const [
+                                    Shadow(
+                                      color: Color(0x66000000),
+                                      blurRadius: 4,
+                                      offset: Offset(0, 1),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
