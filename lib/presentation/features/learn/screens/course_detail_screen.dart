@@ -1,10 +1,7 @@
-import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:video_player/video_player.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/di/injection_container.dart';
@@ -165,20 +162,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // Active Session for Video Player
   Map<String, dynamic>? _activeSession;
 
-  // Video Controller State
-  VideoPlayerController? _videoController;
-  WebViewController? _webViewController;
-  bool _isWebEmbed = false;
-  bool _isVideoInitialized = false;
-  bool _isPlaying = false;
-  static const double _playbackSpeed = 1.0;
-
   // Selected Tab: 0 = Deskripsi (kiri), 1 = Silabus (kanan)
   int _selectedTab = 0;
-
-  // Fullscreen Landscape Controls
-  bool _showLandscapeControls = true;
-  Timer? _controlsTimer;
 
   @override
   void initState() {
@@ -188,13 +173,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         widget.item['type'] == 'bootcamp' ||
         widget.item['productType'] == 'BOOTCAMP';
     _isWishlisted = widget.item['isWishlisted'] == true;
-    _fetchDetailAndInitVideo();
+    _fetchDetail();
   }
 
   @override
   void dispose() {
-    _controlsTimer?.cancel();
-    _disposeVideo();
     // Always restore portrait mode when leaving the screen
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -203,16 +186,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     super.dispose();
   }
 
-  void _disposeVideo() {
-    _videoController?.removeListener(_videoListener);
-    _videoController?.dispose();
-    _videoController = null;
-    _webViewController = null;
-    _isVideoInitialized = false;
-    _isPlaying = false;
-  }
-
-  Future<void> _fetchDetailAndInitVideo() async {
+  Future<void> _fetchDetail() async {
     final id = widget.item['id']?.toString() ?? '';
     try {
       Map<String, dynamic> res;
@@ -259,205 +233,25 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   void _selectInitialSession(Map<String, dynamic> data) {
     final chapters = (data['chapters'] as List?) ?? [];
     Map<String, dynamic>? foundSession;
+    Map<String, dynamic>? firstUncompleted;
 
     for (final ch in chapters) {
       final sessions = (ch['sessions'] as List?) ?? [];
       for (final s in sessions) {
         if (s is Map<String, dynamic>) {
-          if (s['videoUrl'] != null && s['videoUrl'].toString().trim().isNotEmpty) {
-            foundSession = s;
-            break;
-          }
           foundSession ??= s;
+          if (s['isCompleted'] != true && firstUncompleted == null) {
+            firstUncompleted = s;
+          }
         }
       }
-      if (foundSession != null && foundSession['videoUrl'] != null) break;
-    }
-
-    if (foundSession != null) {
-      _activeSession = foundSession;
-      final isEnrolled = _detail?['isEnrolled'] == true || widget.item['isEnrolled'] == true;
-      if (isEnrolled || foundSession['isFreePreview'] == true) {
-        // Pre-initialize controller without playing until user clicks Play
-        _loadSessionVideo(foundSession, autoPlay: false);
-      }
-    }
-  }
-
-  void _loadSessionVideo(Map<String, dynamic> session, {bool autoPlay = false}) {
-    _activeSession = session;
-    final rawUrl = session['videoUrl']?.toString() ?? '';
-
-    if (rawUrl.isEmpty) {
-      _disposeVideo();
-      if (mounted) setState(() {});
-      return;
-    }
-
-    final lower = rawUrl.toLowerCase();
-    final isEmbed = lower.contains('iframe.mediadelivery.net') ||
-        lower.contains('b-cdn.net') ||
-        lower.contains('bunnycdn') ||
-        lower.contains('youtube.com') ||
-        lower.contains('youtu.be');
-
-    if (isEmbed) {
-      _initWebEmbed(rawUrl, autoPlay: autoPlay);
-    } else {
-      _initNativeVideo(rawUrl, autoPlay: autoPlay);
-    }
-  }
-
-  void _initWebEmbed(String rawUrl, {bool autoPlay = false}) {
-    _disposeVideo();
-    _isWebEmbed = true;
-
-    String embedUrl = rawUrl;
-    if (autoPlay && !embedUrl.contains('autoplay=')) {
-      embedUrl = '$embedUrl${embedUrl.contains('?') ? '&' : '?'}autoplay=true';
-    }
-
-    final htmlContent = '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <style>
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0; padding: 0; width: 100%; height: 100%;
-      background: #000000; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    iframe { width: 100%; height: 100%; border: none; display: block; }
-  </style>
-</head>
-<body>
-  <iframe id="videoFrame" src="$embedUrl" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen></iframe>
-</body>
-</html>
-''';
-
-    final controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black);
-
-    // Direct embed loading for BunnyCDN / mediadelivery
-    if (rawUrl.contains('iframe.mediadelivery.net') || rawUrl.contains('b-cdn.net')) {
-      controller.loadRequest(Uri.parse(embedUrl));
-    } else {
-      controller.loadHtmlString(htmlContent, baseUrl: 'https://iframe.mediadelivery.net');
     }
 
     if (mounted) {
       setState(() {
-        _webViewController = controller;
-        _isVideoInitialized = true;
-        _isPlaying = autoPlay;
+        _activeSession = firstUncompleted ?? foundSession;
       });
     }
-  }
-
-  Future<void> _initNativeVideo(String url, {bool autoPlay = false}) async {
-    _disposeVideo();
-    _isWebEmbed = false;
-
-    try {
-      final uri = Uri.parse(url);
-      final controller = VideoPlayerController.networkUrl(uri);
-      await controller.initialize();
-      controller.addListener(_videoListener);
-      await controller.setPlaybackSpeed(_playbackSpeed);
-
-      if (autoPlay) {
-        await controller.play();
-      }
-
-      if (!mounted) {
-        controller.dispose();
-        return;
-      }
-
-      setState(() {
-        _videoController = controller;
-        _isVideoInitialized = true;
-        _isPlaying = autoPlay;
-      });
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isVideoInitialized = false;
-        });
-      }
-    }
-  }
-
-  void _videoListener() {
-    if (_videoController == null) return;
-    final isPlaying = _videoController!.value.isPlaying;
-    if (mounted) {
-      setState(() {
-        _isPlaying = isPlaying;
-      });
-    }
-  }
-
-  // ── Start Playing directly in player ───────────────────────────────────────
-  void _startPlaying() {
-    setState(() => _isPlaying = true);
-
-    if (_activeSession != null) {
-      _loadSessionVideo(_activeSession!, autoPlay: true);
-    } else {
-      // Find first available session
-      final chapters = ((_detail?['chapters'] ?? widget.item['chapters']) as List?) ?? [];
-      for (final ch in chapters) {
-        final sessions = (ch['sessions'] as List?) ?? [];
-        if (sessions.isNotEmpty) {
-          _loadSessionVideo(sessions.first as Map<String, dynamic>, autoPlay: true);
-          return;
-        }
-      }
-      _videoController?.play();
-    }
-  }
-
-  // ── Auto Landscape Trigger ─────────────────────────────────────────────────
-  Future<void> _playAndEnterLandscape() async {
-    if (!_isPlaying) {
-      _startPlaying();
-    }
-
-    // Switch to Landscape
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-    _resetControlsTimer();
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _exitLandscape() async {
-    // Restore Portrait
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
-    if (mounted) setState(() {});
-  }
-
-  void _resetControlsTimer() {
-    _controlsTimer?.cancel();
-    setState(() => _showLandscapeControls = true);
-    _controlsTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted) {
-        setState(() => _showLandscapeControls = false);
-      }
-    });
   }
 
   Future<void> _toggleWishlist() async {
@@ -553,7 +347,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             });
           }
           // Re-fetch detail to refresh isEnrolled status to true!
-          _fetchDetailAndInitVideo();
+          _fetchDetail();
         },
         onStartLearning: () {
           if (mounted) {
@@ -563,8 +357,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               }
               widget.item['isEnrolled'] = true;
             });
-            // Segera putar materi / video sesi pertama
-            _startPlaying();
+            // Segera buka pembelajaran sesi aktif
+            _openLearningPlayer();
           }
         },
       );
@@ -613,10 +407,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             courseId: courseId,
             isBootcamp: _isBootcampActual,
             sessionType: targetSession['type']?.toString(),
-            onCompleted: () => _fetchDetailAndInitVideo(),
+            onCompleted: () => _fetchDetail(),
           ),
         ),
-      );
+      ).then((_) {
+        _fetchDetail();
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -629,8 +425,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-
     if (_isLoading && _detail == null) {
       return const Scaffold(
         backgroundColor: Color(0xFFFAF7F2),
@@ -640,232 +434,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       );
     }
 
-    return PopScope(
-      canPop: !isLandscape,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (isLandscape) {
-          _exitLandscape();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFFAF7F2),
-        body: isLandscape ? _buildLandscapePlayer() : _buildPortraitContent(),
-      ),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // LANDSCAPE FULLSCREEN PLAYER
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildLandscapePlayer() {
-    final title = _activeSession?['title'] as String? ?? widget.item['title'] as String? ?? 'Video Pembelajaran';
-    final courseTitle = widget.item['title'] as String? ?? '';
-
-    return GestureDetector(
-      onTap: () {
-        if (_showLandscapeControls) {
-          setState(() => _showLandscapeControls = false);
-          _controlsTimer?.cancel();
-        } else {
-          _resetControlsTimer();
-        }
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Video Layer
-          if (_isWebEmbed && _webViewController != null)
-            WebViewWidget(controller: _webViewController!)
-          else if (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized)
-            Center(
-              child: AspectRatio(
-                aspectRatio: _videoController!.value.aspectRatio,
-                child: VideoPlayer(_videoController!),
-              ),
-            )
-          else
-            const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-
-          // Landscape Controls Overlay
-          if (_showLandscapeControls) ...[
-            // Top Bar Overlay
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xCC000000), Colors.transparent],
-                  ),
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.fullscreen_exit_rounded, color: Colors.white, size: 28),
-                        onPressed: _exitLandscape,
-                        tooltip: 'Kembali ke Potret',
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              title,
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (courseTitle.isNotEmpty)
-                              Text(
-                                courseTitle,
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Center Play / Pause & Seek Overlay (Native Player)
-            if (!_isWebEmbed && _isVideoInitialized && _videoController != null && _videoController!.value.isInitialized)
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      iconSize: 42,
-                      icon: const Icon(Icons.replay_10_rounded, color: Colors.white),
-                      onPressed: () {
-                        _resetControlsTimer();
-                        final pos = _videoController!.value.position;
-                        _videoController!.seekTo(pos - const Duration(seconds: 10));
-                      },
-                    ),
-                    const SizedBox(width: 32),
-                    GestureDetector(
-                      onTap: () {
-                        _resetControlsTimer();
-                        if (_videoController!.value.isPlaying) {
-                          _videoController!.pause();
-                        } else {
-                          _videoController!.play();
-                        }
-                      },
-                      child: Container(
-                        width: 68,
-                        height: 68,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.28),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
-                        ),
-                        child: Icon(
-                          _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 42,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    IconButton(
-                      iconSize: 42,
-                      icon: const Icon(Icons.forward_10_rounded, color: Colors.white),
-                      onPressed: () {
-                        _resetControlsTimer();
-                        final pos = _videoController!.value.position;
-                        _videoController!.seekTo(pos + const Duration(seconds: 10));
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-            // Bottom Progress Bar (for native player)
-            if (!_isWebEmbed && _isVideoInitialized && _videoController != null && _videoController!.value.isInitialized)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Color(0xCC000000), Colors.transparent],
-                    ),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Row(
-                      children: [
-                        Text(
-                          _formatDuration(_videoController!.value.position),
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppColors.primary,
-                              inactiveTrackColor: Colors.white30,
-                              thumbColor: Colors.white,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                              trackHeight: 3.5,
-                            ),
-                            child: Slider(
-                              value: _videoController!.value.position.inMilliseconds
-                                  .clamp(0, _videoController!.value.duration.inMilliseconds)
-                                  .toDouble(),
-                              max: _videoController!.value.duration.inMilliseconds.toDouble(),
-                              onChanged: (val) {
-                                _resetControlsTimer();
-                                _videoController!.seekTo(Duration(milliseconds: val.toInt()));
-                              },
-                            ),
-                          ),
-                        ),
-                        Text(
-                          _formatDuration(_videoController!.value.duration),
-                          style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.fullscreen_exit_rounded, color: Colors.white, size: 24),
-                          onPressed: _exitLandscape,
-                          tooltip: 'Keluar Layar Penuh',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ],
-      ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAF7F2),
+      body: _buildPortraitContent(),
     );
   }
 
@@ -959,7 +530,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
-                  _buildTopVideoPlayer(mediaHeight, thumbnail, isEnrolled, price),
+                  _buildTopThumbnail(mediaHeight, thumbnail),
 
                   // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons)
                   Transform.translate(
@@ -1101,12 +672,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 1. TOP VIDEO CONTAINER (Exact 16:9 thumbnail size, with signature bottom curve)
+  // 1. TOP HERO THUMBNAIL (Exact 16:9 thumbnail size, with signature bottom curve)
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildTopVideoPlayer(double height, String thumbnail, bool isEnrolled, int price) {
-    final isSessionFree = _activeSession?['isFreePreview'] == true;
-    final canPlay = isEnrolled || isSessionFree;
-
+  Widget _buildTopThumbnail(double height, String thumbnail) {
     return Container(
       height: height,
       width: double.infinity,
@@ -1118,37 +686,21 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ── LAYER 0: CRISP 16:9 BANNER / VIDEO (100% full-bleed, bottom corners clipped by curve) ──
+          // ── LAYER 0: CRISP 16:9 BANNER / THUMBNAIL (100% full-bleed, bottom corners clipped by curve) ──
           Positioned.fill(
-            child: _isPlaying
-                ? (_isWebEmbed && _webViewController != null
-                    ? WebViewWidget(controller: _webViewController!)
-                    : (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized
-                        ? Center(
-                            child: AspectRatio(
-                              aspectRatio: _videoController!.value.aspectRatio,
-                              child: VideoPlayer(_videoController!),
-                            ),
-                          )
-                        : const Center(
-                            child: CircularProgressIndicator(color: Colors.white),
-                          )))
-                : (thumbnail.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: thumbnail,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.center,
-                        placeholder: (context, url) => Container(color: const Color(0xFF143E26)),
-                        errorWidget: (context, url, error) => Container(color: const Color(0xFF143E26)),
-                      )
-                    : Container(
-                        color: const Color(0xFF143E26),
-                        child: const Center(
-                          child: Icon(Icons.play_circle_fill_rounded, color: Colors.white24, size: 64),
-                        ),
-                      )),
+            child: thumbnail.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: thumbnail,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    placeholder: (context, url) => Container(color: const Color(0xFF143E26)),
+                    errorWidget: (context, url, error) => Container(color: const Color(0xFF143E26)),
+                  )
+                : Container(
+                    color: const Color(0xFF143E26),
+                  ),
           ),
 
           // ── LAYER 1: CINEMATIC TOP GRADIENT VIGNETTE (For top navigation buttons contrast) ──
@@ -1171,43 +723,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
           ),
 
-          // ── LAYER 2: CENTER PLAY / LOCK BUTTON (Only the lock / play badge remains) ──
-          if (!_isPlaying)
-            Center(
-              child: GestureDetector(
-                onTap: () {
-                  if (canPlay) {
-                    _startPlaying();
-                  } else {
-                    _openCheckout(price);
-                  }
-                },
-                child: Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.92),
-                    shape: BoxShape.circle,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x38000000),
-                        blurRadius: 18,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      canPlay ? Icons.play_arrow_rounded : Icons.lock_rounded,
-                      color: canPlay ? AppColors.primary : AppColors.accent,
-                      size: canPlay ? 36 : 26,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // ── LAYER 3: TOP NAVIGATION BAR (Back, Transactions, Bookmark) ──
+          // ── LAYER 2: TOP NAVIGATION BAR (Back, Transactions, Bookmark) ──
           Positioned(
             top: 10,
             left: 14,
@@ -1217,13 +733,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               children: [
                 // Back Button
                 InkWell(
-                  onTap: () {
-                    if (_isPlaying) {
-                      setState(() => _isPlaying = false);
-                    } else {
-                      Navigator.of(context).pop();
-                    }
-                  },
+                  onTap: () => Navigator.of(context).pop(),
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     width: 38,
@@ -1257,41 +767,25 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     ),
                     const SizedBox(width: 8),
 
-                    // Bookmark or Fullscreen if playing
-                    if (_isPlaying)
-                      InkWell(
-                        onTap: _playAndEnterLandscape,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.38),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                          ),
-                          child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 20),
+                    // Bookmark / Wishlist button
+                    InkWell(
+                      onTap: _toggleWishlist,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.38),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                         ),
-                      )
-                    else
-                      InkWell(
-                        onTap: _toggleWishlist,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.38),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                          ),
-                          child: Icon(
-                            _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                            color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
-                            size: 19,
-                          ),
+                        child: Icon(
+                          _isWishlisted ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                          color: _isWishlisted ? const Color(0xFFFBBF24) : Colors.white,
+                          size: 19,
                         ),
                       ),
+                    ),
                   ],
                 ),
               ],
@@ -1809,7 +1303,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final isFree = session['isFreePreview'] == true;
     final canPlay = isEnrolled || isFree;
     final isLocked = !canPlay;
-    final isPlayingSession = _activeSession?['id']?.toString() == session['id']?.toString() && _isPlaying;
+    final isCurrentSession = _activeSession?['id']?.toString() == session['id']?.toString();
     final iconData = _getSessionTypeIcon(sessionTitle, session);
 
     return Container(
@@ -1818,8 +1312,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: isPlayingSession ? AppColors.primary : const Color(0xFFECE7E1),
-          width: isPlayingSession ? 1.6 : 1.2,
+          color: isCurrentSession ? AppColors.primary : const Color(0xFFECE7E1),
+          width: isCurrentSession ? 1.6 : 1.2,
         ),
         boxShadow: const [
           BoxShadow(
@@ -1914,7 +1408,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   child: Icon(
                     isLocked
                         ? Icons.lock_rounded
-                        : (isPlayingSession ? Icons.play_arrow_rounded : Icons.check_rounded),
+                        : (session['isCompleted'] == true ? Icons.check_rounded : Icons.play_arrow_rounded),
                     color: isLocked ? const Color(0xFF143E26) : Colors.white,
                     size: isLocked ? 18 : 22,
                   ),
@@ -2010,15 +1504,5 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
           ),
         );
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    if (duration.inHours > 0) {
-      return '${duration.inHours}:$minutes:$seconds';
-    }
-    return '$minutes:$seconds';
   }
 }
