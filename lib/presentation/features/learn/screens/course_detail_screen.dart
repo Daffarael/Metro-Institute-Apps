@@ -1385,32 +1385,30 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-
-                // 3. Action Box: Pure Kuning Metro (#FAE653) for Lock, Hijau Metro for Checkmark/Play
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: isLocked
-                        ? AppColors.accent // PURE KUNING METRO (#FAE653) - kuning cerah, bukan oranye!
-                        : AppColors.primary, // Hijau Metro!
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (isLocked ? AppColors.accent : AppColors.primary).withValues(alpha: 0.35),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                if (isLocked) ...[
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accent.withValues(alpha: 0.35),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      color: Color(0xFF143E26),
+                      size: 18,
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    isLocked ? Icons.lock_rounded : Icons.check_rounded,
-                    color: isLocked ? const Color(0xFF143E26) : Colors.white,
-                    size: isLocked ? 18 : 22,
-                  ),
-                ),
+                ],
               ],
             ),
           ),
