@@ -817,12 +817,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   decoration: BoxDecoration(
                     color: _courseProgress == 100
                         ? AppColors.primary.withValues(alpha: 0.18)
-                        : Colors.white.withValues(alpha: 0.1),
+                        : const Color(0xFFFFDD00).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _courseProgress == 100
-                          ? AppColors.primary.withValues(alpha: 0.45)
-                          : Colors.white.withValues(alpha: 0.15),
+                          ? AppColors.primary.withValues(alpha: 0.5)
+                          : const Color(0xFFFFDD00).withValues(alpha: 0.4),
                       width: 1,
                     ),
                   ),
@@ -833,7 +833,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         width: 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: _courseProgress == 100 ? AppColors.primary : const Color(0xFF38BDF8),
+                          color: _courseProgress == 100 ? AppColors.primary : const Color(0xFFFFDD00),
                           shape: BoxShape.circle,
                         ),
                       ),
