@@ -371,15 +371,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     allowfullscreen>
   </iframe>
   <script>
+    var iframe = document.getElementById('videoFrame');
+
+    // Bunny Stream Player.js handshake
+    function sendHandshake() {
+      if (iframe && iframe.contentWindow) {
+        try {
+          iframe.contentWindow.postMessage(JSON.stringify({ context: 'player.js', method: 'addEventListener', value: 'timeupdate' }), '*');
+          iframe.contentWindow.postMessage(JSON.stringify({ context: 'player.js', method: 'addEventListener', value: 'ended' }), '*');
+          iframe.contentWindow.postMessage(JSON.stringify({ context: 'player.js', method: 'addEventListener', value: 'play' }), '*');
+        } catch(e) {}
+      }
+    }
+
+    window.addEventListener('load', function() {
+      sendHandshake();
+      setTimeout(sendHandshake, 1000);
+      setTimeout(sendHandshake, 2500);
+      setTimeout(sendHandshake, 5000);
+    });
+
     // Intercept Bunny Stream / HTML5 postMessage events
     window.addEventListener('message', function(event) {
       try {
         var data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data && (data.event === 'timeupdate' || data.type === 'timeupdate')) {
-          var cur = data.currentTime || data.seconds || 0;
-          var dur = data.duration || 1;
+        if (!data) return;
+
+        var evt = data.event || data.type || (data.context === 'player.js' ? data.event : null);
+
+        if (evt === 'timeupdate') {
+          var cur = (data.value && typeof data.value.seconds === 'number') ? data.value.seconds : (data.currentTime || data.seconds || 0);
+          var dur = (data.value && typeof data.value.duration === 'number') ? data.value.duration : (data.duration || 1);
           FlutterVideoChannel.postMessage(JSON.stringify({ event: 'timeupdate', current: cur, duration: dur }));
-        } else if (data && (data.event === 'ended' || data.type === 'ended')) {
+        } else if (evt === 'ended' || evt === 'finish' || evt === 'completed') {
           FlutterVideoChannel.postMessage(JSON.stringify({ event: 'ended' }));
         }
       } catch(e) {}
@@ -400,11 +424,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             }
           },
           onWebResourceError: (error) {
-            if (mounted) {
-              setState(() {
-                _isPlayerInitializing = false;
-                _playerErrorMessage = 'Gagal memuat player video: ${error.description}';
-              });
+            // Only report fatal main-frame failure; ignore minor telemetry/DNS resource errors
+            if (error.isForMainFrame == true) {
+              if (mounted) {
+                setState(() {
+                  _isPlayerInitializing = false;
+                  _playerErrorMessage = 'Gagal memuat player video: ${error.description}';
+                });
+              }
             }
           },
         ),
@@ -526,27 +553,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       });
     }
 
-    // Unlock jika video telah selesai disimak sampai tuntas
-    if (!_isUnlocked && (_currentProgressFraction >= 0.98 || fraction >= 0.98)) {
+    if (!_isUnlocked && (_currentProgressFraction >= 0.90 || fraction >= 0.90)) {
       setState(() => _isUnlocked = true);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('🎉 Materi telah selesai disimak! Silakan klik selesaikan modul untuk membuka modul berikutnya.'),
-              ),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
     }
   }
 
@@ -985,47 +993,66 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
             : _playerErrorMessage != null
                 ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.play_circle_outline_rounded, color: Colors.white54, size: 44),
-                          const SizedBox(height: 10),
+                          const Icon(Icons.play_circle_outline_rounded, color: Colors.white54, size: 32),
+                          const SizedBox(height: 6),
                           Text(
                             (_playerErrorMessage ?? '').contains('ERR_NAME_NOT_RESOLVED')
-                                ? 'Video tidak dapat diputar.\nURL video belum dikonfigurasi dengan benar oleh admin.'
+                                ? 'Video sedang bersiap atau koneksi terputus.\nSilakan coba lagi atau buka melalui browser.'
                                 : (_playerErrorMessage ?? 'Gagal memuat video.'),
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 13),
+                            style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 11.5, height: 1.3),
                           ),
-                          const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed: _initAppropriatePlayer,
-                            icon: const Icon(Icons.refresh_rounded, size: 16),
-                            label: const Text('Coba Lagi'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                          if (_currentVideoUrl != null && _currentVideoUrl!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            TextButton.icon(
-                              onPressed: () async {
-                                final uri = Uri.tryParse(_currentVideoUrl!);
-                                if (uri != null) {
-                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                }
-                              },
-                              icon: const Icon(Icons.open_in_browser_rounded, size: 16, color: Colors.white54),
-                              label: Text(
-                                'Buka di Browser',
-                                style: GoogleFonts.plusJakartaSans(color: Colors.white54, fontSize: 12),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                height: 32,
+                                child: ElevatedButton.icon(
+                                  onPressed: _initAppropriatePlayer,
+                                  icon: const Icon(Icons.refresh_rounded, size: 13),
+                                  label: const Text('Coba Lagi', style: TextStyle(fontSize: 11.5)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                              if (_currentVideoUrl != null && _currentVideoUrl!.isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  height: 32,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final uri = Uri.tryParse(_currentVideoUrl!);
+                                      if (uri != null) {
+                                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                      }
+                                    },
+                                    icon: const Icon(Icons.open_in_browser_rounded, size: 13, color: Colors.white70),
+                                    label: Text(
+                                      'Buka di Browser',
+                                      style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 11),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Colors.white24),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -1928,26 +1955,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(width: 8),
           ],
 
-          // Main Complete / Status Button (Flexible & Overflow Safe)
+          // Main Complete / Status Button (Always accessible & beautiful)
           Expanded(
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                gradient: _isUnlocked && !_isSessionFinished
+                gradient: !_isSessionFinished
                     ? const LinearGradient(
                         colors: [Color(0xFF018556), Color(0xFF02A96C)],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       )
                     : null,
-                color: _isSessionFinished
-                    ? const Color(0xFFF0FDF4)
-                    : (!_isUnlocked ? const Color(0xFFF1F5F9) : null),
+                color: _isSessionFinished ? const Color(0xFFF0FDF4) : null,
                 borderRadius: BorderRadius.circular(14),
                 border: _isSessionFinished
                     ? Border.all(color: const Color(0xFFBBF7D0), width: 1.2)
                     : null,
-                boxShadow: _isUnlocked && !_isSessionFinished
+                boxShadow: !_isSessionFinished
                     ? const [
                         BoxShadow(
                           color: Color(0x28018556),
@@ -1961,7 +1986,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: (!_isUnlocked || _isSessionFinished || _isSubmittingProgress) ? null : _handleCompleteSession,
+                  onTap: (_isSessionFinished || _isSubmittingProgress) ? null : _handleCompleteSession,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Center(
@@ -1978,35 +2003,27 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                                 Icon(
                                   _isSessionFinished
                                       ? Icons.check_circle_rounded
-                                      : _isUnlocked
-                                          ? Icons.stars_rounded
-                                          : Icons.lock_outline_rounded,
-                                  size: 16,
+                                      : Icons.stars_rounded,
+                                  size: 17,
                                   color: _isSessionFinished
                                       ? const Color(0xFF018556)
-                                      : _isUnlocked
-                                          ? Colors.white
-                                          : const Color(0xFF94A3B8),
+                                      : Colors.white,
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 7),
                                 Flexible(
                                   child: Text(
                                     _isSessionFinished
                                         ? 'Modul Selesai ✓'
-                                        : _isUnlocked
-                                            ? 'Selesaikan Modul (+15 XP)'
-                                            : 'Selesaikan Modul',
+                                        : 'Selesaikan Modul (+15 XP)',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 12.5,
+                                      fontSize: 13,
                                       color: _isSessionFinished
                                           ? const Color(0xFF018556)
-                                          : _isUnlocked
-                                              ? Colors.white
-                                              : const Color(0xFF64748B),
+                                          : Colors.white,
                                     ),
                                   ),
                                 ),
