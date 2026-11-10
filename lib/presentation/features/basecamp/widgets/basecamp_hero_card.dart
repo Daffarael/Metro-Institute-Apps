@@ -175,120 +175,167 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
       }
     }
 
+    final rawThumb = (data['thumbnailUrl'] as String?)?.trim().isNotEmpty == true
+        ? data['thumbnailUrl'] as String
+        : (data['thumbnail'] as String?)?.trim().isNotEmpty == true
+            ? data['thumbnail'] as String
+            : null;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF018556), // Hijau Metro Institute (#018556)
+        color: const Color(0xFF062316),
         borderRadius: BorderRadius.circular(44),
-        border: Border.all(color: const Color(0xFF016B44), width: 1.2),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x28018556),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+            color: Color(0x35000000),
+            blurRadius: 20,
+            offset: Offset(0, 8),
           ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: handleTap,
-          borderRadius: BorderRadius.circular(44),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Top Row: Title + Lesson Count (Left) & Circular Progress Tracker (Right)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left: Title & Lesson count
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -0.4,
-                              height: 1.22,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '$completedSessions/$totalSessions Lesson Selesai',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFFE2F4E9),
-                              letterSpacing: -0.1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+      child: Stack(
+        children: [
+          // ── Background Thumbnail Image ────────────────────────
+          if (rawThumb != null && rawThumb.isNotEmpty)
+            Positioned.fill(
+              child: Image.network(
+                rawThumb,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => Container(
+                  color: const Color(0xFF018556),
+                ),
+              ),
+            )
+          else
+            Positioned.fill(
+              child: Container(
+                color: const Color(0xFF018556),
+              ),
+            ),
 
-                    const SizedBox(width: 14),
-
-                    // Right: Circular Dark Progress Indicator with Kuning Metro Arc
-                    _buildCircularProgressIndicator(progress, percent),
+          // ── Darkening Overlay Gradient ────────────────────────
+          // Menyelimuti thumbnail dengan lapisan gelap transparan agar foto terlihat samar di belakang
+          // namun teks putih, progress meter, dan tombol LANJUT tetap super tajam & kontras tinggi.
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF061810).withValues(alpha: 0.76),
+                    Colors.black.withValues(alpha: 0.88),
                   ],
                 ),
-
-                const SizedBox(height: 14),
-
-                // Bottom Row: Button LANJUT di SEBELAH KIRI (Kuning Metro)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFAE653), // Kuning Metro (#FAE653)
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1F000000),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.play_arrow_rounded,
-                            color: Color(0xFF111827),
-                            size: 17,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'LANJUT',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF111827),
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // ── Foreground Content ───────────────────────────────
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: handleTap,
+              borderRadius: BorderRadius.circular(44),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 22, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Top Row: Title + Lesson Count (Left) & Circular Progress Tracker (Right)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left: Title & Lesson count
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.4,
+                                  height: 1.22,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '$completedSessions/$totalSessions Lesson Selesai',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFFE2F4E9),
+                                  letterSpacing: -0.1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(width: 14),
+
+                        // Right: Circular Dark Progress Indicator with Kuning Metro Arc
+                        _buildCircularProgressIndicator(progress, percent),
+                      ],
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // Bottom Row: Button LANJUT di SEBELAH KIRI (Kuning Metro)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAE653), // Kuning Metro (#FAE653)
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x1F000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.play_arrow_rounded,
+                                color: Color(0xFF111827),
+                                size: 17,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'LANJUT',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF111827),
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
