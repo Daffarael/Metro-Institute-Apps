@@ -1406,9 +1406,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   ),
                   alignment: Alignment.center,
                   child: Icon(
-                    isLocked
-                        ? Icons.lock_rounded
-                        : (session['isCompleted'] == true ? Icons.check_rounded : Icons.play_arrow_rounded),
+                    isLocked ? Icons.lock_rounded : Icons.check_rounded,
                     color: isLocked ? const Color(0xFF143E26) : Colors.white,
                     size: isLocked ? 18 : 22,
                   ),
@@ -1478,7 +1476,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     },
                     icon: Icon(
                       isEnrolled
-                          ? Icons.play_circle_fill_rounded
+                          ? Icons.arrow_forward_rounded
                           : (price == 0 ? Icons.how_to_reg_rounded : Icons.shopping_bag_outlined),
                       size: 20,
                     ),
