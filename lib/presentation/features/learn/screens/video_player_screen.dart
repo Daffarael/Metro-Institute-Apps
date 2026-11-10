@@ -70,6 +70,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // Anti-skip & 90% completion logic
   late bool _isUnlocked;
+  bool _isBootcampActual = false;
   int _maxWatchedSeconds = 0;
   bool _isSubmittingProgress = false;
   bool _isSessionFinished = false;
@@ -93,6 +94,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _isBootcampActual = widget.isBootcamp;
     _currentSessionId = widget.sessionId;
     _currentTitle = widget.title;
     _currentVideoUrl = widget.videoUrl;
@@ -135,20 +137,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       setState(() => _isLoadingSessionData = true);
       try {
         Map<String, dynamic>? data;
-        if (widget.isBootcamp) {
+        if (_isBootcampActual) {
           try {
             data = await _bootcampDs.getBootcampSession(cId, sId);
+            _isBootcampActual = true;
           } catch (e) {
             try {
               data = await _courseDs.getCourseSession(cId, sId);
+              _isBootcampActual = false;
             } catch (_) {}
           }
         } else {
           try {
             data = await _courseDs.getCourseSession(cId, sId);
+            _isBootcampActual = false;
           } catch (e) {
             try {
               data = await _bootcampDs.getBootcampSession(cId, sId);
+              _isBootcampActual = true;
             } catch (_) {}
           }
         }
@@ -176,8 +182,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
           // Parse quiz
           List<dynamic> parsedQuiz = [];
-          if (current['quizOptions'] != null && current['quizOptions'] is List) {
-            parsedQuiz = current['quizOptions'];
+          if (current['quizOptions'] != null) {
+            final raw = current['quizOptions'];
+            if (raw is String) {
+              try {
+                final dec = jsonDecode(raw);
+                if (dec is List) parsedQuiz = dec;
+              } catch (_) {}
+            } else if (raw is List) {
+              parsedQuiz = raw;
+            }
           }
 
           bool isLiveEnd = current['isLiveEnded'] == true || current['isChapterLiveEnded'] == true || current['isEnded'] == true;
@@ -460,14 +474,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     final duration = controller.value.duration;
     final position = controller.value.position;
-    if (duration.inSeconds == 0) return;
+    final totalMs = duration.inMilliseconds;
+    final currentMs = position.inMilliseconds;
+    if (totalMs <= 0) return;
 
     final currentSec = position.inSeconds;
-    final totalSec = duration.inSeconds;
-    final fraction = (currentSec / totalSec).clamp(0.0, 1.0);
+    double fraction = (currentMs / totalMs).clamp(0.0, 1.0);
 
-    // Anti-skip protection: cannot seek beyond watched duration
-    if (!_isUnlocked && currentSec > _maxWatchedSeconds + 3) {
+    // Deteksi video tamat / hampir tamat
+    final bool isCompleted = controller.value.isCompleted ||
+        (totalMs > 2000 && totalMs - currentMs <= 1500) ||
+        fraction >= 0.95;
+
+    if (isCompleted) {
+      fraction = 1.0;
+      if (!_isUnlocked) {
+        setState(() => _isUnlocked = true);
+      }
+      _maxWatchedSeconds = max(_maxWatchedSeconds, duration.inSeconds);
+      _handleWatchProgress(1.0, duration.inSeconds);
+      _onVideoEnded();
+      return;
+    }
+
+    // Anti-skip protection: hanya aktifkan jika video cukup panjang (> 15 detik)
+    // dan user mencoba melompat lebih dari 8 detik dari titik yang sudah ditonton
+    if (!_isUnlocked && totalMs > 15000 && currentSec > _maxWatchedSeconds + 8) {
       controller.seekTo(Duration(seconds: _maxWatchedSeconds));
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -490,11 +522,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   void _handleWatchProgress(double fraction, int currentSeconds) {
     if (mounted) {
       setState(() {
-        _currentProgressFraction = fraction;
+        _currentProgressFraction = max(_currentProgressFraction, fraction);
       });
     }
 
-    if (!_isUnlocked && fraction >= 0.90) {
+    if (!_isUnlocked && (_currentProgressFraction >= 0.90 || fraction >= 0.90)) {
       setState(() => _isUnlocked = true);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -503,7 +535,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
               SizedBox(width: 8),
-              Expanded(child: Text('🎉 Syarat 90% terpenuhi! Tombol selesai kini terbuka.')),
+              Expanded(child: Text('🎉 Syarat 90% terpenuhi! Silakan selesaikan modul untuk membuka modul berikutnya.')),
             ],
           ),
           backgroundColor: AppColors.success,
@@ -516,8 +548,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   void _onVideoEnded() {
-    setState(() => _isUnlocked = true);
-    if (!_isSessionFinished) {
+    if (!_isUnlocked) {
+      setState(() => _isUnlocked = true);
+    }
+    if (!_isSessionFinished && !_isSubmittingProgress) {
       _handleCompleteSession();
     }
   }
@@ -537,11 +571,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     setState(() => _isSubmittingProgress = true);
 
     try {
-      final Map<String, dynamic> res;
-      if (widget.isBootcamp) {
-        res = await _bootcampDs.completeBootcampSession(cId, sId);
+      Map<String, dynamic> res;
+      if (_isBootcampActual) {
+        try {
+          res = await _bootcampDs.completeBootcampSession(cId, sId);
+        } catch (_) {
+          res = await _courseDs.completeCourseSession(cId, sId);
+        }
       } else {
-        res = await _courseDs.completeCourseSession(cId, sId);
+        try {
+          res = await _courseDs.completeCourseSession(cId, sId);
+        } catch (_) {
+          res = await _bootcampDs.completeBootcampSession(cId, sId);
+        }
       }
 
       final xpEarned = res['xpEarned'] ?? 15;
@@ -549,6 +591,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       if (!mounted) return;
       setState(() {
         _isSessionFinished = true;
+        _isUnlocked = true;
+        _currentProgressFraction = 1.0;
         _isSubmittingProgress = false;
       });
 
@@ -559,6 +603,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       setState(() => _isSubmittingProgress = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
+  }
           content: Text(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -621,12 +673,42 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 
+  void _goToPrevSession(String prevId) {
+    _switchSession(prevId);
+  }
+
+  void _goToNextSession(String nextId) {
+    if (!_isSessionFinished) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Selesaikan modul saat ini terlebih dahulu untuk melanjutkan ke modul berikutnya.'),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E293B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    _switchSession(nextId);
+  }
+
   void _switchSession(String newSessionId) {
     setState(() {
       _currentSessionId = newSessionId;
       _isSessionFinished = false;
       _isUnlocked = false;
       _currentProgressFraction = 0.0;
+      _maxWatchedSeconds = 0;
       _quizSubmitted = false;
       _selectedQuizOptionId = null;
     });
@@ -966,75 +1048,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
-    final progressPct = (_currentProgressFraction * 100).toInt();
-
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Single Refined Status & Anti-Skip Header Pill
-          Row(
-            children: [
-              if (_isSessionFinished)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFA7F3D0), width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.check_circle_rounded, size: 13, color: Color(0xFF059669)),
-                      const SizedBox(width: 5),
-                      Text(
-                        'Modul Telah Selesai',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF047857),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (_sessionType == 'VIDEO')
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: _isUnlocked ? const Color(0xFFECFDF5) : const Color(0xFFFFF7ED),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _isUnlocked ? const Color(0xFFA7F3D0) : const Color(0xFFFED7AA),
-                      width: 1,
+          // Elegant Finished Status Pill (Only shown when module is finished)
+          if (_isSessionFinished) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFA7F3D0), width: 1),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle_rounded, size: 13, color: Color(0xFF059669)),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Modul Telah Selesai',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF047857),
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _isUnlocked ? Icons.verified_rounded : Icons.lock_clock_rounded,
-                        size: 13,
-                        color: _isUnlocked ? const Color(0xFF059669) : const Color(0xFFEA580C),
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        _isUnlocked ? 'Syarat 90% Terpenuhi' : 'Anti-Skip: $progressPct% / 90%',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _isUnlocked ? const Color(0xFF047857) : const Color(0xFFC2410C),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
 
           // Title
           Text(
@@ -1058,7 +1104,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           ),
           const SizedBox(height: 14),
 
-          // Clean Minimalist 4px Progress Bar
+          // Clean Minimalist 4px Progress Bar with Metro Primary Green
           if (_sessionType == 'VIDEO') ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(3),
@@ -1066,50 +1112,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 value: _currentProgressFraction,
                 minHeight: 4,
                 backgroundColor: const Color(0xFFF1F5F9),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _isUnlocked ? AppColors.primary : const Color(0xFFEA580C),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColors.primary,
                 ),
               ),
             ),
             const SizedBox(height: 16),
           ],
-
-          // Elegant XP Reward Callout
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFFEF3C7), width: 1),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFDE68A),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.stars_rounded, size: 16, color: Color(0xFFD97706)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Tuntaskan modul ini untuk meraih +15 XP ke profil Anda',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF92400E),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
 
           // ── Session Body Content Based on Type ──
           if (_sessionType == 'MATERIAL') ...[
@@ -1260,72 +1269,147 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   Widget _buildQuizContent() {
+    if (_quizOptions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Center(child: Text('Pertanyaan kuis sedang disiapkan oleh mentor.')),
+      );
+    }
+
+    // Detect format: whether _quizOptions has nested question objects or flat options
+    String? questionTitle;
+    List<Map<String, dynamic>> optionsList = [];
+
+    final firstItem = _quizOptions.first;
+    if (firstItem is Map<String, dynamic> && firstItem.containsKey('options') && firstItem['options'] is List) {
+      questionTitle = firstItem['question']?.toString();
+      final nestedList = firstItem['options'] as List;
+      for (int i = 0; i < nestedList.length; i++) {
+        final opt = nestedList[i];
+        if (opt is Map<String, dynamic>) {
+          optionsList.add(opt);
+        }
+      }
+    } else {
+      for (int i = 0; i < _quizOptions.length; i++) {
+        final opt = _quizOptions[i];
+        if (opt is Map<String, dynamic>) {
+          optionsList.add(opt);
+        }
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Pilih Jawaban yang Tepat:',
-          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-        ),
-        const SizedBox(height: 12),
-        if (_quizOptions.isEmpty)
+        if (questionTitle != null && questionTitle.trim().isNotEmpty) ...[
           Container(
-            padding: const EdgeInsets.all(20),
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: const Center(child: Text('Pertanyaan kuis sedang disiapkan oleh mentor.')),
-          )
-        else
-          ..._quizOptions.map((opt) {
-            final option = opt as Map<String, dynamic>;
-            final optId = option['id']?.toString() ?? '';
-            final text = option['text'] ?? '';
-            final isSelected = _selectedQuizOptionId == optId;
-
-            return GestureDetector(
-              onTap: _quizSubmitted ? null : () => setState(() => _selectedQuizOptionId = optId),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryLight : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
-                    width: isSelected ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
                     Container(
-                      width: 22,
-                      height: 22,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isSelected ? AppColors.primary : Colors.transparent,
-                        border: Border.all(color: isSelected ? AppColors.primary : const Color(0xFF94A3B8), width: 2),
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
                       child: Text(
-                        text,
+                        'PERTANYAAN',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: const Color(0xFF0F172A),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  questionTitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Text(
+          'Pilih Jawaban yang Tepat:',
+          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+        ),
+        const SizedBox(height: 12),
+        ...optionsList.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final option = entry.value;
+          final optId = option['id']?.toString() ?? '$idx';
+          final rawText = option['text'] ?? option['label'] ?? option['title'] ?? option['answer'];
+          final text = (rawText != null && rawText.toString().trim().isNotEmpty)
+              ? rawText.toString()
+              : 'Pilihan ${String.fromCharCode(65 + idx)}';
+          final isSelected = _selectedQuizOptionId == optId;
+
+          return GestureDetector(
+            onTap: _quizSubmitted ? null : () => setState(() => _selectedQuizOptionId = optId),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primaryLight : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                  width: isSelected ? 1.5 : 1,
+                ),
               ),
-            );
-          }),
+              child: Row(
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? AppColors.primary : Colors.transparent,
+                      border: Border.all(color: isSelected ? AppColors.primary : const Color(0xFF94A3B8), width: 2),
+                    ),
+                    child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      text,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
         const SizedBox(height: 14),
         if (!_quizSubmitted)
           SizedBox(
@@ -1334,7 +1418,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               onPressed: _selectedQuizOptionId == null
                   ? null
                   : () {
-                      final selected = _quizOptions.firstWhere((o) => o['id']?.toString() == _selectedQuizOptionId, orElse: () => {});
+                      final selected = optionsList.firstWhere(
+                        (o) => (o['id']?.toString() ?? '') == _selectedQuizOptionId,
+                        orElse: () => {},
+                      );
                       final isCorrect = selected['isCorrect'] == true;
                       setState(() {
                         _quizSubmitted = true;
@@ -1345,6 +1432,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('🎉 Jawaban Anda Benar!'), backgroundColor: AppColors.success),
                         );
+                        if (!_isSessionFinished) {
+                          _handleCompleteSession();
+                        }
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Jawaban belum tepat, silakan coba lagi.'), backgroundColor: AppColors.error),
@@ -1806,6 +1896,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   // ── Bottom Action Dock: Prev / Next & Complete Button ─────────────────────
   Widget _buildBottomActionDock() {
     final progressPct = (_currentProgressFraction * 100).toInt();
+    final bool canGoNext = _isSessionFinished;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -1825,11 +1916,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           // Prev Button
           if (_prevSessionId != null) ...[
             InkWell(
-              onTap: () => _switchSession(_prevSessionId!),
+              onTap: () => _goToPrevSession(_prevSessionId!),
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(14),
@@ -1840,13 +1931,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
           ],
 
-          // Main Complete / Status Button
+          // Main Complete / Status Button (Flexible & Overflow Safe)
           Expanded(
             child: Container(
-              height: 46,
+              height: 44,
               decoration: BoxDecoration(
                 gradient: _isUnlocked && !_isSessionFinished
                     ? const LinearGradient(
@@ -1877,69 +1968,83 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
                   onTap: (!_isUnlocked || _isSessionFinished || _isSubmittingProgress) ? null : _handleCompleteSession,
-                  child: Center(
-                    child: _isSubmittingProgress
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _isSessionFinished
-                                    ? Icons.check_circle_rounded
-                                    : _isUnlocked
-                                        ? Icons.stars_rounded
-                                        : Icons.lock_outline_rounded,
-                                size: 17,
-                                color: _isSessionFinished
-                                    ? const Color(0xFF018556)
-                                    : _isUnlocked
-                                        ? Colors.white
-                                        : const Color(0xFF94A3B8),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _isSessionFinished
-                                    ? 'Modul Selesai'
-                                    : _isUnlocked
-                                        ? 'Selesaikan Modul (+15 XP)'
-                                        : 'Tonton 90% untuk Selesai ($progressPct%)',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Center(
+                      child: _isSubmittingProgress
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _isSessionFinished
+                                      ? Icons.check_circle_rounded
+                                      : _isUnlocked
+                                          ? Icons.stars_rounded
+                                          : Icons.lock_outline_rounded,
+                                  size: 16,
                                   color: _isSessionFinished
                                       ? const Color(0xFF018556)
                                       : _isUnlocked
                                           ? Colors.white
                                           : const Color(0xFF94A3B8),
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    _isSessionFinished
+                                        ? 'Modul Selesai ✓'
+                                        : _isUnlocked
+                                            ? 'Selesaikan Modul (+15 XP)'
+                                            : 'Tonton 90% ($progressPct%)',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12.5,
+                                      color: _isSessionFinished
+                                          ? const Color(0xFF018556)
+                                          : _isUnlocked
+                                              ? Colors.white
+                                              : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
 
-          // Next Button
+          // Next Button (Gated & Styled according to status)
           if (_nextSessionId != null) ...[
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             InkWell(
-              onTap: () => _switchSession(_nextSessionId!),
+              onTap: () => _goToNextSession(_nextSessionId!),
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0D1117),
+                  color: canGoNext ? const Color(0xFF018556) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(14),
+                  border: canGoNext ? null : Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: const Center(
-                  child: Icon(Icons.chevron_right_rounded, color: Colors.white, size: 22),
+                child: Center(
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: canGoNext ? Colors.white : const Color(0xFF94A3B8),
+                    size: 22,
+                  ),
                 ),
               ),
             ),

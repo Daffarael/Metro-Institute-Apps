@@ -153,6 +153,14 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
     final courseId = data['id']?.toString() ?? '';
     final sessionId = data['sessionId']?.toString() ?? '';
     final isBootcamp = data['type'] == 'bootcamp' || data['isBootcamp'] == true;
+    final bool isFinished = percent >= 100 || (totalSessions > 0 && completedSessions >= totalSessions);
+    final bool isNotStarted = percent == 0 && completedSessions == 0;
+    final String buttonLabel = isFinished
+        ? 'ULAS MATERI'
+        : (isNotStarted ? 'MULAI' : 'LANJUT');
+    final IconData buttonIcon = isFinished
+        ? Icons.replay_rounded
+        : Icons.play_arrow_rounded;
 
     void handleTap() {
       if (sessionId.isNotEmpty) {
@@ -304,7 +312,7 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
 
                     const SizedBox(height: 14),
 
-                    // Bottom Row: Button LANJUT di SEBELAH KIRI (Kuning Metro)
+                    // Bottom Row: Action Button di SEBELAH KIRI (Kuning Metro)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -324,14 +332,14 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.play_arrow_rounded,
-                                color: Color(0xFF111827),
+                              Icon(
+                                buttonIcon,
+                                color: const Color(0xFF111827),
                                 size: 17,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'LANJUT',
+                                buttonLabel,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w800,
