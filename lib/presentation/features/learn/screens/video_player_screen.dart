@@ -643,26 +643,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.all(24),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Clean Metro Yellow XP Pill
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(color: AppColors.xpBg, shape: BoxShape.circle),
-              child: const Icon(Icons.stars_rounded, color: AppColors.xp, size: 50),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFDD00),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '+$xp XP',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF0F172A),
+                  letterSpacing: 0.2,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
-              'Modul Selesai!',
-              style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Hebat! Anda telah menuntaskan modul ini dan memperoleh +$xp XP.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B), height: 1.4),
+              'Modul Selesai',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A),
+                letterSpacing: -0.3,
+              ),
             ),
             const SizedBox(height: 22),
             ElevatedButton(
@@ -682,8 +695,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(
-                _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya →' : 'Kembali ke Katalog',
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5),
+                _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya' : 'Kembali ke Katalog',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
               ),
             ),
           ],
@@ -935,25 +948,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     if (_sessionType != 'VIDEO') {
       // Non-video sessions show a dedicated module banner
       return Container(
-        height: 120,
+        height: 110,
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Color(0xFF0D1117),
         ),
         child: Row(
           children: [
             Container(
-              width: 52,
-              height: 52,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                color: const Color(0xFFFFDD00),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 _sessionType == 'MATERIAL'
@@ -961,11 +969,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     : _sessionType == 'QUIZ'
                         ? Icons.quiz_rounded
                         : Icons.videocam_rounded,
-                color: AppColors.primary,
-                size: 28,
+                color: const Color(0xFF0D1117),
+                size: 26,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -974,16 +982,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.2),
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       _sessionType == 'MATERIAL'
-                          ? 'DOKUMEN MATERI'
+                          ? 'MATERI'
                           : _sessionType == 'QUIZ'
-                              ? 'KUIS PEMAHAMAN'
-                              : 'SESI LIVE INTERAKTIF',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.primary),
+                              ? 'KUIS'
+                              : 'SESI LIVE',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -1088,38 +1101,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Elegant Finished Status Pill (Only shown when module is finished)
-          if (_isSessionFinished) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFA7F3D0), width: 1),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.check_circle_rounded, size: 13, color: Color(0xFF059669)),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Modul Telah Selesai',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF047857),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-
           // Title
           Text(
             _currentTitle ?? widget.title,
@@ -1348,55 +1333,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         if (questionTitle != null && questionTitle.trim().isNotEmpty) ...[
           Container(
             width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'PERTANYAAN',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  questionTitle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
-                    height: 1.4,
-                  ),
-                ),
-              ],
+            child: Text(
+              questionTitle,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF0F172A),
+                height: 1.5,
+              ),
             ),
           ),
         ],
-        Text(
-          'Pilih Jawaban yang Tepat:',
-          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-        ),
-        const SizedBox(height: 12),
         ...optionsList.asMap().entries.map((entry) {
           final idx = entry.key;
           final option = entry.value;
@@ -1406,6 +1360,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               ? rawText.toString()
               : 'Pilihan ${String.fromCharCode(65 + idx)}';
           final isSelected = _selectedQuizOptionId == optId;
+          final letter = String.fromCharCode(65 + idx);
 
           return GestureDetector(
             onTap: _quizSubmitted ? null : () => setState(() => _selectedQuizOptionId = optId),
@@ -1413,33 +1368,46 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryLight : Colors.white,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
-                  width: isSelected ? 1.5 : 1,
+                  width: isSelected ? 2.0 : 1.2,
                 ),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 22,
-                    height: 22,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isSelected ? AppColors.primary : Colors.transparent,
-                      border: Border.all(color: isSelected ? AppColors.primary : const Color(0xFF94A3B8), width: 2),
+                      color: isSelected ? AppColors.primary : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                    child: Center(
+                      child: Text(
+                        letter,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? Colors.white : const Color(0xFF475569),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      text,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Text(
+                        text,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: const Color(0xFF0F172A),
+                          height: 1.45,
+                        ),
                       ),
                     ),
                   ),
@@ -1448,65 +1416,64 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           );
         }),
-        const SizedBox(height: 14),
-        if (!_quizSubmitted)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _selectedQuizOptionId == null
-                  ? null
-                  : () {
-                      final selected = optionsList.firstWhere(
-                        (o) => (o['id']?.toString() ?? '') == _selectedQuizOptionId,
-                        orElse: () => {},
-                      );
-                      final isCorrect = selected['isCorrect'] == true;
-                      setState(() {
-                        _quizSubmitted = true;
-                        _quizPassed = isCorrect;
-                        if (isCorrect) _isUnlocked = true;
-                      });
-                      if (isCorrect) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('🎉 Jawaban Anda Benar!'), backgroundColor: AppColors.success),
-                        );
-                        if (!_isSessionFinished) {
-                          _handleCompleteSession();
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Jawaban belum tepat, silakan coba lagi.'), backgroundColor: AppColors.error),
-                        );
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Kirim Jawaban Kuis'),
-            ),
-          )
-        else if (!_quizPassed)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => setState(() {
-                _quizSubmitted = false;
-                _selectedQuizOptionId = null;
-              }),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Coba Lagi'),
-            ),
-          ),
       ],
     );
+  }
+
+  void _submitQuizAnswer() {
+    if (_selectedQuizOptionId == null) return;
+
+    List<Map<String, dynamic>> optionsList = [];
+    final firstItem = _quizOptions.first;
+    if (firstItem is Map<String, dynamic> && firstItem.containsKey('options') && firstItem['options'] is List) {
+      final nestedList = firstItem['options'] as List;
+      for (int i = 0; i < nestedList.length; i++) {
+        final opt = nestedList[i];
+        if (opt is Map<String, dynamic>) optionsList.add(opt);
+      }
+    } else {
+      for (int i = 0; i < _quizOptions.length; i++) {
+        final opt = _quizOptions[i];
+        if (opt is Map<String, dynamic>) optionsList.add(opt);
+      }
+    }
+
+    final selected = optionsList.firstWhere(
+      (o) => (o['id']?.toString() ?? '') == _selectedQuizOptionId,
+      orElse: () => {},
+    );
+    final isCorrect = selected['isCorrect'] == true;
+
+    setState(() {
+      _quizSubmitted = true;
+      _quizPassed = isCorrect;
+      if (isCorrect) _isUnlocked = true;
+    });
+
+    if (isCorrect) {
+      if (!_isSessionFinished) {
+        _handleCompleteSession();
+      }
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Jawaban belum tepat, silakan coba lagi.'),
+          backgroundColor: const Color(0xFF0F172A),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _quizSubmitted = false;
+          });
+        }
+      });
+    }
+  }
   }
 
   Widget _buildLiveContent() {
@@ -1933,7 +1900,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Bottom Action Dock: Prev / Next & Complete Button ─────────────────────
   Widget _buildBottomActionDock() {
-    final bool canComplete = _isUnlocked || _currentProgressFraction >= 0.95;
+    final bool isQuiz = _sessionType == 'QUIZ';
+    final bool canCompleteVideo = _isUnlocked || _currentProgressFraction >= 0.95;
+    final bool canSubmitQuiz = _selectedQuizOptionId != null;
+    final bool isActionActive = isQuiz ? canSubmitQuiz : canCompleteVideo;
     final bool canGoNext = _isSessionFinished;
 
     return Container(
@@ -1972,26 +1942,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(width: 8),
           ],
 
-          // Main Complete / Status Button (Strictly gated by actual watch completion)
+          // Main Action / Status Button (No faded colors, clean Metro identity)
           Expanded(
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                gradient: (!_isSessionFinished && canComplete)
-                    ? const LinearGradient(
-                        colors: [Color(0xFF018556), Color(0xFF02A96C)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      )
-                    : null,
                 color: _isSessionFinished
-                    ? const Color(0xFFF0FDF4)
-                    : (!canComplete ? const Color(0xFFF1F5F9) : null),
+                    ? Colors.white
+                    : (isActionActive ? AppColors.primary : const Color(0xFFF1F5F9)),
                 borderRadius: BorderRadius.circular(14),
                 border: _isSessionFinished
-                    ? Border.all(color: const Color(0xFFBBF7D0), width: 1.2)
+                    ? Border.all(color: AppColors.primary, width: 1.5)
                     : null,
-                boxShadow: (!_isSessionFinished && canComplete)
+                boxShadow: (!_isSessionFinished && isActionActive)
                     ? const [
                         BoxShadow(
                           color: Color(0x28018556),
@@ -2007,20 +1970,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   borderRadius: BorderRadius.circular(14),
                   onTap: _isSessionFinished
                       ? null
-                      : (canComplete
-                          ? (_isSubmittingProgress ? null : _handleCompleteSession)
-                          : () {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
-                                  backgroundColor: const Color(0xFF1E293B),
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 2),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                              );
-                            }),
+                      : (isQuiz
+                          ? (canSubmitQuiz ? _submitQuizAnswer : null)
+                          : (canCompleteVideo
+                              ? (_isSubmittingProgress ? null : _handleCompleteSession)
+                              : () {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
+                                      backgroundColor: const Color(0xFF1E293B),
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 2),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                  );
+                                })),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Center(
@@ -2030,46 +1995,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                               width: 18,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isSessionFinished
-                                      ? Icons.check_circle_rounded
-                                      : (canComplete
-                                          ? Icons.stars_rounded
-                                          : Icons.lock_outline_rounded),
-                                  size: 17,
-                                  color: _isSessionFinished
-                                      ? const Color(0xFF018556)
-                                      : (canComplete
-                                          ? Colors.white
-                                          : const Color(0xFF94A3B8)),
-                                ),
-                                const SizedBox(width: 7),
-                                Flexible(
-                                  child: Text(
-                                    _isSessionFinished
-                                        ? 'Modul Selesai ✓'
-                                        : (canComplete
-                                            ? 'Selesaikan Modul (+15 XP)'
-                                            : 'Selesaikan Modul'),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13,
-                                      color: _isSessionFinished
-                                          ? const Color(0xFF018556)
-                                          : (canComplete
-                                              ? Colors.white
-                                              : const Color(0xFF64748B)),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          : Text(
+                              _isSessionFinished
+                                  ? 'Modul Selesai'
+                                  : (isQuiz
+                                      ? 'Kirim Jawaban'
+                                      : 'Selesaikan Modul'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                color: _isSessionFinished
+                                    ? AppColors.primary
+                                    : (isActionActive
+                                        ? Colors.white
+                                        : const Color(0xFF94A3B8)),
+                              ),
                             ),
                     ),
                   ),
@@ -2078,7 +2021,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ),
 
-          // Next Button (Gated & Styled according to status)
+          // Next Button (Solid Metro Primary Green when unlocked)
           if (_nextSessionId != null) ...[
             const SizedBox(width: 8),
             InkWell(
@@ -2088,7 +2031,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: canGoNext ? const Color(0xFF018556) : const Color(0xFFF1F5F9),
+                  color: canGoNext ? AppColors.primary : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(14),
                   border: canGoNext ? null : Border.all(color: const Color(0xFFE2E8F0)),
                 ),
