@@ -1303,7 +1303,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final isFree = session['isFreePreview'] == true;
     final canPlay = isEnrolled || isFree;
     final isLocked = !canPlay;
-    final isCurrentSession = _activeSession?['id']?.toString() == session['id']?.toString();
     final iconData = _getSessionTypeIcon(sessionTitle, session);
 
     return Container(
@@ -1311,10 +1310,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: isCurrentSession ? AppColors.primary : const Color(0xFFECE7E1),
-          width: isCurrentSession ? 1.6 : 1.2,
-        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
