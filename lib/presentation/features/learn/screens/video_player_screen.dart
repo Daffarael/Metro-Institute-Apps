@@ -422,6 +422,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             if (mounted) {
               setState(() => _isPlayerInitializing = false);
             }
+            _controllerSendHandshake();
           },
           onWebResourceError: (error) {
             // Only report fatal main-frame failure; ignore minor telemetry/DNS resource errors
@@ -457,6 +458,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       ..loadHtmlString(htmlContent, baseUrl: 'https://iframe.mediadelivery.net');
 
     _webViewController = controller;
+  }
+
+  void _controllerSendHandshake() {
+    final jsCode = '''
+      (function() {
+        var iframe = document.getElementById('videoFrame');
+        if (iframe && iframe.contentWindow) {
+          try {
+            iframe.contentWindow.postMessage(JSON.stringify({ context: 'player.js', method: 'addEventListener', value: 'timeupdate' }), '*');
+            iframe.contentWindow.postMessage(JSON.stringify({ context: 'player.js', method: 'addEventListener', value: 'ended' }), '*');
+          } catch(e) {}
+        }
+      })();
+    ''';
+    _webViewController?.runJavaScript(jsCode);
   }
 
   Future<void> _initNativePlayer(String url) async {
@@ -1917,6 +1933,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Bottom Action Dock: Prev / Next & Complete Button ─────────────────────
   Widget _buildBottomActionDock() {
+    final bool canComplete = _isUnlocked || _currentProgressFraction >= 0.95;
     final bool canGoNext = _isSessionFinished;
 
     return Container(
@@ -1955,24 +1972,26 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(width: 8),
           ],
 
-          // Main Complete / Status Button (Always accessible & beautiful)
+          // Main Complete / Status Button (Strictly gated by actual watch completion)
           Expanded(
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                gradient: !_isSessionFinished
+                gradient: (!_isSessionFinished && canComplete)
                     ? const LinearGradient(
                         colors: [Color(0xFF018556), Color(0xFF02A96C)],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       )
                     : null,
-                color: _isSessionFinished ? const Color(0xFFF0FDF4) : null,
+                color: _isSessionFinished
+                    ? const Color(0xFFF0FDF4)
+                    : (!canComplete ? const Color(0xFFF1F5F9) : null),
                 borderRadius: BorderRadius.circular(14),
                 border: _isSessionFinished
                     ? Border.all(color: const Color(0xFFBBF7D0), width: 1.2)
                     : null,
-                boxShadow: !_isSessionFinished
+                boxShadow: (!_isSessionFinished && canComplete)
                     ? const [
                         BoxShadow(
                           color: Color(0x28018556),
@@ -1986,7 +2005,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: (_isSessionFinished || _isSubmittingProgress) ? null : _handleCompleteSession,
+                  onTap: _isSessionFinished
+                      ? null
+                      : (canComplete
+                          ? (_isSubmittingProgress ? null : _handleCompleteSession)
+                          : () {
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
+                                  backgroundColor: const Color(0xFF1E293B),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 2),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              );
+                            }),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Center(
@@ -2003,18 +2037,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                                 Icon(
                                   _isSessionFinished
                                       ? Icons.check_circle_rounded
-                                      : Icons.stars_rounded,
+                                      : (canComplete
+                                          ? Icons.stars_rounded
+                                          : Icons.lock_outline_rounded),
                                   size: 17,
                                   color: _isSessionFinished
                                       ? const Color(0xFF018556)
-                                      : Colors.white,
+                                      : (canComplete
+                                          ? Colors.white
+                                          : const Color(0xFF94A3B8)),
                                 ),
                                 const SizedBox(width: 7),
                                 Flexible(
                                   child: Text(
                                     _isSessionFinished
                                         ? 'Modul Selesai ✓'
-                                        : 'Selesaikan Modul (+15 XP)',
+                                        : (canComplete
+                                            ? 'Selesaikan Modul (+15 XP)'
+                                            : 'Selesaikan Modul'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
@@ -2023,7 +2063,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                                       fontSize: 13,
                                       color: _isSessionFinished
                                           ? const Color(0xFF018556)
-                                          : Colors.white,
+                                          : (canComplete
+                                              ? Colors.white
+                                              : const Color(0xFF64748B)),
                                     ),
                                   ),
                                 ),
