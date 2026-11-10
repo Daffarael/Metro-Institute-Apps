@@ -354,7 +354,7 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
     );
   }
 
-  /// Circular dark badge with outer Kuning Metro arc
+  /// Circular Kuning Metro badge with outer White arc
   Widget _buildCircularProgressIndicator(double progress, int percent) {
     return SizedBox(
       width: 66,
@@ -370,15 +370,15 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 17.5,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: const Color(0xFF111827),
                   ),
                 ),
                 TextSpan(
                   text: '%',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFFFAE653),
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF111827).withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -390,7 +390,7 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
   }
 }
 
-/// CustomPainter untuk circular progress badge: Dark emerald disk center dengan Kuning Metro arc
+/// CustomPainter untuk circular progress badge: Kuning Metro (#FAE653) center disk dengan White arc
 class _CircularProgressPainter extends CustomPainter {
   final double progress;
 
@@ -401,22 +401,22 @@ class _CircularProgressPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // 1. Dark emerald circular center disk (#063D2A)
+    // 1. Kuning Metro circular center disk (#FAE653) menggantikan hijau tua
     final diskPaint = Paint()
-      ..color = const Color(0xFF063D2A)
+      ..color = const Color(0xFFFAE653)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius - 4.5, diskPaint);
 
-    // 2. Track background ring
+    // 2. Track background ring (Putih semi-transparan)
     final trackPaint = Paint()
-      ..color = const Color(0xFFFAE653).withValues(alpha: 0.22)
+      ..color = Colors.white.withValues(alpha: 0.30)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.2;
     canvas.drawCircle(center, radius - 2.5, trackPaint);
 
-    // 3. Active Progress Arc (Kuning Metro #FAE653)
+    // 3. Active Progress Arc (Putih solid #FFFFFF menggantikan kuning)
     final arcPaint = Paint()
-      ..color = const Color(0xFFFAE653)
+      ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.5
       ..strokeCap = StrokeCap.round;
