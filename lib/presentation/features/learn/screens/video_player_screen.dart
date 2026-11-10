@@ -531,11 +531,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Expanded(child: Text('🎉 Syarat 90% terpenuhi! Silakan selesaikan modul untuk membuka modul berikutnya.')),
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('🎉 Syarat 90% terpenuhi! Silakan selesaikan modul untuk membuka modul berikutnya.'),
+              ),
             ],
           ),
           backgroundColor: AppColors.success,
@@ -682,10 +684,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
-              SizedBox(width: 8),
+              const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text('Selesaikan modul saat ini terlebih dahulu untuk melanjutkan ke modul berikutnya.'),
               ),
