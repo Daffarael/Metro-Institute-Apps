@@ -1474,7 +1474,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       });
     }
   }
-  }
 
   Widget _buildLiveContent() {
     return Container(
