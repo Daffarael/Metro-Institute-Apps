@@ -1062,10 +1062,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 9),
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFFE8F5E9) : const Color(0xFFF8FAFC),
+            color: isActive ? AppColors.accent : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isActive ? AppColors.primary : const Color(0xFFE2E8F0),
+              color: isActive ? AppColors.accentDark : const Color(0xFFE2E8F0),
               width: 1.2,
             ),
           ),
@@ -1076,7 +1076,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               Icon(
                 icon,
                 size: 15,
-                color: isActive ? AppColors.primary : const Color(0xFF64748B),
+                color: isActive ? AppColors.emeraldDark : const Color(0xFF64748B),
               ),
               const SizedBox(width: 6),
               Flexible(
@@ -1085,7 +1085,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
-                    color: isActive ? AppColors.primary : const Color(0xFF64748B),
+                    color: isActive ? AppColors.emeraldDark : const Color(0xFF64748B),
                     letterSpacing: -0.1,
                   ),
                   maxLines: 1,

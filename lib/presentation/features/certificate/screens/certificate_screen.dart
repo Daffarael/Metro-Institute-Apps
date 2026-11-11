@@ -999,13 +999,152 @@ class CertificateCanvasWidget extends StatelessWidget {
   }
 
   Widget _buildCanvasPlaceholder() {
-    return Container(
-      color: const Color(0xFFF8FAFC),
-      child: const Center(
-        child: Icon(Icons.workspace_premium_outlined, size: 40, color: Color(0xFF94A3B8)),
-      ),
+    return CustomPaint(
+      painter: _CertificateFramePainter(productType: productType),
+      child: const SizedBox.expand(),
     );
   }
+}
+
+// ── BUILT-IN VECTOR CERTIFICATE FRAME PAINTER ───────────────────────────────
+class _CertificateFramePainter extends CustomPainter {
+  final String productType;
+  _CertificateFramePainter({this.productType = 'MINI_COURSE'});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Parchment Background
+    final bgPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFDFBF7), Color(0xFFF9F5EC), Color(0xFFFDFBF7)],
+      ).createShader(Rect.fromLTWH(0, 0, w, h));
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bgPaint);
+
+    // 2. Outer Border: Deep Metro Emerald (#015F3D)
+    final outerMargin = (w * 0.02).clamp(6.0, 16.0);
+    final outerPaint = Paint()
+      ..color = const Color(0xFF015F3D)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (w * 0.005).clamp(2.5, 4.5);
+    final outerRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(outerMargin, outerMargin, w - outerMargin * 2, h - outerMargin * 2),
+      const Radius.circular(8),
+    );
+    canvas.drawRRect(outerRect, outerPaint);
+
+    // 3. Inner Border: Antique Burnished Gold (#C5A059)
+    final innerMargin = outerMargin + (w * 0.012).clamp(4.0, 9.0);
+    final innerPaint = Paint()
+      ..color = const Color(0xFFC5A059)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (w * 0.0025).clamp(1.2, 2.2);
+    final innerRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(innerMargin, innerMargin, w - innerMargin * 2, h - innerMargin * 2),
+      const Radius.circular(4),
+    );
+    canvas.drawRRect(innerRect, innerPaint);
+
+    // 4. Corner Ornaments (Gold diamonds at 4 corners)
+    final cornerSize = (w * 0.016).clamp(7.0, 14.0);
+    final goldFill = Paint()..color = const Color(0xFFC5A059);
+    final cornerOffsets = [
+      Offset(innerMargin, innerMargin),
+      Offset(w - innerMargin, innerMargin),
+      Offset(innerMargin, h - innerMargin),
+      Offset(w - innerMargin, h - innerMargin),
+    ];
+    for (final pt in cornerOffsets) {
+      final path = Path()
+        ..moveTo(pt.dx, pt.dy - cornerSize / 2)
+        ..lineTo(pt.dx + cornerSize / 2, pt.dy)
+        ..lineTo(pt.dx, pt.dy + cornerSize / 2)
+        ..lineTo(pt.dx - cornerSize / 2, pt.dy)
+        ..close();
+      canvas.drawPath(path, goldFill);
+    }
+
+    // 5. Central Watermark Seal (Subtle gold emblem)
+    final sealPaint = Paint()
+      ..color = const Color(0x0DC5A059)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    final center = Offset(w / 2, h * 0.50);
+    canvas.drawCircle(center, h * 0.28, sealPaint);
+    canvas.drawCircle(center, h * 0.25, sealPaint..strokeWidth = 1.0);
+
+    // 6. Header Typography (Rendered proportionally)
+    final isBootcamp = productType.toUpperCase().contains('BOOTCAMP');
+
+    // Top Brand: METRO INSTITUTE
+    final brandSpan = TextSpan(
+      text: 'METRO INSTITUTE',
+      style: TextStyle(
+        fontFamily: 'PlusJakartaSans',
+        fontSize: (w * 0.022).clamp(9.0, 16.0),
+        fontWeight: FontWeight.w800,
+        letterSpacing: 3.5,
+        color: const Color(0xFF015F3D),
+      ),
+    );
+    final brandPainter = TextPainter(
+      text: brandSpan,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    brandPainter.paint(
+      canvas,
+      Offset(w / 2 - brandPainter.width / 2, h * 0.12),
+    );
+
+    // Certificate Title: SERTIFIKAT PENYELESAIAN
+    final titleSpan = TextSpan(
+      text: isBootcamp ? 'SERTIFIKAT KELULUSAN BOOTCAMP' : 'SERTIFIKAT PENYELESAIAN',
+      style: TextStyle(
+        fontFamily: 'PlusJakartaSans',
+        fontSize: (w * 0.030).clamp(11.0, 22.0),
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.2,
+        color: const Color(0xFFB8860B),
+      ),
+    );
+    final titlePainter = TextPainter(
+      text: titleSpan,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    titlePainter.paint(
+      canvas,
+      Offset(w / 2 - titlePainter.width / 2, h * 0.18),
+    );
+
+    // Decorative Gold Line under header
+    final lineY = h * 0.26;
+    final lineHalf = w * 0.22;
+    final linePaint = Paint()
+      ..color = const Color(0xFFC5A059)
+      ..strokeWidth = 1.0;
+    canvas.drawLine(
+      Offset(w / 2 - lineHalf, lineY),
+      Offset(w / 2 + lineHalf, lineY),
+      linePaint,
+    );
+    // Center diamond on decorative line
+    final dSize = 4.0;
+    final diamondPath = Path()
+      ..moveTo(w / 2, lineY - dSize)
+      ..lineTo(w / 2 + dSize, lineY)
+      ..lineTo(w / 2, lineY + dSize)
+      ..lineTo(w / 2 - dSize, lineY)
+      ..close();
+    canvas.drawPath(diamondPath, goldFill);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CertificateFramePainter oldDelegate) =>
+      oldDelegate.productType != productType;
 }
 
 // ── CERTIFICATE CARD WIDGET ──────────────────────────────────────────────────

@@ -39,10 +39,12 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
   String _imageUrl = '';
   List<dynamic>? _config;
   String? _pdfUrl;
+  bool _isBootcampActual = false;
 
   @override
   void initState() {
     super.initState();
+    _isBootcampActual = widget.isBootcamp;
     _fetchCertificateData();
   }
 
@@ -75,17 +77,22 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
           break;
         }
         if (widget.courseId != null) {
-          if (widget.isBootcamp) {
-            if (c['bootcampId']?.toString() == widget.courseId) {
-              matched = c;
-              break;
-            }
-          } else {
-            if (c['courseId']?.toString() == widget.courseId) {
-              matched = c;
-              break;
-            }
+          if (c['courseId']?.toString() == widget.courseId ||
+              c['bootcampId']?.toString() == widget.courseId) {
+            matched = c;
+            break;
           }
+        }
+      }
+
+      // Determine actual product type:
+      if (matched != null) {
+        final prodType = matched['productType']?.toString().toUpperCase() ?? '';
+        final credId = matched['credentialId']?.toString().toUpperCase() ?? '';
+        if (matched['courseId'] != null || prodType == 'MINI_COURSE' || credId.contains('COURSE')) {
+          _isBootcampActual = false;
+        } else if (matched['bootcampId'] != null || prodType == 'BOOTCAMP' || credId.contains('BOOT')) {
+          _isBootcampActual = true;
         }
       }
 
@@ -93,7 +100,9 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
       if (matched != null) {
         _cert = matched;
         _credentialId = matched['credentialId']?.toString() ??
-            'METRO-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}';
+            (_isBootcampActual
+                ? 'METRO-BOOT-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}'
+                : 'METRO-COURSE-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}');
         _pdfUrl = matched['pdfUrl']?.toString();
 
         final issuedAtStr = matched['issuedAt']?.toString();
@@ -119,16 +128,18 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
         final now = DateTime.now();
         _dateStr = '${now.day} ${_monthName(now.month)} ${now.year}';
         _credentialId = widget.credentialId ??
-            'METRO-COURSE-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}';
+            (_isBootcampActual
+                ? 'METRO-BOOT-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}'
+                : 'METRO-COURSE-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}');
       }
 
       if (_imageUrl.isEmpty) {
-        _imageUrl = widget.isBootcamp
+        _imageUrl = _isBootcampActual
             ? 'https://res.cloudinary.com/czmvfqaw/image/upload/v1791527027/metro-institute/admin-uploads/ehyfky1b65vskh18t7bv.png'
             : 'https://res.cloudinary.com/czmvfqaw/image/upload/v1791558237/metro-institute/admin-uploads/hhl8mcfb3q08w9y2zbg6.png';
       }
 
-      _config ??= widget.isBootcamp
+      _config ??= _isBootcampActual
           ? CertificateCanvasWidget.bootcampDefaultConfig
           : CertificateCanvasWidget.miniCourseDefaultConfig;
 
@@ -315,7 +326,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                       child: CertificateCanvasWidget(
                         imageUrl: _imageUrl,
                         config: _config,
-                        productType: widget.isBootcamp ? 'BOOTCAMP' : 'MINI_COURSE',
+                        productType: _isBootcampActual ? 'BOOTCAMP' : 'MINI_COURSE',
                         menteeName: _menteeName,
                         courseTitle: widget.courseTitle,
                         dateStr: _dateStr,
@@ -352,7 +363,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                           value: widget.courseTitle,
                         ),
                         const Divider(height: 18, color: Color(0xFFF1F5F9)),
-                        // Credential ID (Clean text pill, NO copy button)
+                        // Credential ID (Clean text pill, NO copy button, no overflow)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -364,19 +375,24 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                                 color: const Color(0xFF64748B),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _credentialId,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF0F172A),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _credentialId,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),
@@ -485,22 +501,31 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
             color: const Color(0xFF64748B),
           ),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              value,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                ),
               ),
-            ),
-            if (trailing != null) ...[
-              const SizedBox(width: 4),
-              trailing,
+              if (trailing != null) ...[
+                const SizedBox(width: 4),
+                trailing,
+              ],
             ],
-          ],
+          ),
         ),
       ],
     );

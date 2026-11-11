@@ -169,10 +169,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _isBootcampActual = widget.isBootcamp ||
-        widget.item['isBootcamp'] == true ||
-        widget.item['type'] == 'bootcamp' ||
-        widget.item['productType'] == 'BOOTCAMP';
+    final isExplicitMini = widget.item['type'] == 'MINI_COURSE' ||
+        widget.item['productType'] == 'MINI_COURSE' ||
+        (widget.item.containsKey('accessDays') && !widget.item.containsKey('batches'));
+    _isBootcampActual = !isExplicitMini &&
+        (widget.isBootcamp ||
+            widget.item['isBootcamp'] == true ||
+            widget.item['type']?.toString().toUpperCase() == 'BOOTCAMP' ||
+            widget.item['productType']?.toString().toUpperCase() == 'BOOTCAMP');
     _isWishlisted = widget.item['isWishlisted'] == true;
     _fetchDetail();
   }
@@ -213,10 +217,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       if (!mounted) return;
       setState(() {
         _detail = res;
-        _isBootcampActual = res['field'] != null ||
-            res['isBootcamp'] == true ||
-            res['type'] == 'BOOTCAMP' ||
-            _isBootcampActual;
+        final isMini = res['type'] == 'MINI_COURSE' ||
+            res['productType'] == 'MINI_COURSE' ||
+            (res.containsKey('accessDays') && !res.containsKey('batches'));
+        _isBootcampActual = !isMini &&
+            (res['isBootcamp'] == true ||
+                res['type']?.toString().toUpperCase() == 'BOOTCAMP' ||
+                res['productType']?.toString().toUpperCase() == 'BOOTCAMP' ||
+                (widget.isBootcamp && res['type'] != 'MINI_COURSE'));
         _isLoading = false;
         if (res.containsKey('isWishlisted')) {
           _isWishlisted = res['isWishlisted'] == true;
