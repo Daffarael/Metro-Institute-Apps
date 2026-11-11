@@ -1140,22 +1140,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ),
       );
     }
-                      ? (_requiredReadingSeconds > 0
-                          ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
-                          : 'Bacaan Mandiri')
-                      : (isQuiz ? '5 Soal' : 'Live Meet'),
-                ),
-                _buildEditorialMetaPill(
-                  icon: Icons.stars_rounded,
-                  label: '+$_xpReward XP',
-                  isAccent: true,
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
 
     return AspectRatio(
       aspectRatio: 16 / 9,
