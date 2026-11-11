@@ -219,7 +219,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           final rawDuration = current['videoDuration'] ?? current['durationMin'];
           final durationSec = (rawDuration != null && (rawDuration as num) > 0)
               ? ((rawDuration as num) < 60 ? ((rawDuration as num) * 60).toInt() : (rawDuration as num).toInt())
-              : 180;
+              : 0;
           final remainingSec = isComp ? 0 : durationSec;
 
           if (mounted) {
@@ -1336,7 +1336,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Modul Pembelajaran Mandiri • ${(_requiredReadingSeconds / 60).ceil()} Menit Baca',
+                    (_requiredReadingSeconds > 0)
+                        ? 'Modul Pembelajaran Mandiri • ${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
+                        : 'Modul Pembelajaran Mandiri • Bacaan Mandiri',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
