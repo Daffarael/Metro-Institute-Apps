@@ -95,6 +95,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   Timer? _readingTimer;
   int _requiredReadingSeconds = 180;
   int _remainingReadingSeconds = 180;
+  int _xpReward = 10;
 
   @override
   void initState() {
@@ -222,6 +223,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               ? ((rawDuration as num) < 60 ? ((rawDuration as num) * 60).toInt() : (rawDuration as num).toInt())
               : 0;
           final remainingSec = isComp ? 0 : durationSec;
+          final rawXp = current['xpReward'];
+          final xpVal = (rawXp is num && rawXp > 0) ? rawXp.toInt() : 10;
 
           if (mounted) {
             setState(() {
@@ -238,6 +241,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _isSessionFinished = isComp;
               _requiredReadingSeconds = durationSec;
               _remainingReadingSeconds = remainingSec;
+              _xpReward = xpVal;
               _isUnlocked = isComp || (rawType != 'VIDEO' && rawType != 'MATERIAL'); // non-video/non-material unlocks immediately
               _isLoadingSessionData = false;
             });
@@ -941,7 +945,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   children: [
                     _buildCardTabItem(
                       index: 0,
-                      label: _sessionType == 'MATERIAL' ? 'Materi' : 'Ringkasan',
+                      label: (_sessionType.toUpperCase() == 'MATERIAL') ? 'Materi' : 'Ringkasan',
                       isActive: activeIndex == 0,
                     ),
                     const SizedBox(width: 4),
@@ -988,7 +992,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w700,
             color: isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
@@ -1088,17 +1092,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               children: [
                 _buildEditorialMetaPill(
                   icon: Icons.timer_outlined,
-                  label: isMaterial ? '5 Menit Baca' : (isQuiz ? '5 Soal' : 'Live Meet'),
-                ),
-                const SizedBox(width: 8),
-                _buildEditorialMetaPill(
-                  icon: Icons.verified_outlined,
-                  label: 'Fundamental',
+                  label: isMaterial
+                      ? (_requiredReadingSeconds > 0
+                          ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
+                          : 'Bacaan Mandiri')
+                      : (isQuiz ? '5 Soal' : 'Live Meet'),
                 ),
                 const SizedBox(width: 8),
                 _buildEditorialMetaPill(
                   icon: Icons.stars_rounded,
-                  label: '+20 XP',
+                  label: '+$_xpReward XP',
                   isAccent: true,
                 ),
               ],
@@ -1314,7 +1317,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 
-  // ── Material / Reading Module: Editorial Quality ───────────────────────────
+  // ── Material / Reading Module: In-App Clean Reading ────────────────────────
   Widget _buildMaterialContent() {
     final hasCustomContent = _sessionDescription != null && _sessionDescription!.trim().isNotEmpty;
 
@@ -1322,74 +1325,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFBBF7D0), width: 1),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 18),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    (_requiredReadingSeconds > 0)
-                        ? 'Modul Pembelajaran Mandiri • ${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
-                        : 'Modul Pembelajaran Mandiri • Bacaan Mandiri',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF166534),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
           ..._buildFormattedArticleBlocks(_sessionDescription!.trim()),
-          const SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Modul Eksklusif Metro Institute',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Materi ini tersimpan aman di dalam aplikasi akun belajarmu. Kamu dapat membacanya kembali kapan saja tanpa perlu mengunduh file luar.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
-                    color: const Color(0xFF64748B),
-                    height: 1.55,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
+          if (_materials.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildAttachmentList(),
+          ],
         ],
       );
     }
@@ -1397,345 +1337,44 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Executive Key Takeaways Capsule Card (Intisari Modul)
         Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFDD00),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Intisari Modul Pembelajaran',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                ],
-              ),
+              const Icon(Icons.menu_book_rounded, size: 36, color: Color(0xFF94A3B8)),
               const SizedBox(height: 12),
-              _buildTakeawayItem('Memahami filosofi cloud-first dan kolaborasi multiplayer real-time Figma.'),
-              const SizedBox(height: 8),
-              _buildTakeawayItem('Navigasi 4 pilar workspace: Toolbar, Layers/Assets, Canvas, dan Inspector.'),
-              const SizedBox(height: 8),
-              _buildTakeawayItem('Menguasai shortcut keyboard esensial untuk mempercepat alur desain hingga 3x lipat.'),
-            ],
-          ),
-        ),
-
-        // 2. Deskripsi atau Intro Lead Paragraph
-        if (_sessionDescription != null && _sessionDescription!.trim().isNotEmpty) ...[
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pengantar dari Mentor',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _sessionDescription!.trim(),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    color: const Color(0xFF334155),
-                    height: 1.7,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-
-        // 3. Section 01: Mengapa Figma Menjadi Standar Desain Modern?
-        _buildSectionHeader(
-          number: '01',
-          tag: 'STANDAR INDUSTRI',
-          title: 'Mengapa Figma Menjadi Pilihan Nomor 1?',
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'Sebelum kehadiran Figma, proses perancangan antarmuka aplikasi sering kali terhambat oleh masalah sinkronisasi file lokal, kompatibilitas sistem operasi, dan friksi saat handoff ke developer. Figma merevolusi industri dengan menghadirkan ekosistem desain berbasis browser yang sepenuhnya hidup di cloud.',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13.5,
-            color: const Color(0xFF475569),
-            height: 1.65,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Keunggulan utamanya mencakup multiplayer real-time collaboration (seperti Google Docs untuk desain), vector network engine mutakhir, serta fitur design system yang tersinkronisasi instan ke seluruh anggota tim.',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13.5,
-            color: const Color(0xFF475569),
-            height: 1.65,
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // 4. Section 02: 4 Pilar Ruang Kerja Figma (Anatomi Workspace)
-        _buildSectionHeader(
-          number: '02',
-          tag: 'STRUKTUR ANTARMUKA',
-          title: '4 Pilar Ruang Kerja Figma',
-        ),
-        const SizedBox(height: 12),
-        _buildAnatomyCard(
-          icon: Icons.handyman_rounded,
-          badge: 'TOOLBAR ATAS',
-          title: 'Top Toolbar (Pusat Kendali)',
-          desc: 'Alat seleksi (Move/Scale), Frame (F), Shape Tools (R, O, L), Pen/Pencil, Text (T), serta akses ke Component Library dan Plugin Community.',
-        ),
-        const SizedBox(height: 10),
-        _buildAnatomyCard(
-          icon: Icons.layers_rounded,
-          badge: 'SIDEBAR KIRI',
-          title: 'Layers & Assets Panel',
-          desc: 'Menampilkan hierarki pohon semua frame, grup, layer vektor di halaman aktif, serta tab Assets untuk drag-and-drop komponen siap pakai.',
-        ),
-        const SizedBox(height: 10),
-        _buildAnatomyCard(
-          icon: Icons.crop_free_rounded,
-          badge: 'KANVAS UTAMA',
-          title: 'Infinite Canvas',
-          desc: 'Ruang kerja tanpa batas berbasis WebGL yang mampu menampung puluhan artboard sekaligus dengan rendering mulus pada 60 FPS.',
-        ),
-        const SizedBox(height: 10),
-        _buildAnatomyCard(
-          icon: Icons.tune_rounded,
-          badge: 'INSPECTOR KANAN',
-          title: 'Design & Properties Inspector',
-          desc: 'Mengatur dimensi presisi (X, Y, W, H), Auto-Layout dinamis, responsive constraints, warna fill, garis stroke, dan efek visual.',
-        ),
-        const SizedBox(height: 22),
-
-        // 5. Pro-Tip Callout: Catatan Mentor Metro
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0FDF4),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFBBF7D0), width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.lightbulb_rounded, color: Colors.white, size: 16),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Catatan Mentor Metro: Frame vs Group',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF018556),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
               Text(
-                'Banyak pemula terbiasa mengelompokkan objek dengan Group (Ctrl+G). Di Figma modern, biasakan selalu menggunakan Frame (F)! Frame memiliki keunggulan Auto-Layout, independent constraints responsif, padding otomatis, dan clipping content yang rapi.',
-                style: GoogleFonts.plusJakartaSans(
+                'Modul Bacaan Siap Dipelajari',
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF334155),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Belum ada isi materi yang ditambahkan untuk modul ini.',
+                style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: const Color(0xFF166534),
-                  height: 1.6,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // 6. Section 03: Shortcut Esensial
-        _buildSectionHeader(
-          number: '03',
-          tag: 'PRODUKTIVITAS',
-          title: 'Shortcut Esensial Wajib Hafal',
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-          ),
-          child: Column(
-            children: [
-              _buildShortcutRow(keyLabel: 'V', actionLabel: 'Move Tool (Memilih & memindahkan objek)'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildShortcutRow(keyLabel: 'F', actionLabel: 'Frame Tool (Membuat artboard responsif)'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildShortcutRow(keyLabel: 'R', actionLabel: 'Rectangle Tool (Menggambar kotak/container)'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildShortcutRow(keyLabel: 'T', actionLabel: 'Text Tool (Mengetik teks & tipografi)'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildShortcutRow(keyLabel: 'Space + Drag', actionLabel: 'Pan Canvas (Menggeser kanvas bebas)'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildShortcutRow(keyLabel: 'Shift + A', actionLabel: 'Auto Layout (Mengaktifkan tata letak dinamis)'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // 7. Mini Challenge: Praktik Mandiri
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFDD00),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'TANTANGAN PRAKTIK',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Coba Sendiri di Figma',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _buildStepItem(num: '1', text: 'Buka browser dan masuk ke figma.com (atau aplikasi Figma Desktop).'),
-              const SizedBox(height: 8),
-              _buildStepItem(num: '2', text: 'Tekan F dan pilih preset "iPhone 14 / 15 Pro" di panel sebelah kanan.'),
-              const SizedBox(height: 8),
-              _buildStepItem(num: '3', text: 'Buat satu kotak (R) dan beri teks "Mulai Sekarang" (T), lalu seleksi keduanya dan tekan Shift + A!'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 22),
-
-        // 8. In-App Key Takeaway Summary (100% In-App, No External PDFs/GDrive Links)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Modul Eksklusif Metro Institute',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Materi ini tersimpan aman di dalam aplikasi akun belajarmu. Kamu dapat membacanya kembali kapan saja tanpa perlu mengunduh file PDF atau tautan eksternal.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
                   color: const Color(0xFF64748B),
-                  height: 1.55,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-
-        // 9. Completion Encouragement Notice
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0FDF4),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFA7F3D0)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Selesai membaca? Ketuk tombol "Selesaikan Modul" di bawah untuk mencatat progres belajarmu.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF166534),
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        if (_materials.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildAttachmentList(),
+        ],
       ],
     );
   }
@@ -2023,231 +1662,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     }
 
     return spans;
-  }
-
-  // ── Article Sub-components ────────────────────────────────────────────────
-  Widget _buildTakeawayItem(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_circle_outline_rounded, size: 15, color: AppColors.primary),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF334155),
-              height: 1.45,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader({required String number, required String tag, required String title}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                number,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF475569),
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              tag,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15.5,
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
-            letterSpacing: -0.2,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnatomyCard({
-    required IconData icon,
-    required String badge,
-    required String title,
-    required String desc,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    badge,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF475569),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  desc,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: const Color(0xFF64748B),
-                    height: 1.45,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShortcutRow({required String keyLabel, required String actionLabel}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x10000000),
-                  offset: Offset(0, 1.5),
-                  blurRadius: 0,
-                ),
-              ],
-            ),
-            child: Text(
-              keyLabel,
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              actionLabel,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                color: const Color(0xFF334155),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStepItem({required String num, required String text}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              num,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              color: const Color(0xFF334155),
-              height: 1.45,
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildAttachmentList() {
