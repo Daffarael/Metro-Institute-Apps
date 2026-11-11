@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:mobile_apps/core/di/injection.dart';
-import 'package:mobile_apps/core/theme/app_colors.dart';
-import 'package:mobile_apps/core/widgets/tactile_metro_button.dart';
-import 'package:mobile_apps/data/datasources/remote/certificate_remote_data_source.dart';
-import 'package:mobile_apps/data/datasources/remote/user_remote_data_source.dart';
-import 'package:mobile_apps/presentation/features/certificate/screens/certificate_screen.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../data/datasources/remote/certificate_remote_datasource.dart';
+import '../../../../data/datasources/remote/user_remote_datasource.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
+import 'certificate_screen.dart';
 
 class CertificateClaimScreen extends StatefulWidget {
   final String? courseId;
@@ -224,7 +224,9 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -504,3 +506,4 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
     );
   }
 }
+
