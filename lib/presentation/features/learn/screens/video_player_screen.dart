@@ -1022,7 +1022,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
         decoration: const BoxDecoration(
           color: AppColors.primary, // Metro Institute Green
         ),
@@ -1030,14 +1030,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Badges & Meta Chips Row (Consolidated, no duplicate course title)
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
+            // Badges Row (Side-by-side, perfectly aligned)
+            Row(
               children: [
+                // 1. Session Type Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isMaterial
                         ? AppColors.accent
@@ -1054,50 +1052,68 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         isMaterial
                             ? Icons.menu_book_rounded
                             : (isQuiz ? Icons.quiz_rounded : Icons.videocam_rounded),
-                        size: 11,
+                        size: 13,
                         color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 5),
                       Text(
                         isMaterial
-                            ? 'BACAAN MATERI'
-                            : (isQuiz ? 'KUIS PEMAHAMAN' : 'LIVE CLASS'),
+                            ? 'Bacaan Materi'
+                            : (isQuiz ? 'Kuis Pemahaman' : 'Live Class'),
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                           color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
-                          letterSpacing: 0.5,
+                          letterSpacing: -0.1,
                         ),
                       ),
                     ],
                   ),
                 ),
-                _buildEditorialMetaPill(
-                  icon: Icons.timer_outlined,
-                  label: isMaterial
-                      ? (_requiredReadingSeconds > 0
-                          ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
-                          : 'Bacaan Mandiri')
-                      : (isQuiz ? '5 Soal' : 'Live Meet'),
-                ),
-                _buildEditorialMetaPill(
-                  icon: Icons.stars_rounded,
-                  label: '+$_xpReward XP',
-                  isAccent: true,
+                const SizedBox(width: 8),
+
+                // 2. XP Reward Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.accentDark, width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.stars_rounded,
+                        size: 13,
+                        color: AppColors.emeraldDark,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '+$_xpReward XP',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.emeraldDark,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             // Main Editorial Title (Only session title, bold & clean)
             Text(
               _currentTitle ?? widget.title,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 19,
+                fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
                 letterSpacing: -0.4,
-                height: 1.25,
+                height: 1.3,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -1175,68 +1191,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 : _isWebEmbedPlayer
                     ? WebViewWidget(controller: _webViewController!)
                     : Chewie(controller: _chewieController!),
-      ),
-    );
-  }
-
-  Widget _buildEditorialMetaPill({
-    required IconData icon,
-    required String label,
-    bool isAccent = false,
-    bool isLight = false,
-  }) {
-    final Color bgColor;
-    final Color borderColor;
-    final Color iconColor;
-    final Color textColor;
-
-    if (isLight) {
-      if (isAccent) {
-        bgColor = const Color(0xFFFEF3C7);
-        borderColor = const Color(0xFFFDE68A);
-        iconColor = const Color(0xFFD97706);
-        textColor = const Color(0xFF92400E);
-      } else {
-        bgColor = const Color(0xFFF1F5F9);
-        borderColor = const Color(0xFFE2E8F0);
-        iconColor = const Color(0xFF64748B);
-        textColor = const Color(0xFF334155);
-      }
-    } else {
-      if (isAccent) {
-        bgColor = AppColors.accent;
-        borderColor = AppColors.accentDark;
-        iconColor = AppColors.emeraldDark;
-        textColor = AppColors.emeraldDark;
-      } else {
-        bgColor = Colors.white.withValues(alpha: 0.18);
-        borderColor = Colors.white.withValues(alpha: 0.28);
-        iconColor = Colors.white;
-        textColor = Colors.white;
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor, width: 0.8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: iconColor),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: isAccent ? FontWeight.w800 : FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-        ],
       ),
     );
   }
