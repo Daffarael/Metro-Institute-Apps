@@ -145,21 +145,34 @@ class BasecampActiveCourses extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                                decoration: BoxDecoration(
-                                  color: AppColors.productTypeColor(isBootcamp ? 'bootcamp' : 'mini-course'),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.4,
-                                    color: Colors.white,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    (course['field'] ?? 'Tech').toString(),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF64748B),
+                                    ),
                                   ),
-                                ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.productTypeColor(isBootcamp ? 'bootcamp' : 'mini-course'),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 8.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.4,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             const SizedBox(height: 6),
                             Text(

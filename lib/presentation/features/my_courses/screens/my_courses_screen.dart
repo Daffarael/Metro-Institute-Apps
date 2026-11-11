@@ -322,43 +322,20 @@ class _MyCourseCard extends StatelessWidget {
       child: Row(
         children: [
           // Thumbnail
-          Stack(
-            children: [
-              Container(
-                width: 110,
-                height: 120,
-                color: AppColors.backgroundSubtle,
-                alignment: Alignment.center,
-                child: thumbnail != null
-                    ? CachedNetworkImage(
-                        imageUrl: thumbnail,
-                        width: 110,
-                        height: 120,
-                        fit: BoxFit.cover,
-                        errorWidget: (ctx, err, stack) => const Icon(Icons.book_outlined, size: 32, color: AppColors.textTertiary),
-                      )
-                    : const Icon(Icons.book_outlined, size: 32, color: AppColors.textTertiary),
-              ),
-              // Type badge
-              Positioned(
-                top: 0,
-                left: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.productTypeColor(type),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(0),
-                      bottomRight: Radius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    AppColors.productTypeLabel(type),
-                    style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 110,
+            height: 120,
+            color: AppColors.backgroundSubtle,
+            alignment: Alignment.center,
+            child: thumbnail != null
+                ? CachedNetworkImage(
+                    imageUrl: thumbnail,
+                    width: 110,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorWidget: (ctx, err, stack) => const Icon(Icons.book_outlined, size: 32, color: AppColors.textTertiary),
+                  )
+                : const Icon(Icons.book_outlined, size: 32, color: AppColors.textTertiary),
           ),
 
           // Content
@@ -368,20 +345,42 @@ class _MyCourseCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Field · Level
+                  // Field · Level (Left) & Type Badge (Right)
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        fieldLabels[field] ?? field,
-                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                      ),
-                      if (level.isNotEmpty) ...[
-                        Text(' • ', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary)),
-                        Text(
-                          _levelLabel(level),
-                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                fieldLabels[field] ?? field,
+                                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (level.isNotEmpty) ...[
+                              Text(' • ', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary)),
+                              Text(
+                                _levelLabel(level),
+                                style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.productTypeColor(type),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          AppColors.productTypeLabel(type),
+                          style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 5),

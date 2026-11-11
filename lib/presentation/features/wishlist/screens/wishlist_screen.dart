@@ -285,25 +285,6 @@ class _WishlistCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Type badge
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.productTypeColor(isBootcamp ? 'bootcamp' : 'mini-course'),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(0),
-                        bottomRight: Radius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
-                      style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -316,9 +297,25 @@ class _WishlistCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    fieldLabels[field]?.split(' ').first ?? field,
-                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: fieldColor),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        fieldLabels[field]?.split(' ').first ?? field,
+                        style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: fieldColor),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.productTypeColor(isBootcamp ? 'bootcamp' : 'mini-course'),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
+                          style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Expanded(
