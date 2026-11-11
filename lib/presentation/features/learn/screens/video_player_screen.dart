@@ -1428,21 +1428,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9),
+                            color: AppColors.accent,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 0.8),
+                            border: Border.all(color: AppColors.accentDark, width: 0.8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.check_circle_rounded, size: 12, color: AppColors.primary),
+                              const Icon(Icons.check_circle_rounded, size: 12, color: AppColors.emeraldDark),
                               const SizedBox(width: 4),
                               Text(
                                 'Selesai Dibaca',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
+                                  color: AppColors.emeraldDark,
                                 ),
                               ),
                             ],
@@ -2634,22 +2634,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     height: 44,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
+                      color: AppColors.accent,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 1.2),
+                      border: Border.all(color: AppColors.accentDark, width: 1.2),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
+                        const Icon(Icons.check_circle_rounded, color: AppColors.emeraldDark, size: 16),
                         const SizedBox(width: 6),
                         Text(
                           'Modul Selesai Dipelajari',
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w800,
                             fontSize: 13,
-                            color: AppColors.primary,
+                            color: AppColors.emeraldDark,
                           ),
                         ),
                       ],
@@ -2658,7 +2658,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 ),
               )
             else ...[
-              // Status Pill (Flat, non-button appearance so it cannot be mistaken for a clickable 3D button)
+              // Status Pill (Yellow Metro)
               GestureDetector(
                 onTap: () {
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -2679,21 +2679,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   height: 44,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
+                    color: AppColors.accent,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 1.2),
+                    border: Border.all(color: AppColors.accentDark, width: 1.2),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
+                      const Icon(Icons.check_circle_rounded, color: AppColors.emeraldDark, size: 16),
                       const SizedBox(width: 6),
                       Text(
                         'Selesai',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w800,
                           fontSize: 12.5,
-                          color: AppColors.primary,
+                          color: AppColors.emeraldDark,
                         ),
                       ),
                     ],
