@@ -804,11 +804,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final bool isVideo = _sessionType == 'VIDEO';
+    const headerGreen = Color(0xFF015F3D); // Deep Metro Green (matching the tactile button's rich tone)
 
     return Scaffold(
-      backgroundColor: isVideo ? Colors.black : AppColors.primary,
+      backgroundColor: isVideo ? Colors.black : headerGreen,
       appBar: AppBar(
-        backgroundColor: isVideo ? const Color(0xFF0D1117) : AppColors.primary,
+        backgroundColor: isVideo ? const Color(0xFF0D1117) : headerGreen,
         foregroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -1024,7 +1025,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
         decoration: const BoxDecoration(
-          color: AppColors.primary, // Metro Institute Green
+          color: Color(0xFF015F3D), // Deep Metro Green matching button's rich tone
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
