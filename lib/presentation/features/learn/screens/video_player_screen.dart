@@ -61,6 +61,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   String? _prevSessionId;
   String? _nextSessionId;
   bool _isLoadingSessionData = true;
+  List<Map<String, dynamic>> _allSessions = [];
 
   // Player Controllers
   VideoPlayerController? _videoPlayerController;
@@ -229,8 +230,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           final rawXp = current['xpReward'];
           final xpVal = (rawXp is num && rawXp > 0) ? rawXp.toInt() : 10;
 
+          // Parse all sessions in course for instant, smooth page navigation
+          final rawChapters = (sessionData['chapters'] as List<dynamic>?) ?? [];
+          final allSessionsList = <Map<String, dynamic>>[];
+          for (final ch in rawChapters) {
+            if (ch is Map<String, dynamic> && ch['sessions'] is List) {
+              for (final s in ch['sessions'] as List) {
+                if (s is Map<String, dynamic>) {
+                  allSessionsList.add(s);
+                }
+              }
+            }
+          }
+
           if (mounted) {
             setState(() {
+              _allSessions = allSessionsList;
               _sessionType = rawType;
               _currentTitle = current['title'] ?? _currentTitle;
               _currentVideoUrl = rawUrl;
@@ -742,7 +757,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               onPressed: () {
                 Navigator.pop(ctx);
                 if (_nextSessionId != null) {
-                  _switchSession(_nextSessionId!);
+                  _goToNextSession(_nextSessionId!);
                 } else {
                   Navigator.pop(context, true);
                 }
@@ -756,8 +771,47 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 
+  Map<String, dynamic>? _findSessionInfo(String id) {
+    try {
+      return _allSessions.firstWhere((s) => s['id']?.toString() == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   void _goToPrevSession(String prevId) {
-    _switchSession(prevId);
+    _readingTimer?.cancel();
+    _disposePlayer();
+
+    final prevInfo = _findSessionInfo(prevId);
+    final String prevTitle = prevInfo?['title']?.toString() ?? 'Sesi Belajar';
+    final String? prevType = prevInfo?['type']?.toString();
+    final bool prevIsCompleted = prevInfo?['isCompleted'] == true;
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => VideoPlayerScreen(
+          sessionId: prevId,
+          title: prevTitle,
+          courseTitle: widget.courseTitle,
+          courseId: widget.courseId,
+          sessionType: prevType,
+          isAlreadyCompleted: prevIsCompleted,
+          isBootcamp: widget.isBootcamp,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeOutCubic;
+          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 280),
+      ),
+    );
   }
 
   void _goToNextSession(String nextId) {
@@ -782,22 +836,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       );
       return;
     }
-    _switchSession(nextId);
-  }
 
-  void _switchSession(String newSessionId) {
     _readingTimer?.cancel();
-    setState(() {
-      _currentSessionId = newSessionId;
-      _isSessionFinished = false;
-      _isUnlocked = false;
-      _currentProgressFraction = 0.0;
-      _maxWatchedSeconds = 0;
-      _quizSubmitted = false;
-      _selectedQuizOptionId = null;
-      _remainingReadingSeconds = _requiredReadingSeconds;
-    });
-    _loadSessionAndPlayer();
+    _disposePlayer();
+
+    final nextInfo = _findSessionInfo(nextId);
+    final String nextTitle = nextInfo?['title']?.toString() ?? 'Sesi Belajar';
+    final String? nextType = nextInfo?['type']?.toString();
+    final bool nextIsCompleted = nextInfo?['isCompleted'] == true;
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => VideoPlayerScreen(
+          sessionId: nextId,
+          title: nextTitle,
+          courseTitle: widget.courseTitle,
+          courseId: widget.courseId,
+          sessionType: nextType,
+          isAlreadyCompleted: nextIsCompleted,
+          isBootcamp: widget.isBootcamp,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeOutCubic;
+          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 280),
+      ),
+    );
   }
 
   // ── 4. Main Build Method ──────────────────────────────────────────────────
