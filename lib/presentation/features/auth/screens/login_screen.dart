@@ -1546,9 +1546,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 50,
                   borderRadius: BorderRadius.circular(28),
                   text: 'Daftar Akun Baru',
-                ),
-                    ),
-                  ),
                 ).animate().fadeIn(delay: 450.ms, duration: 400.ms).slideY(begin: 0.08, end: 0),
 
                 const SizedBox(height: 12),
