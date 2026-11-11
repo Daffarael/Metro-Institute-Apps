@@ -378,7 +378,11 @@ class _MyCourseCard extends StatelessWidget {
                         ),
                         child: Text(
                           AppColors.productTypeLabel(type),
-                          style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white),
+                          style: GoogleFonts.inter(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.productTypeTextColor(type),
+                          ),
                         ),
                       ),
                     ],

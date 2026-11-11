@@ -168,7 +168,7 @@ class BasecampActiveCourses extends StatelessWidget {
                                         fontSize: 8.5,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: 0.4,
-                                        color: Colors.white,
+                                        color: AppColors.productTypeTextColor(isBootcamp ? 'bootcamp' : 'mini-course'),
                                       ),
                                     ),
                                   ),

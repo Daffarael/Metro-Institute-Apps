@@ -366,7 +366,7 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: AppColors.productInspireTalkText,
                           letterSpacing: 0.5,
                         ),
                       ),

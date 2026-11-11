@@ -312,7 +312,11 @@ class _WishlistCard extends StatelessWidget {
                         ),
                         child: Text(
                           AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
-                          style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white),
+                          style: GoogleFonts.inter(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.productTypeTextColor(isBootcamp ? 'bootcamp' : 'mini-course'),
+                          ),
                         ),
                       ),
                     ],

@@ -57,9 +57,10 @@ class AppColors {
   static const Color overlay = Color(0x80000000); // 50% black
 
   // ── Product Badge Colors (Harmonized Metro Palette) ────────────────────────
-  static const Color productBootcamp    = Color(0xFF018556); // Metro Primary Green
-  static const Color productMiniCourse  = Color(0xFF063D2A); // Metro Deep Forest Emerald
-  static const Color productInspireTalk = Color(0xFFD97706); // Metro Warm Gold / Amber
+  static const Color productBootcamp        = Color(0xFF018556); // Metro Primary Green
+  static const Color productMiniCourse      = Color(0xFF063D2A); // Metro Deep Forest Emerald
+  static const Color productInspireTalk     = Color(0xFFFAE653); // Metro Accent Yellow
+  static const Color productInspireTalkText = Color(0xFF063D2A); // High-contrast Deep Forest
 
   static Color productTypeColor(String type) {
     final t = type.toLowerCase();
@@ -67,6 +68,14 @@ class AppColors {
     if (t.contains('mini') || t.contains('course')) return productMiniCourse;
     if (t.contains('inspire') || t.contains('webinar') || t.contains('talk')) return productInspireTalk;
     return primary;
+  }
+
+  static Color productTypeTextColor(String type) {
+    final t = type.toLowerCase();
+    if (t.contains('inspire') || t.contains('webinar') || t.contains('talk')) {
+      return productInspireTalkText;
+    }
+    return Colors.white;
   }
 
   static String productTypeLabel(String type) {
