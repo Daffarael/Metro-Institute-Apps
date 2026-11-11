@@ -90,6 +90,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   String? _selectedQuizOptionId;
   bool _quizSubmitted = false;
 
+  // Reading timer state for MATERIAL sessions
+  Timer? _readingTimer;
+  int _requiredReadingSeconds = 180;
+  int _remainingReadingSeconds = 180;
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +120,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   @override
   void dispose() {
+    _readingTimer?.cancel();
     _tabController.dispose();
     _noteInputController.dispose();
     _qnaInputController.dispose();
@@ -210,6 +216,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             }
           }
 
+          final rawDuration = current['videoDuration'] ?? current['durationMin'];
+          final durationSec = (rawDuration != null && (rawDuration as num) > 0)
+              ? ((rawDuration as num) < 60 ? ((rawDuration as num) * 60).toInt() : (rawDuration as num).toInt())
+              : 180;
+          final remainingSec = isComp ? 0 : durationSec;
+
           if (mounted) {
             setState(() {
               _sessionType = rawType;
@@ -223,7 +235,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _prevSessionId = sessionData['prevSessionId'] as String?;
               _nextSessionId = sessionData['nextSessionId'] as String?;
               _isSessionFinished = isComp;
-              _isUnlocked = isComp || rawType != 'VIDEO'; // non-video unlocks immediately
+              _requiredReadingSeconds = durationSec;
+              _remainingReadingSeconds = remainingSec;
+              _isUnlocked = isComp || (rawType != 'VIDEO' && rawType != 'MATERIAL'); // non-video/non-material unlocks immediately
               _isLoadingSessionData = false;
             });
           }
@@ -244,6 +258,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     // If it's a video session, initialize video/embed player
     if (_sessionType == 'VIDEO') {
       _initAppropriatePlayer();
+    } else if (_sessionType == 'MATERIAL') {
+      setState(() {
+        _isPlayerInitializing = false;
+        _playerErrorMessage = null;
+        _isUnlocked = _isSessionFinished || _remainingReadingSeconds <= 0;
+      });
+      _startReadingTimer();
     } else {
       setState(() {
         _isPlayerInitializing = false;
@@ -251,6 +272,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         _isUnlocked = true;
       });
     }
+  }
+
+  void _startReadingTimer() {
+    _readingTimer?.cancel();
+    if (_isSessionFinished || _sessionType != 'MATERIAL' || _remainingReadingSeconds <= 0) return;
+    _readingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_remainingReadingSeconds > 0) {
+        setState(() {
+          _remainingReadingSeconds--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _isUnlocked = true;
+        });
+      }
+    });
+  }
+
+  String _formatReadingTime(int totalSeconds) {
+    final m = totalSeconds ~/ 60;
+    final s = totalSeconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   void _loadTabContent() {
@@ -618,10 +666,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       final xpEarned = res['xpEarned'] ?? 15;
 
       if (!mounted) return;
+      _readingTimer?.cancel();
       setState(() {
         _isSessionFinished = true;
         _isUnlocked = true;
         _currentProgressFraction = 1.0;
+        _remainingReadingSeconds = 0;
         _isSubmittingProgress = false;
       });
 
@@ -728,6 +778,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   void _switchSession(String newSessionId) {
+    _readingTimer?.cancel();
     setState(() {
       _currentSessionId = newSessionId;
       _isSessionFinished = false;
@@ -736,6 +787,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       _maxWatchedSeconds = 0;
       _quizSubmitted = false;
       _selectedQuizOptionId = null;
+      _remainingReadingSeconds = _requiredReadingSeconds;
     });
     _loadSessionAndPlayer();
   }
@@ -1284,7 +1336,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Modul Pembelajaran Mandiri (In-App Reading)',
+                    'Modul Pembelajaran Mandiri • ${(_requiredReadingSeconds / 60).ceil()} Menit Baca',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -2887,33 +2939,60 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   // ── Bottom Action Dock: 3D Tactile Push-Down Buttons ──────────────────────
   Widget _buildBottomActionDock() {
     final bool isQuiz = _sessionType == 'QUIZ';
+    final bool isMaterial = _sessionType == 'MATERIAL';
+    final bool canCompleteMaterial = isMaterial && (_isUnlocked || _remainingReadingSeconds <= 0);
     final bool canCompleteVideo = _isUnlocked || _currentProgressFraction >= 0.95;
     final bool canSubmitQuiz = _selectedQuizOptionId != null;
-    final bool isActionActive = isQuiz ? canSubmitQuiz : canCompleteVideo;
+    final bool isActionActive = isQuiz
+        ? canSubmitQuiz
+        : (isMaterial ? canCompleteMaterial : canCompleteVideo);
     final bool canGoNext = _isSessionFinished;
 
     final String buttonLabel = _isSessionFinished
-        ? 'Modul Selesai'
-        : (isQuiz ? 'Kirim Jawaban' : 'Selesaikan Modul');
+        ? 'Modul Selesai ✓'
+        : (isQuiz
+            ? 'Kirim Jawaban'
+            : (isMaterial
+                ? (_remainingReadingSeconds > 0
+                    ? 'Baca min. ${(_requiredReadingSeconds / 60).ceil()}m (${_formatReadingTime(_remainingReadingSeconds)})'
+                    : 'Selesaikan Modul')
+                : 'Selesaikan Modul'));
 
     final VoidCallback? onMainPressed = _isSessionFinished
         ? null
         : (isQuiz
             ? (canSubmitQuiz ? _submitQuizAnswer : null)
-            : (canCompleteVideo
-                ? (_isSubmittingProgress ? null : _handleCompleteSession)
-                : () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
-                        backgroundColor: const Color(0xFF1E293B),
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    );
-                  }));
+            : (isMaterial
+                ? (canCompleteMaterial
+                    ? (_isSubmittingProgress ? null : _handleCompleteSession)
+                    : () {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Harap baca modul dengan saksama. Tombol aktif dalam ${_formatReadingTime(_remainingReadingSeconds)}.',
+                            ),
+                            backgroundColor: const Color(0xFF1E293B),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        );
+                      })
+                : (canCompleteVideo
+                    ? (_isSubmittingProgress ? null : _handleCompleteSession)
+                    : () {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
+                            backgroundColor: const Color(0xFF1E293B),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        );
+                      })));
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
