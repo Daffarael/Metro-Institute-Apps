@@ -803,21 +803,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   // ── 4. Main Build Method ──────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final bool isMaterial = _sessionType.toUpperCase() == 'MATERIAL';
+    final bool isVideo = _sessionType == 'VIDEO';
 
     return Scaffold(
-      backgroundColor: isMaterial ? Colors.white : Colors.black,
+      backgroundColor: isVideo ? Colors.black : AppColors.primary,
       appBar: AppBar(
-        backgroundColor: isMaterial ? Colors.white : const Color(0xFF0D1117),
-        foregroundColor: isMaterial ? const Color(0xFF0F172A) : Colors.white,
+        backgroundColor: isVideo ? const Color(0xFF0D1117) : AppColors.primary,
+        foregroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        bottom: isMaterial
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(1),
-                child: Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
-              )
-            : null,
         leadingWidth: 54,
         leading: Padding(
           padding: const EdgeInsets.only(left: 14),
@@ -829,17 +823,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: isMaterial
-                      ? const Color(0xFFF1F5F9)
-                      : Colors.white.withValues(alpha: 0.1),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
-                  border: isMaterial ? Border.all(color: const Color(0xFFE2E8F0)) : null,
                 ),
-                child: Center(
+                child: const Center(
                   child: Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 15,
-                    color: isMaterial ? const Color(0xFF0F172A) : Colors.white,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -854,7 +845,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               widget.courseTitle.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
-                color: isMaterial ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.6,
               ),
@@ -867,7 +858,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: isMaterial ? const Color(0xFF0F172A) : Colors.white,
+                color: Colors.white,
                 letterSpacing: -0.2,
               ),
               maxLines: 1,
@@ -889,21 +880,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: isMaterial ? null : const BorderRadius.vertical(top: Radius.circular(20)),
-                  boxShadow: isMaterial
-                      ? null
-                      : const [
-                          BoxShadow(
-                            color: Color(0x18000000),
-                            blurRadius: 16,
-                            offset: Offset(0, -4),
-                          ),
-                        ],
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x18000000),
+                      blurRadius: 16,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
                 ),
                 child: ClipRRect(
-                  borderRadius: isMaterial ? BorderRadius.zero : const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                   child: Column(
                     children: [
                       // Modern Segmented Tab Header
@@ -1045,19 +1034,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Top Media Frame: Video vs Non-Video ───────────────────────────────────
   Widget _buildTopMediaFrame() {
-    if (_sessionType.toUpperCase() == 'MATERIAL') {
-      return const SizedBox.shrink();
-    }
-
     if (_sessionType != 'VIDEO') {
       final isMaterial = _sessionType == 'MATERIAL';
       final isQuiz = _sessionType == 'QUIZ';
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
         decoration: const BoxDecoration(
-          color: Color(0xFF0D1117),
+          color: AppColors.primary, // Metro Institute Green instead of black
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1070,8 +1055,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
                     color: isMaterial
-                        ? const Color(0xFFFFDD00)
-                        : (isQuiz ? AppColors.primary : const Color(0xFFEF4444)),
+                        ? AppColors.accent
+                        : (isQuiz ? Colors.white : const Color(0xFFEF4444)),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -1082,7 +1067,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                             ? Icons.menu_book_rounded
                             : (isQuiz ? Icons.quiz_rounded : Icons.videocam_rounded),
                         size: 11,
-                        color: isMaterial ? const Color(0xFF0D1117) : Colors.white,
+                        color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -1092,7 +1077,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
-                          color: isMaterial ? const Color(0xFF0D1117) : Colors.white,
+                          color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
                           letterSpacing: 0.6,
                         ),
                       ),
@@ -1105,7 +1090,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     widget.courseTitle,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
-                      color: const Color(0xFF94A3B8),
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -1139,6 +1124,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 _buildEditorialMetaPill(
                   icon: Icons.timer_outlined,
                   label: isMaterial
+                      ? (_requiredReadingSeconds > 0
+                          ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
+                          : 'Bacaan Mandiri')
+                      : (isQuiz ? '5 Soal' : 'Live Meet'),
+                ),
+                _buildEditorialMetaPill(
+                  icon: Icons.stars_rounded,
+                  label: '+$_xpReward XP',
+                  isAccent: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
                       ? (_requiredReadingSeconds > 0
                           ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
                           : 'Bacaan Mandiri')
@@ -1253,15 +1254,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       }
     } else {
       if (isAccent) {
-        bgColor = const Color(0xFFFFDD00).withValues(alpha: 0.15);
-        borderColor = const Color(0xFFFFDD00).withValues(alpha: 0.4);
-        iconColor = const Color(0xFFFFDD00);
-        textColor = const Color(0xFFFFDD00);
+        bgColor = AppColors.accent;
+        borderColor = AppColors.accentDark;
+        iconColor = AppColors.emeraldDark;
+        textColor = AppColors.emeraldDark;
       } else {
-        bgColor = Colors.white.withValues(alpha: 0.08);
-        borderColor = Colors.white.withValues(alpha: 0.12);
-        iconColor = const Color(0xFFCBD5E1);
-        textColor = const Color(0xFFE2E8F0);
+        bgColor = Colors.white.withValues(alpha: 0.18);
+        borderColor = Colors.white.withValues(alpha: 0.28);
+        iconColor = Colors.white;
+        textColor = Colors.white;
       }
     }
 
@@ -1338,121 +1339,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               ),
             ),
             const SizedBox(height: 16),
-          ],
-
-          // For MATERIAL, show an elegant in-app reading header card
-          if (_sessionType == 'MATERIAL') ...[
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 20),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAE653),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.menu_book_rounded, size: 11, color: Color(0xFF063D2A)),
-                            const SizedBox(width: 4),
-                            Text(
-                              'BACAAN MATERI',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF063D2A),
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          widget.courseTitle,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: const Color(0xFF64748B),
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _currentTitle ?? widget.title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
-                      letterSpacing: -0.3,
-                      height: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      _buildEditorialMetaPill(
-                        icon: Icons.timer_outlined,
-                        label: _requiredReadingSeconds > 0
-                            ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
-                            : 'Bacaan Mandiri',
-                        isLight: true,
-                      ),
-                      _buildEditorialMetaPill(
-                        icon: Icons.stars_rounded,
-                        label: '+$_xpReward XP',
-                        isAccent: true,
-                        isLight: true,
-                      ),
-                      if (_isSessionFinished)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.accentDark, width: 0.8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.check_circle_rounded, size: 12, color: AppColors.emeraldDark),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Selesai Dibaca',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.emeraldDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
           ],
 
           // ── Session Body Content Based on Type ──
