@@ -3033,14 +3033,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     backgroundColor: AppColors.primary,
                     baseColor: const Color(0xFF015F3D),
                     borderColor: null,
-                    child: Text(
-                      'Selesai',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13.5,
-                        color: Colors.white,
-                        letterSpacing: 0.2,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Selesai',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : TactileMetroButton(
