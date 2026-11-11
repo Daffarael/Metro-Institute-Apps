@@ -1132,7 +1132,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(height: 12),
 
             // Reading Meta Capsules Row
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 _buildEditorialMetaPill(
                   icon: Icons.timer_outlined,
@@ -1142,7 +1144,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                           : 'Bacaan Mandiri')
                       : (isQuiz ? '5 Soal' : 'Live Meet'),
                 ),
-                const SizedBox(width: 8),
                 _buildEditorialMetaPill(
                   icon: Icons.stars_rounded,
                   label: '+$_xpReward XP',
@@ -1405,7 +1406,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _buildEditorialMetaPill(
                         icon: Icons.timer_outlined,
@@ -1414,15 +1418,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                             : 'Bacaan Mandiri',
                         isLight: true,
                       ),
-                      const SizedBox(width: 8),
                       _buildEditorialMetaPill(
                         icon: Icons.stars_rounded,
                         label: '+$_xpReward XP',
                         isAccent: true,
                         isLight: true,
                       ),
-                      if (_isSessionFinished) ...[
-                        const SizedBox(width: 8),
+                      if (_isSessionFinished)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
@@ -1446,7 +1448,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                             ],
                           ),
                         ),
-                      ],
                     ],
                   ),
                 ],
