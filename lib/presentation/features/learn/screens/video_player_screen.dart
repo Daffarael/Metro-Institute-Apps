@@ -2610,69 +2610,163 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(width: 10),
           ],
 
-          // Main Action CTA (3D Tactile Push-Down with Metro Palette)
-          Expanded(
-            child: _isSessionFinished
-                ? TactileMetroButton(
-                    onPressed: null,
-                    isDisabled: true,
-                    backgroundColor: AppColors.primary,
-                    baseColor: const Color(0xFF015F3D),
-                    borderColor: null,
+          // If session is already completed:
+          if (_isSessionFinished) ...[
+            if (_nextSessionId == null)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Selamat! Anda telah menyelesaikan seluruh modul ini.',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5),
+                        ),
+                        backgroundColor: const Color(0xFF1E293B),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 1.2),
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                        const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
                         const SizedBox(width: 6),
                         Text(
-                          'Selesai',
+                          'Modul Selesai Dipelajari',
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w800,
-                            fontSize: 13.5,
-                            color: Colors.white,
-                            letterSpacing: 0.2,
+                            fontSize: 13,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
                     ),
-                  )
-                : TactileMetroButton(
-                    onPressed: onMainPressed,
-                    isDisabled: !isActionActive,
-                    backgroundColor: isActionActive ? AppColors.primary : const Color(0xFFF1F5F9),
-                    baseColor: isActionActive ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
-                    borderColor: isActionActive ? null : const Color(0xFFE2E8F0),
-                    child: _isSubmittingProgress
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : Text(
-                            buttonLabel,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13.5,
-                              color: isActionActive ? Colors.white : const Color(0xFF94A3B8),
-                              letterSpacing: 0.2,
-                            ),
-                          ),
                   ),
-          ),
+                ),
+              )
+            else ...[
+              // Status Pill (Flat, non-button appearance so it cannot be mistaken for a clickable 3D button)
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Modul ini sudah selesai. Ketuk "Lanjut" untuk ke materi berikutnya.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5),
+                      ),
+                      backgroundColor: const Color(0xFF1E293B),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                },
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Selesai',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.5,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
 
-          // Next Button (3D Tactile Push)
-          if (_nextSessionId != null) ...[
-            const SizedBox(width: 10),
-            TactileMetroIconButton(
-              onPressed: canGoNext ? () => _goToNextSession(_nextSessionId!) : null,
-              isDisabled: !canGoNext,
-              icon: Icons.chevron_right_rounded,
-              iconColor: canGoNext ? Colors.white : const Color(0xFF94A3B8),
-              backgroundColor: canGoNext ? AppColors.primary : const Color(0xFFF1F5F9),
-              baseColor: canGoNext ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
-              borderColor: canGoNext ? null : const Color(0xFFE2E8F0),
+              // Main Action: Next Session CTA (3D Tactile Push-Down Button that CAN be clicked)
+              Expanded(
+                child: TactileMetroButton(
+                  onPressed: () => _goToNextSession(_nextSessionId!),
+                  backgroundColor: AppColors.primary,
+                  baseColor: const Color(0xFF015F3D),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Lanjut',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          color: Colors.white,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ] else ...[
+            // Main Action CTA (3D Tactile Push-Down with Metro Palette)
+            Expanded(
+              child: TactileMetroButton(
+                onPressed: onMainPressed,
+                isDisabled: !isActionActive,
+                backgroundColor: isActionActive ? AppColors.primary : const Color(0xFFF1F5F9),
+                baseColor: isActionActive ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
+                borderColor: isActionActive ? null : const Color(0xFFE2E8F0),
+                child: _isSubmittingProgress
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Text(
+                        buttonLabel,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          color: isActionActive ? Colors.white : const Color(0xFF94A3B8),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+              ),
             ),
+
+            // Next Button (3D Tactile Push)
+            if (_nextSessionId != null) ...[
+              const SizedBox(width: 10),
+              TactileMetroIconButton(
+                onPressed: canGoNext ? () => _goToNextSession(_nextSessionId!) : null,
+                isDisabled: !canGoNext,
+                icon: Icons.chevron_right_rounded,
+                iconColor: canGoNext ? Colors.white : const Color(0xFF94A3B8),
+                backgroundColor: canGoNext ? AppColors.primary : const Color(0xFFF1F5F9),
+                baseColor: canGoNext ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
+                borderColor: canGoNext ? null : const Color(0xFFE2E8F0),
+              ),
+            ],
           ],
         ],
       ),
