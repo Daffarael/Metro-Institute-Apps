@@ -2951,7 +2951,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     final bool canGoNext = _isSessionFinished;
 
     final String buttonLabel = _isSessionFinished
-        ? 'Modul Selesai ✓'
+        ? 'Selesai'
         : (isQuiz
             ? 'Kirim Jawaban'
             : (isMaterial
@@ -3030,15 +3030,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 ? TactileMetroButton(
                     onPressed: null,
                     isDisabled: true,
-                    backgroundColor: Colors.white,
-                    baseColor: const Color(0xFFA7F3D0),
-                    borderColor: AppColors.primary,
+                    backgroundColor: AppColors.primary,
+                    baseColor: const Color(0xFF015F3D),
+                    borderColor: null,
                     child: Text(
-                      'Modul Selesai ✓',
+                      'Selesai',
                       style: GoogleFonts.plusJakartaSans(
                         fontWeight: FontWeight.w800,
                         fontSize: 13.5,
-                        color: AppColors.primary,
+                        color: Colors.white,
                         letterSpacing: 0.2,
                       ),
                     ),
