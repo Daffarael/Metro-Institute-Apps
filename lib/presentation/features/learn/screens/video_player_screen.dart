@@ -102,6 +102,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        FocusScope.of(context).unfocus();
+      }
       if (mounted) setState(() {});
     });
     _isBootcampActual = widget.isBootcamp;
@@ -800,13 +803,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   // ── 4. Main Build Method ──────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final bool isMaterial = _sessionType.toUpperCase() == 'MATERIAL';
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: isMaterial ? Colors.white : Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1117),
-        foregroundColor: Colors.white,
+        backgroundColor: isMaterial ? Colors.white : const Color(0xFF0D1117),
+        foregroundColor: isMaterial ? const Color(0xFF0F172A) : Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
+        bottom: isMaterial
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(1),
+                child: Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+              )
+            : null,
         leadingWidth: 54,
         leading: Padding(
           padding: const EdgeInsets.only(left: 14),
@@ -818,11 +829,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: isMaterial
+                      ? const Color(0xFFF1F5F9)
+                      : Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
+                  border: isMaterial ? Border.all(color: const Color(0xFFE2E8F0)) : null,
                 ),
-                child: const Center(
-                  child: Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: Colors.white),
+                child: Center(
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 15,
+                    color: isMaterial ? const Color(0xFF0F172A) : Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -836,7 +854,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               widget.courseTitle.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
-                color: const Color(0xFF94A3B8),
+                color: isMaterial ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.6,
               ),
@@ -849,7 +867,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: isMaterial ? const Color(0xFF0F172A) : Colors.white,
                 letterSpacing: -0.2,
               ),
               maxLines: 1,
@@ -867,26 +885,28 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             // Top: Video Frame or Media Banner
             _buildTopMediaFrame(),
 
-            // Bottom: Browser-Tab Style Container & Tab Content (Web Mentee CardTabs Style)
+            // Bottom: Tab Container & Tab Content
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x18000000),
-                      blurRadius: 16,
-                      offset: Offset(0, -4),
-                    ),
-                  ],
+                  borderRadius: isMaterial ? null : const BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: isMaterial
+                      ? null
+                      : const [
+                          BoxShadow(
+                            color: Color(0x18000000),
+                            blurRadius: 16,
+                            offset: Offset(0, -4),
+                          ),
+                        ],
                 ),
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: isMaterial ? BorderRadius.zero : const BorderRadius.vertical(top: Radius.circular(20)),
                   child: Column(
                     children: [
-                      // Browser-Tab Header (CardTabs Overview, Kurikulum, Ulasan style)
+                      // Modern Segmented Tab Header
                       _buildBrowserCardTabs(),
 
                       // Tab Views
@@ -894,9 +914,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            _buildOverviewTab(),
-                            _buildNotesTab(),
-                            _buildQnaTab(),
+                            KeyedSubtree(
+                              key: const ValueKey('tab_overview'),
+                              child: _buildOverviewTab(),
+                            ),
+                            KeyedSubtree(
+                              key: const ValueKey('tab_notes'),
+                              child: _buildNotesTab(),
+                            ),
+                            KeyedSubtree(
+                              key: const ValueKey('tab_qna'),
+                              child: _buildQnaTab(),
+                            ),
                           ],
                         ),
                       ),
@@ -914,46 +943,42 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 
-  // ── Browser CardTabs Style (like web mentee Overview, Kurikulum, Ulasan) ──
+  // ── Modern Segmented Tab Header ───────────────────────────────────────────
   Widget _buildBrowserCardTabs() {
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, _) {
         final activeIndex = _tabController.index;
+        final isMaterial = _sessionType.toUpperCase() == 'MATERIAL';
 
         return Container(
           width: double.infinity,
-          color: const Color(0xFFE2E8F0),
-          child: Stack(
-            alignment: Alignment.bottomLeft,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Row(
             children: [
-              // Background bottom border line across the entire header
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 1,
-                  color: const Color(0xFFCBD5E1),
-                ),
+              _buildCardTabItem(
+                index: 0,
+                label: isMaterial ? 'Materi' : 'Ringkasan',
+                icon: Icons.menu_book_rounded,
+                isActive: activeIndex == 0,
               ),
-              // Tab items row
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    _buildCardTabItem(
-                      index: 0,
-                      label: (_sessionType.toUpperCase() == 'MATERIAL') ? 'Materi' : 'Ringkasan',
-                      isActive: activeIndex == 0,
-                    ),
-                    const SizedBox(width: 4),
-                    _buildCardTabItem(index: 1, label: 'Catatan', isActive: activeIndex == 1),
-                    const SizedBox(width: 4),
-                    _buildCardTabItem(index: 2, label: 'Tanya Jawab', isActive: activeIndex == 2),
-                  ],
-                ),
+              const SizedBox(width: 8),
+              _buildCardTabItem(
+                index: 1,
+                label: 'Catatan',
+                icon: Icons.edit_note_rounded,
+                isActive: activeIndex == 1,
+              ),
+              const SizedBox(width: 8),
+              _buildCardTabItem(
+                index: 2,
+                label: 'Tanya Jawab',
+                icon: Icons.chat_bubble_outline_rounded,
+                isActive: activeIndex == 2,
               ),
             ],
           ),
@@ -965,38 +990,53 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   Widget _buildCardTabItem({
     required int index,
     required String label,
+    required IconData icon,
     required bool isActive,
   }) {
-    return GestureDetector(
-      onTap: () {
-        if (_tabController.index != index) {
-          _tabController.animateTo(index);
-        }
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-          border: isActive
-              ? const Border(
-                  top: BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
-                  left: BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
-                  right: BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
-                  bottom: BorderSide(color: Colors.white, width: 1.5),
-                )
-              : null,
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
-            letterSpacing: -0.1,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (_tabController.index != index) {
+            FocusScope.of(context).unfocus();
+            _tabController.animateTo(index);
+          }
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFFE8F5E9) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isActive ? AppColors.primary : const Color(0xFFE2E8F0),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isActive ? AppColors.primary : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                    color: isActive ? AppColors.primary : const Color(0xFF64748B),
+                    letterSpacing: -0.1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1005,6 +1045,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Top Media Frame: Video vs Non-Video ───────────────────────────────────
   Widget _buildTopMediaFrame() {
+    if (_sessionType.toUpperCase() == 'MATERIAL') {
+      return const SizedBox.shrink();
+    }
+
     if (_sessionType != 'VIDEO') {
       final isMaterial = _sessionType == 'MATERIAL';
       final isQuiz = _sessionType == 'QUIZ';
@@ -1187,36 +1231,57 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     required IconData icon,
     required String label,
     bool isAccent = false,
+    bool isLight = false,
   }) {
+    final Color bgColor;
+    final Color borderColor;
+    final Color iconColor;
+    final Color textColor;
+
+    if (isLight) {
+      if (isAccent) {
+        bgColor = const Color(0xFFFEF3C7);
+        borderColor = const Color(0xFFFDE68A);
+        iconColor = const Color(0xFFD97706);
+        textColor = const Color(0xFF92400E);
+      } else {
+        bgColor = const Color(0xFFF1F5F9);
+        borderColor = const Color(0xFFE2E8F0);
+        iconColor = const Color(0xFF64748B);
+        textColor = const Color(0xFF334155);
+      }
+    } else {
+      if (isAccent) {
+        bgColor = const Color(0xFFFFDD00).withValues(alpha: 0.15);
+        borderColor = const Color(0xFFFFDD00).withValues(alpha: 0.4);
+        iconColor = const Color(0xFFFFDD00);
+        textColor = const Color(0xFFFFDD00);
+      } else {
+        bgColor = Colors.white.withValues(alpha: 0.08);
+        borderColor = Colors.white.withValues(alpha: 0.12);
+        iconColor = const Color(0xFFCBD5E1);
+        textColor = const Color(0xFFE2E8F0);
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: isAccent
-            ? const Color(0xFFFFDD00).withValues(alpha: 0.15)
-            : Colors.white.withValues(alpha: 0.08),
+        color: bgColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isAccent
-              ? const Color(0xFFFFDD00).withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.12),
-          width: 0.8,
-        ),
+        border: Border.all(color: borderColor, width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 12,
-            color: isAccent ? const Color(0xFFFFDD00) : const Color(0xFFCBD5E1),
-          ),
+          Icon(icon, size: 12, color: iconColor),
           const SizedBox(width: 5),
           Text(
             label,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
               fontWeight: isAccent ? FontWeight.w800 : FontWeight.w600,
-              color: isAccent ? const Color(0xFFFFDD00) : const Color(0xFFE2E8F0),
+              color: textColor,
             ),
           ),
         ],
@@ -1274,6 +1339,121 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(height: 16),
           ],
 
+          // For MATERIAL, show an elegant in-app reading header card
+          if (_sessionType == 'MATERIAL') ...[
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFAE653),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.menu_book_rounded, size: 11, color: Color(0xFF063D2A)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'BACAAN MATERI',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF063D2A),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.courseTitle,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _currentTitle ?? widget.title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0F172A),
+                      letterSpacing: -0.3,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildEditorialMetaPill(
+                        icon: Icons.timer_outlined,
+                        label: _requiredReadingSeconds > 0
+                            ? '${(_requiredReadingSeconds / 60).ceil()} Menit Baca'
+                            : 'Bacaan Mandiri',
+                        isLight: true,
+                      ),
+                      const SizedBox(width: 8),
+                      _buildEditorialMetaPill(
+                        icon: Icons.stars_rounded,
+                        label: '+$_xpReward XP',
+                        isAccent: true,
+                        isLight: true,
+                      ),
+                      if (_isSessionFinished) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 0.8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_circle_rounded, size: 12, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Selesai Dibaca',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           // ── Session Body Content Based on Type ──
           if (_sessionType == 'MATERIAL') ...[
             _buildMaterialContent(),
@@ -1324,13 +1504,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     if (hasCustomContent) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ..._buildFormattedArticleBlocks(_sessionDescription!.trim()),
-          if (_materials.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _buildAttachmentList(),
-          ],
-        ],
+        children: _buildFormattedArticleBlocks(_sessionDescription!.trim()),
       );
     }
 
@@ -1352,7 +1526,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               const SizedBox(height: 12),
               Text(
                 'Modul Bacaan Siap Dipelajari',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF334155),
@@ -1362,7 +1536,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               const SizedBox(height: 4),
               Text(
                 'Belum ada isi materi yang ditambahkan untuk modul ini.',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   color: const Color(0xFF64748B),
                 ),
@@ -1371,10 +1545,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ],
           ),
         ),
-        if (_materials.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          _buildAttachmentList(),
-        ],
       ],
     );
   }
@@ -2163,8 +2333,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 size: 38,
                 iconSize: 18,
                 borderRadius: BorderRadius.circular(19),
-                backgroundColor: const Color(0xFF0D1117),
-                baseColor: const Color(0xFF000000),
+                backgroundColor: AppColors.primary,
+                baseColor: const Color(0xFF015F3D),
                 icon: Icons.arrow_upward_rounded,
                 iconColor: Colors.white,
                 onPressed: () async {
@@ -2332,8 +2502,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 size: 38,
                 iconSize: 18,
                 borderRadius: BorderRadius.circular(19),
-                backgroundColor: const Color(0xFF0D1117),
-                baseColor: const Color(0xFF000000),
+                backgroundColor: AppColors.primary,
+                baseColor: const Color(0xFF015F3D),
                 icon: Icons.arrow_upward_rounded,
                 iconColor: Colors.white,
                 onPressed: () async {
