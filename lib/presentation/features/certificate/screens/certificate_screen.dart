@@ -1200,43 +1200,19 @@ class _CertCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
-                  // Credential ID Pill with copy action
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      Clipboard.setData(ClipboardData(text: _credId));
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
-                          content: Text('ID Kredensial berhasil disalin!'),
-                          duration: Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'ID: $_credId',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF334155),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Icon(
-                            Icons.copy_rounded,
-                            size: 12,
-                            color: Color(0xFF64748B),
-                          ),
-                        ],
+                  // Credential ID Pill (Clean Text Only, No Copy Button)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'ID: $_credId',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF334155),
                       ),
                     ),
                   ),
@@ -1266,7 +1242,7 @@ class _CertCard extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _downloadCertificatePdf(
+                          onPressed: () => downloadCertificatePdf(
                             context: ctx,
                             imageUrl: imageUrl,
                             config: config,
@@ -1438,7 +1414,7 @@ class _CertDetailSheet extends StatelessWidget {
                           ctx: ctx,
                           label: 'ID Kredensial',
                           value: credId,
-                          isCopyable: true,
+                          isCopyable: false,
                         ),
                         const Divider(height: 20, color: Color(0xFFF1F5F9)),
                         _buildCleanInfoRow(
@@ -1467,7 +1443,7 @@ class _CertDetailSheet extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton.icon(
-                      onPressed: () => _downloadCertificatePdf(
+                      onPressed: () => downloadCertificatePdf(
                         context: ctx,
                         imageUrl: imageUrl,
                         config: config,
@@ -1602,7 +1578,7 @@ class _CertDetailSheet extends StatelessWidget {
 }
 
 // ── ON-DEVICE PDF GENERATOR & DOWNLOADER ─────────────────────────────────────
-Future<void> _downloadCertificatePdf({
+Future<void> downloadCertificatePdf({
   required BuildContext context,
   required String imageUrl,
   required List<dynamic>? config,

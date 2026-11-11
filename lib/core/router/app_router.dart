@@ -11,6 +11,7 @@ import '../../presentation/features/learn/screens/video_player_screen.dart';
 import '../../presentation/features/challenge/screens/challenge_screen.dart';
 import '../../presentation/features/challenge/screens/challenge_arena_screen.dart';
 import '../../presentation/features/certificate/screens/certificate_screen.dart';
+import '../../presentation/features/certificate/screens/certificate_claim_screen.dart';
 import '../../presentation/features/profile/screens/profile_screen.dart';
 import '../../presentation/features/profile/screens/edit_profile_screen.dart';
 import '../../presentation/features/profile/screens/transactions_screen.dart';
@@ -243,6 +244,21 @@ class AppRouter {
         builder: (context, state) {
           final data = state.extra as Map<String, dynamic>?;
           return LearningTimelineScreen(initialData: data);
+        },
+      ),
+
+      // ── Certificate Claim / Detail ─────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.certificateDetail,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return CertificateClaimScreen(
+            courseId: extra['courseId'] ?? id,
+            courseTitle: extra['courseTitle'] ?? 'Sertifikat Kelulusan',
+            isBootcamp: extra['isBootcamp'] == true,
+            credentialId: extra['credentialId'],
+          );
         },
       ),
     ],

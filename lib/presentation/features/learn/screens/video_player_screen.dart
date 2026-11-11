@@ -13,6 +13,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/bootcamp_remote_datasource.dart';
 import '../../../common/widgets/tactile_metro_button.dart';
+import '../../certificate/screens/certificate_claim_screen.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String title;
@@ -759,13 +760,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 if (_nextSessionId != null) {
                   _goToNextSession(_nextSessionId!);
                 } else {
-                  Navigator.pop(context, true);
+                  _openCertificateClaimScreen();
                 }
               },
               height: 48,
-              text: _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya' : 'Kembali ke Katalog',
+              text: _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya' : 'Klaim Sertifikat',
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _openCertificateClaimScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CertificateClaimScreen(
+          courseId: widget.courseId,
+          courseTitle: widget.courseTitle,
+          isBootcamp: widget.isBootcamp,
         ),
       ),
     );
@@ -1298,20 +1311,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 fontSize: 13,
                 color: const Color(0xFF64748B),
                 fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Clean Minimalist 4px Progress Bar with Metro Primary Green
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: _currentProgressFraction,
-                minHeight: 4,
-                backgroundColor: const Color(0xFFF1F5F9),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary,
-                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -2474,52 +2473,76 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
           // If session is already completed:
           if (_isSessionFinished) ...[
-            if (_nextSessionId == null)
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Selamat! Anda telah menyelesaikan seluruh modul ini.',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5),
-                        ),
-                        backgroundColor: const Color(0xFF1E293B),
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            if (_nextSessionId == null) ...[
+              // Status Pill (Yellow Metro)
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Modul ini sudah selesai. Ketuk "Klaim Sertifikat" untuk melihat sertifikat Anda.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5),
                       ),
-                    );
-                  },
-                  child: Container(
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.accent,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.accentDark, width: 1.2),
+                      backgroundColor: const Color(0xFF1E293B),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.check_circle_rounded, color: AppColors.emeraldDark, size: 16),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Modul Selesai Dipelajari',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                            color: AppColors.emeraldDark,
-                          ),
+                  );
+                },
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.accentDark, width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_rounded, color: AppColors.emeraldDark, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Selesai',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.5,
+                          color: AppColors.emeraldDark,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              )
-            else ...[
+              ),
+              const SizedBox(width: 10),
+
+              // Main Action: Klaim Sertifikat CTA (3D Tactile Push-Down Button)
+              Expanded(
+                child: TactileMetroButton(
+                  onPressed: _openCertificateClaimScreen,
+                  backgroundColor: AppColors.primary,
+                  baseColor: const Color(0xFF015F3D),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Klaim Sertifikat',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          color: Colors.white,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 17),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
               // Status Pill (Yellow Metro)
               GestureDetector(
                 onTap: () {
