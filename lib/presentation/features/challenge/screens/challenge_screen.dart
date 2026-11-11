@@ -8,6 +8,7 @@ import '../../../../data/datasources/remote/challenge_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../leaderboard/widgets/metro_leaderboard_view.dart';
 import 'challenge_arena_screen.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
 
 /// ChallengeScreen — Halaman Tantangan Metro Institute
 /// Mengadopsi struktur & layout referensi visual dengan estetika khas Metro:
@@ -263,7 +264,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: TactileMetroButton.secondary(
                           onPressed: () {
                             setState(() {
                               _selectedField = 'ALL';
@@ -272,21 +273,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                             Navigator.pop(ctx);
                             _loadChallenges();
                           },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF1E1E1E),
-                            side: const BorderSide(color: Color(0xFFCBD5E1)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: Text(
-                            'Reset',
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
-                          ),
+                          text: 'Reset',
+                          height: 48,
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
+                        child: TactileMetroButton.dark(
                           onPressed: () {
                             setState(() {
                               _selectedField = tempField;
@@ -295,17 +289,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                             Navigator.pop(ctx);
                             _loadChallenges();
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF101010),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: Text(
-                            'Terapkan',
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14),
-                          ),
+                          text: 'Terapkan',
+                          height: 48,
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                     ],
@@ -1131,26 +1117,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              ElevatedButton(
+              TactileMetroButton(
                 onPressed: () => _openChallenge(ch),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isCompleted
-                      ? const Color(0xFFF1F5F9)
-                      : (isLocked ? const Color(0xFFF1F5F9) : const Color(0xFF101010)),
-                  foregroundColor: isCompleted
-                      ? const Color(0xFF1E1E1E)
-                      : (isLocked ? const Color(0xFF94A3B8) : Colors.white),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                ),
-                child: Text(
-                  isCompleted ? 'Review' : (isLocked ? 'Terkunci' : 'Mulai'),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                text: isCompleted ? 'Review' : (isLocked ? 'Terkunci' : 'Mulai'),
+                fontSize: 12,
+                height: 36,
+                isFullWidth: false,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                borderRadius: BorderRadius.circular(999),
+                backgroundColor: isCompleted
+                    ? const Color(0xFFF1F5F9)
+                    : (isLocked ? const Color(0xFFF1F5F9) : const Color(0xFF101010)),
+                baseColor: isCompleted
+                    ? const Color(0xFFCBD5E1)
+                    : (isLocked ? const Color(0xFFE2E8F0) : const Color(0xFF000000)),
+                textColor: isCompleted
+                    ? const Color(0xFF1E1E1E)
+                    : (isLocked ? const Color(0xFF94A3B8) : Colors.white),
               ),
             ],
           ),

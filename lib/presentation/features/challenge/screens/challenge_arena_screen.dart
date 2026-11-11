@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../data/datasources/remote/challenge_remote_datasource.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
 
 class ChallengeArenaScreen extends StatefulWidget {
   final String challengeId;
@@ -244,22 +245,14 @@ class _ChallengeArenaScreenState extends State<ChallengeArenaScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
+            TactileMetroButton.primary(
+              onPressed: () {
+                Navigator.pop(ctx); // Close dialog
+                Navigator.pop(context); // Back to challenge screen
+              },
+              text: 'Selesai & Kembali',
               height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx); // Close dialog
-                  Navigator.pop(context); // Back to challenge screen
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('Selesai & Kembali', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              ),
+              borderRadius: BorderRadius.circular(14),
             ),
           ],
         ),
@@ -516,48 +509,37 @@ class _ChallengeArenaScreenState extends State<ChallengeArenaScreen> {
             child: Row(
               children: [
                 if (_currentQuestionIndex > 0) ...[
-                  OutlinedButton(
+                  TactileMetroButton.secondary(
                     onPressed: () {
                       setState(() {
                         _currentQuestionIndex--;
                       });
                     },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                      side: const BorderSide(color: AppColors.border),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Sebelumnya', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                    text: 'Sebelumnya',
+                    height: 48,
+                    isFullWidth: false,
+                    borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
                   ),
                   const SizedBox(width: 12),
                 ],
                 Expanded(
-                  child: SizedBox(
+                  child: TactileMetroButton.primary(
+                    onPressed: _selectedAnswers[_currentQuestionIndex] == null
+                        ? null
+                        : () {
+                            if (_currentQuestionIndex < _questions.length - 1) {
+                              setState(() {
+                                _currentQuestionIndex++;
+                              });
+                            } else {
+                              _submitChallenge();
+                            }
+                          },
+                    isDisabled: _selectedAnswers[_currentQuestionIndex] == null,
+                    text: _currentQuestionIndex == _questions.length - 1 ? 'Kirim Jawaban' : 'Selanjutnya',
                     height: 48,
-                    child: ElevatedButton(
-                      onPressed: _selectedAnswers[_currentQuestionIndex] == null
-                          ? null
-                          : () {
-                              if (_currentQuestionIndex < _questions.length - 1) {
-                                setState(() {
-                                  _currentQuestionIndex++;
-                                });
-                              } else {
-                                _submitChallenge();
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        disabledBackgroundColor: AppColors.border,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: Text(
-                        _currentQuestionIndex == _questions.length - 1 ? 'Kirim Jawaban' : 'Selanjutnya',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                      ),
-                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ],

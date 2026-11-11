@@ -11,6 +11,7 @@ import '../../../../core/services/fcm_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../widgets/verify_email_bottom_sheet.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
 
 const String _googleSvg = '''
 <svg viewBox="0 0 24 24" width="20" height="20">
@@ -907,36 +908,16 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Row: Button "Masuk" + "or" + Google Button (Side-by-side)
+            // Row: Button "Masuk" + "or" + Google Button (Side-by-side with 3D tactile push)
             Row(
               children: [
                 Expanded(
-                  child: SizedBox(
+                  child: TactileMetroButton.dark(
+                    onPressed: () => _handleLogin(sheetCtx, setSheetState),
+                    isLoading: _isLoading,
+                    text: 'Masuk',
                     height: 46,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : () => _handleLogin(sheetCtx, setSheetState),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D1117),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Text(
-                              'Masuk',
-                              style: _btnTextStyle,
-                            ),
-                    ),
+                    borderRadius: BorderRadius.circular(13),
                   ),
                 ),
                 Padding(
@@ -946,22 +927,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: _orTextStyle,
                   ),
                 ),
-                SizedBox(
-                  width: 46,
+                TactileMetroButton.secondary(
+                  onPressed: _isLoading ? null : () => _handleGoogleSignIn(sheetCtx, setSheetState),
+                  child: SvgPicture.string(_googleSvg, width: 20, height: 20),
                   height: 46,
-                  child: OutlinedButton(
-                    onPressed: _isLoading ? null : () => _handleGoogleSignIn(sheetCtx, setSheetState),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
-                      backgroundColor: const Color(0xFFF8FAFC),
-                      elevation: 0,
-                    ),
-                    child: Center(
-                      child: SvgPicture.string(_googleSvg, width: 20, height: 20),
-                    ),
-                  ),
+                  isFullWidth: false,
+                  borderRadius: BorderRadius.circular(13),
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
                 ),
               ],
             ),
@@ -1160,32 +1132,12 @@ class _LoginScreenState extends State<LoginScreen> {
             Row(
               children: [
                 Expanded(
-                  child: SizedBox(
+                  child: TactileMetroButton.dark(
+                    onPressed: () => _handleRegister(sheetCtx, setSheetState),
+                    isLoading: _isLoading,
+                    text: 'Daftar Akun',
                     height: 46,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : () => _handleRegister(sheetCtx, setSheetState),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D1117),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Text(
-                              'Daftar Akun',
-                              style: _btnTextStyle,
-                            ),
-                    ),
+                    borderRadius: BorderRadius.circular(13),
                   ),
                 ),
                 Padding(
@@ -1195,22 +1147,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: _orTextStyle,
                   ),
                 ),
-                SizedBox(
-                  width: 46,
+                TactileMetroButton.secondary(
+                  onPressed: _isLoading ? null : () => _handleGoogleSignIn(sheetCtx, setSheetState),
+                  child: SvgPicture.string(_googleSvg, width: 20, height: 20),
                   height: 46,
-                  child: OutlinedButton(
-                    onPressed: _isLoading ? null : () => _handleGoogleSignIn(sheetCtx, setSheetState),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
-                      backgroundColor: const Color(0xFFF8FAFC),
-                      elevation: 0,
-                    ),
-                    child: Center(
-                      child: SvgPicture.string(_googleSvg, width: 20, height: 20),
-                    ),
-                  ),
+                  isFullWidth: false,
+                  borderRadius: BorderRadius.circular(13),
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
                 ),
               ],
             ),
@@ -1411,41 +1354,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 52),
 
                 // Primary Button: "Continue" (Moves smoothly to next onboarding step)
-                SizedBox(
-                  width: double.infinity,
+                TactileMetroButton(
+                  onPressed: () {
+                    _pageController.nextPage(
+                      duration: const Duration(milliseconds: 700),
+                      curve: Curves.easeInOutCubic,
+                    );
+                  },
+                  backgroundColor: Colors.white,
+                  baseColor: const Color(0xFFCBD5E1),
+                  textColor: const Color(0xFF0D1117),
                   height: 54,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 700),
-                        curve: Curves.easeInOutCubic,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0D1117),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Continue',
-                          style: TextStyle(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                            color: Color(0xFF0D1117),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 17, color: Color(0xFF0D1117)),
-                      ],
-                    ),
-                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  icon: Icons.arrow_forward_rounded,
+                  text: 'Continue',
                 ),
 
                 const SizedBox(height: 24),
@@ -1601,60 +1523,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 52),
 
                 // Primary Button (White pill button, triggers Login Sheet Card)
-                SizedBox(
-                  width: double.infinity,
+                TactileMetroButton(
+                  onPressed: _openLoginCard,
+                  backgroundColor: Colors.white,
+                  baseColor: const Color(0xFFCBD5E1),
+                  textColor: const Color(0xFF0D1117),
                   height: 52,
-                  child: ElevatedButton(
-                    onPressed: _openLoginCard,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0D1117),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Mulai Sekarang',
-                          style: TextStyle(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                            color: Color(0xFF0D1117),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 17, color: Color(0xFF0D1117)),
-                      ],
-                    ),
-                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  icon: Icons.arrow_forward_rounded,
+                  text: 'Mulai Sekarang',
                 ).animate().fadeIn(delay: 350.ms, duration: 400.ms).slideY(begin: 0.08, end: 0),
 
                 const SizedBox(height: 12),
 
                 // Secondary Button (Register)
-                SizedBox(
-                  width: double.infinity,
+                TactileMetroButton(
+                  onPressed: _openRegisterCard,
+                  backgroundColor: Colors.white.withValues(alpha: 0.12),
+                  baseColor: Colors.black.withValues(alpha: 0.4),
+                  borderColor: Colors.white.withValues(alpha: 0.35),
+                  textColor: Colors.white,
                   height: 50,
-                  child: OutlinedButton(
-                    onPressed: _openRegisterCard,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: const Text(
-                      'Daftar Akun Baru',
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                  borderRadius: BorderRadius.circular(28),
+                  text: 'Daftar Akun Baru',
+                ),
                     ),
                   ),
                 ).animate().fadeIn(delay: 450.ms, duration: 400.ms).slideY(begin: 0.08, end: 0),

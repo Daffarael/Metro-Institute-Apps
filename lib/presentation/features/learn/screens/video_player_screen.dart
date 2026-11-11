@@ -11,6 +11,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/bootcamp_remote_datasource.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String title;
@@ -679,7 +680,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               ),
             ),
             const SizedBox(height: 22),
-            ElevatedButton(
+            TactileMetroButton.primary(
               onPressed: () {
                 Navigator.pop(ctx);
                 if (_nextSessionId != null) {
@@ -688,17 +689,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   Navigator.pop(context, true);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              child: Text(
-                _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya' : 'Kembali ke Katalog',
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
+              height: 48,
+              text: _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya' : 'Kembali ke Katalog',
             ),
           ],
         ),
@@ -935,10 +927,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: TextStyle(
+            fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+            fontFamilyFallback: const ['Roboto', 'sans-serif'],
             fontSize: 13,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-            color: isActive ? const Color(0xFF0F172A) : const Color(0xFF475569),
+            fontWeight: FontWeight.w700,
+            color: isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
             letterSpacing: -0.1,
           ),
         ),
@@ -1083,42 +1077,35 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(
-                                height: 32,
-                                child: ElevatedButton.icon(
-                                  onPressed: _initAppropriatePlayer,
-                                  icon: const Icon(Icons.refresh_rounded, size: 13),
-                                  label: const Text('Coba Lagi', style: TextStyle(fontSize: 11.5)),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                ),
+                              TactileMetroButton.primary(
+                                onPressed: _initAppropriatePlayer,
+                                icon: Icons.refresh_rounded,
+                                text: 'Coba Lagi',
+                                height: 34,
+                                fontSize: 11.5,
+                                isFullWidth: false,
+                                borderRadius: BorderRadius.circular(8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
                               ),
                               if (_currentVideoUrl != null && _currentVideoUrl!.isNotEmpty) ...[
                                 const SizedBox(width: 8),
-                                SizedBox(
-                                  height: 32,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () async {
-                                      final uri = Uri.tryParse(_currentVideoUrl!);
-                                      if (uri != null) {
-                                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                      }
-                                    },
-                                    icon: const Icon(Icons.open_in_browser_rounded, size: 13, color: Colors.white70),
-                                    label: Text(
-                                      'Buka di Browser',
-                                      style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 11),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: Colors.white24),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                  ),
+                                TactileMetroButton(
+                                  onPressed: () async {
+                                    final uri = Uri.tryParse(_currentVideoUrl!);
+                                    if (uri != null) {
+                                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                    }
+                                  },
+                                  icon: Icons.open_in_browser_rounded,
+                                  text: 'Buka di Browser',
+                                  height: 34,
+                                  fontSize: 11,
+                                  isFullWidth: false,
+                                  backgroundColor: const Color(0xFF1E293B),
+                                  baseColor: const Color(0xFF0F172A),
+                                  textColor: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
                                 ),
                               ],
                             ],
@@ -1920,21 +1907,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       ],
                     ),
                   ),
-                  ElevatedButton.icon(
+                  TactileMetroButton.primary(
                     onPressed: () {
                       if (fileUrl.isNotEmpty) {
                         launchUrl(Uri.parse(fileUrl), mode: LaunchMode.externalApplication);
                       }
                     },
-                    icon: const Icon(Icons.download_rounded, size: 14),
-                    label: const Text('Buka'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
+                    icon: Icons.download_rounded,
+                    text: 'Buka',
+                    height: 38,
+                    fontSize: 12.5,
+                    isFullWidth: false,
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                   ),
                 ],
               ),
@@ -2220,19 +2205,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               ),
             )
           else if (_liveMeetingUrl != null && _liveMeetingUrl!.isNotEmpty)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => launchUrl(Uri.parse(_liveMeetingUrl!), mode: LaunchMode.externalApplication),
-                icon: const Icon(Icons.videocam_rounded, size: 18),
-                label: const Text('Masuk Sesi Google Meet / Zoom'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
+            TactileMetroButton.primary(
+              onPressed: () => launchUrl(Uri.parse(_liveMeetingUrl!), mode: LaunchMode.externalApplication),
+              icon: Icons.videocam_rounded,
+              text: 'Masuk Sesi Google Meet / Zoom',
+              height: 48,
+              borderRadius: BorderRadius.circular(14),
             ),
         ],
       ),
@@ -2368,26 +2346,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0D1117),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () async {
-                    final text = _noteInputController.text.trim();
-                    if (text.isEmpty || widget.courseId == null || _currentSessionId == null) return;
-                    _noteInputController.clear();
-                    try {
-                      await _courseDs.createSessionNote(widget.courseId!, _currentSessionId!, text);
-                      _loadNotes();
-                    } catch (_) {}
-                  },
-                  icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 18),
-                ),
+              TactileMetroIconButton(
+                size: 38,
+                iconSize: 18,
+                borderRadius: BorderRadius.circular(19),
+                backgroundColor: const Color(0xFF0D1117),
+                baseColor: const Color(0xFF000000),
+                icon: Icons.arrow_upward_rounded,
+                iconColor: Colors.white,
+                onPressed: () async {
+                  final text = _noteInputController.text.trim();
+                  if (text.isEmpty || widget.courseId == null || _currentSessionId == null) return;
+                  _noteInputController.clear();
+                  try {
+                    await _courseDs.createSessionNote(widget.courseId!, _currentSessionId!, text);
+                    _loadNotes();
+                  } catch (_) {}
+                },
               ),
             ],
           ),
@@ -2540,26 +2515,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0D1117),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () async {
-                    final text = _qnaInputController.text.trim();
-                    if (text.isEmpty || widget.courseId == null || _currentSessionId == null) return;
-                    _qnaInputController.clear();
-                    try {
-                      await _courseDs.createSessionQna(widget.courseId!, _currentSessionId!, text);
-                      _loadQna();
-                    } catch (_) {}
-                  },
-                  icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 18),
-                ),
+              TactileMetroIconButton(
+                size: 38,
+                iconSize: 18,
+                borderRadius: BorderRadius.circular(19),
+                backgroundColor: const Color(0xFF0D1117),
+                baseColor: const Color(0xFF000000),
+                icon: Icons.arrow_upward_rounded,
+                iconColor: Colors.white,
+                onPressed: () async {
+                  final text = _qnaInputController.text.trim();
+                  if (text.isEmpty || widget.courseId == null || _currentSessionId == null) return;
+                  _qnaInputController.clear();
+                  try {
+                    await _courseDs.createSessionQna(widget.courseId!, _currentSessionId!, text);
+                    _loadQna();
+                  } catch (_) {}
+                },
               ),
             ],
           ),
@@ -2684,171 +2656,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-// ── 3D Tactile Push-Down Button (kids.metroinstitute.site style) ────────────
-class TactileMetroButton extends StatefulWidget {
-  final VoidCallback? onPressed;
-  final Widget child;
-  final Color backgroundColor;
-  final Color baseColor;
-  final Color? borderColor;
-  final double height;
-  final BorderRadius? borderRadius;
-  final bool isFullWidth;
-  final bool isDisabled;
-
-  const TactileMetroButton({
-    super.key,
-    required this.onPressed,
-    required this.child,
-    required this.backgroundColor,
-    required this.baseColor,
-    this.borderColor,
-    this.height = 46,
-    this.borderRadius,
-    this.isFullWidth = true,
-    this.isDisabled = false,
-  });
-
-  @override
-  State<TactileMetroButton> createState() => _TactileMetroButtonState();
-}
-
-class _TactileMetroButtonState extends State<TactileMetroButton> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = widget.borderRadius ?? BorderRadius.circular(14);
-    final bool canPress = !widget.isDisabled && widget.onPressed != null;
-
-    final double pushDepth = _isPressed && canPress ? 3.0 : 0.0;
-    final double baseDepth = _isPressed && canPress ? 1.0 : 4.0;
-
-    return GestureDetector(
-      onTapDown: canPress
-          ? (_) {
-              setState(() => _isPressed = true);
-              HapticFeedback.lightImpact();
-            }
-          : null,
-      onTapUp: canPress
-          ? (_) {
-              setState(() => _isPressed = false);
-              widget.onPressed?.call();
-            }
-          : null,
-      onTapCancel: canPress
-          ? () {
-              setState(() => _isPressed = false);
-            }
-          : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 70),
-        curve: Curves.easeOutQuad,
-        height: widget.height,
-        width: widget.isFullWidth ? double.infinity : null,
-        transform: Matrix4.translationValues(0, pushDepth, 0),
-        decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          borderRadius: radius,
-          border: widget.borderColor != null
-              ? Border.all(color: widget.borderColor!, width: 1.2)
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: widget.baseColor,
-              offset: Offset(0, baseDepth),
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Center(child: widget.child),
-      ),
-    );
-  }
-}
-
-class TactileMetroIconButton extends StatefulWidget {
-  final VoidCallback? onPressed;
-  final IconData icon;
-  final Color iconColor;
-  final Color backgroundColor;
-  final Color baseColor;
-  final Color? borderColor;
-  final double size;
-  final bool isDisabled;
-
-  const TactileMetroIconButton({
-    super.key,
-    required this.onPressed,
-    required this.icon,
-    required this.iconColor,
-    required this.backgroundColor,
-    required this.baseColor,
-    this.borderColor,
-    this.size = 46,
-    this.isDisabled = false,
-  });
-
-  @override
-  State<TactileMetroIconButton> createState() => _TactileMetroIconButtonState();
-}
-
-class _TactileMetroIconButtonState extends State<TactileMetroIconButton> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool canPress = !widget.isDisabled && widget.onPressed != null;
-    final double pushDepth = _isPressed && canPress ? 3.0 : 0.0;
-    final double baseDepth = _isPressed && canPress ? 1.0 : 4.0;
-
-    return GestureDetector(
-      onTapDown: canPress
-          ? (_) {
-              setState(() => _isPressed = true);
-              HapticFeedback.lightImpact();
-            }
-          : null,
-      onTapUp: canPress
-          ? (_) {
-              setState(() => _isPressed = false);
-              widget.onPressed?.call();
-            }
-          : null,
-      onTapCancel: canPress
-          ? () {
-              setState(() => _isPressed = false);
-            }
-          : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 70),
-        curve: Curves.easeOutQuad,
-        width: widget.size,
-        height: widget.size,
-        transform: Matrix4.translationValues(0, pushDepth, 0),
-        decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          borderRadius: BorderRadius.circular(14),
-          border: widget.borderColor != null
-              ? Border.all(color: widget.borderColor!, width: 1.2)
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: widget.baseColor,
-              offset: Offset(0, baseDepth),
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Center(
-          child: Icon(widget.icon, color: widget.iconColor, size: 22),
-        ),
       ),
     );
   }

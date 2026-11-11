@@ -11,6 +11,7 @@ import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/wishlist_remote_datasource.dart';
 import '../widgets/checkout_bottom_sheet.dart';
 import 'video_player_screen.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
 
 /// CourseDetailScreen — Displays the course/bootcamp detail page with the elegant Warm Cream UI:
 /// • Warm Cream background (Color(0xFFFAF7F2)) with pristine white/cream capsule cards.
@@ -1458,7 +1459,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
                 const SizedBox(width: 20),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: TactileMetroButton.primary(
                     onPressed: () {
                       debugPrint('=== [METRO_CHECKOUT] Tombol Beli Sekarang diklik! price: $price, isEnrolled: $isEnrolled ===');
                       if (isEnrolled) {
@@ -1467,28 +1468,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         _openCheckout(price);
                       }
                     },
-                    icon: Icon(
-                      isEnrolled
-                          ? Icons.arrow_forward_rounded
-                          : (price == 0 ? Icons.how_to_reg_rounded : Icons.shopping_bag_outlined),
-                      size: 20,
-                    ),
-                    label: Text(
-                      isEnrolled
-                          ? 'Lanjutkan Belajar'
-                          : (price == 0 ? 'Daftar Sekarang' : 'Beli Sekarang'),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13.5,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                      elevation: 0,
-                    ),
+                    icon: isEnrolled
+                        ? Icons.arrow_forward_rounded
+                        : (price == 0 ? Icons.how_to_reg_rounded : Icons.shopping_bag_outlined),
+                    text: isEnrolled
+                        ? 'Lanjutkan Belajar'
+                        : (price == 0 ? 'Daftar Sekarang' : 'Beli Sekarang'),
+                    height: 50,
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
               ],
