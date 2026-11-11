@@ -837,34 +837,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.courseTitle.toUpperCase(),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                color: Colors.white.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.6,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 1),
-            Text(
-              _currentTitle ?? widget.title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: -0.2,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        title: Text(
+          widget.courseTitle,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: -0.2,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: const [
           SizedBox(width: 8),
@@ -1040,24 +1022,30 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
         decoration: const BoxDecoration(
-          color: AppColors.primary, // Metro Institute Green instead of black
+          color: AppColors.primary, // Metro Institute Green
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Micro Tag Row
-            Row(
+            // Badges & Meta Chips Row (Consolidated, no duplicate course title)
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isMaterial
                         ? AppColors.accent
                         : (isQuiz ? Colors.white : const Color(0xFFEF4444)),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
+                    border: isMaterial
+                        ? Border.all(color: AppColors.accentDark, width: 0.8)
+                        : null,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1078,49 +1066,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
-                          letterSpacing: 0.6,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.courseTitle,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Main Editorial Title
-            Text(
-              _currentTitle ?? widget.title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18.5,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                letterSpacing: -0.4,
-                height: 1.25,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
-
-            // Reading Meta Capsules Row
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
                 _buildEditorialMetaPill(
                   icon: Icons.timer_outlined,
                   label: isMaterial
@@ -1135,6 +1086,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   isAccent: true,
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+
+            // Main Editorial Title (Only session title, bold & clean)
+            Text(
+              _currentTitle ?? widget.title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.4,
+                height: 1.25,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
