@@ -1259,6 +1259,82 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Material / Reading Module: Editorial Quality ───────────────────────────
   Widget _buildMaterialContent() {
+    final hasCustomContent = _sessionDescription != null && _sessionDescription!.trim().isNotEmpty;
+
+    if (hasCustomContent) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFBBF7D0), width: 1),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Modul Pembelajaran Mandiri (In-App Reading)',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF166534),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ..._buildFormattedArticleBlocks(_sessionDescription!.trim()),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Modul Eksklusif Metro Institute',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Materi ini tersimpan aman di dalam aplikasi akun belajarmu. Kamu dapat membacanya kembali kapan saja tanpa perlu mengunduh file luar.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: const Color(0xFF64748B),
+                    height: 1.55,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1603,6 +1679,291 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ),
       ],
     );
+  }
+
+  // ── Formatted Article Blocks & Markdown Parser for Mobile ──────────────────
+  List<Widget> _buildFormattedArticleBlocks(String content) {
+    final List<Widget> widgets = [];
+    final lines = content.split('\n');
+    int i = 0;
+
+    final normalStyle = GoogleFonts.plusJakartaSans(
+      fontSize: 14,
+      color: const Color(0xFF334155),
+      height: 1.75,
+    );
+
+    while (i < lines.length) {
+      final line = lines[i];
+      final trimmed = line.trim();
+
+      if (trimmed.isEmpty) {
+        widgets.add(const SizedBox(height: 10));
+        i++;
+        continue;
+      }
+
+      // Horizontal Divider: --- or *** or ___
+      if (RegExp(r'^([-*_]){3,}$').hasMatch(trimmed)) {
+        widgets.add(const Padding(
+          padding: EdgeInsets.symmetric(vertical: 14),
+          child: Divider(color: Color(0xFFE2E8F0), thickness: 1.2),
+        ));
+        i++;
+        continue;
+      }
+
+      // Headings: #, ##, ###, ####
+      final headingMatch = RegExp(r'^(#{1,6})\s+(.*)$').firstMatch(line);
+      if (headingMatch != null) {
+        final level = headingMatch.group(1)!.length;
+        final titleText = headingMatch.group(2)!;
+
+        double fontSize;
+        FontWeight fontWeight;
+        double topPadding;
+        double bottomPadding;
+
+        if (level == 1) {
+          fontSize = 19;
+          fontWeight = FontWeight.w800;
+          topPadding = 18;
+          bottomPadding = 8;
+        } else if (level == 2) {
+          fontSize = 17;
+          fontWeight = FontWeight.w800;
+          topPadding = 16;
+          bottomPadding = 6;
+        } else if (level == 3) {
+          fontSize = 15.5;
+          fontWeight = FontWeight.w700;
+          topPadding = 14;
+          bottomPadding = 6;
+        } else {
+          fontSize = 14.5;
+          fontWeight = FontWeight.w700;
+          topPadding = 12;
+          bottomPadding = 4;
+        }
+
+        widgets.add(Padding(
+          padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
+          child: RichText(
+            text: TextSpan(
+              children: _parseInlineSpans(
+                titleText,
+                GoogleFonts.plusJakartaSans(
+                  fontSize: fontSize,
+                  fontWeight: fontWeight,
+                  color: const Color(0xFF0F172A),
+                  height: 1.35,
+                ),
+              ),
+            ),
+          ),
+        ));
+        i++;
+        continue;
+      }
+
+      // Blockquote: > text
+      if (line.startsWith('> ')) {
+        final quoteLines = <String>[];
+        while (i < lines.length && lines[i].startsWith('> ')) {
+          quoteLines.add(lines[i].substring(2).trim());
+          i++;
+        }
+        widgets.add(Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0FDF4),
+            borderRadius: BorderRadius.circular(10),
+            border: const Border(
+              left: BorderSide(color: AppColors.primary, width: 3.5),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: quoteLines.map((ql) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: RichText(
+                text: TextSpan(
+                  children: _parseInlineSpans(
+                    ql,
+                    GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      color: const Color(0xFF166534),
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ),
+            )).toList(),
+          ),
+        ));
+        continue;
+      }
+
+      // Unordered list: - or *
+      if (RegExp(r'^\s*[-*•]\s+').hasMatch(line)) {
+        final listItems = <String>[];
+        while (i < lines.length && RegExp(r'^\s*[-*•]\s+').hasMatch(lines[i])) {
+          listItems.add(lines[i].replaceFirst(RegExp(r'^\s*[-*•]\s+'), '').trim());
+          i++;
+        }
+        widgets.add(Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: listItems.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 8, right: 10),
+                    width: 5,
+                    height: 5,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: _parseInlineSpans(item, normalStyle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+        ));
+        continue;
+      }
+
+      // Ordered list: 1. 2. 3.
+      if (RegExp(r'^\s*\d+\.\s+').hasMatch(line)) {
+        final listItems = <Map<String, String>>[];
+        while (i < lines.length && RegExp(r'^\s*(\d+)\.\s+(.*)').hasMatch(lines[i])) {
+          final m = RegExp(r'^\s*(\d+)\.\s+(.*)').firstMatch(lines[i])!;
+          listItems.add({'num': m.group(1)!, 'text': m.group(2)!});
+          i++;
+        }
+        widgets.add(Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: listItems.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      '${item['num']}.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: _parseInlineSpans(item['text']!, normalStyle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+        ));
+        continue;
+      }
+
+      // Normal paragraph
+      final paragraphLines = <String>[];
+      while (i < lines.length &&
+          lines[i].trim().isNotEmpty &&
+          !RegExp(r'^([-*_]){3,}$').hasMatch(lines[i].trim()) &&
+          !RegExp(r'^(#{1,6})\s+').hasMatch(lines[i]) &&
+          !lines[i].startsWith('> ') &&
+          !RegExp(r'^\s*[-*•]\s+').hasMatch(lines[i]) &&
+          !RegExp(r'^\s*\d+\.\s+').hasMatch(lines[i])) {
+        paragraphLines.add(lines[i]);
+        i++;
+      }
+
+      final combined = paragraphLines.join('\n');
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: RichText(
+          text: TextSpan(
+            children: _parseInlineSpans(combined, normalStyle),
+          ),
+        ),
+      ));
+    }
+
+    return widgets;
+  }
+
+  List<TextSpan> _parseInlineSpans(String text, TextStyle baseStyle) {
+    final List<TextSpan> spans = [];
+    final pattern = RegExp(r'(\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`)');
+    int lastEnd = 0;
+
+    for (final match in pattern.allMatches(text)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: baseStyle,
+        ));
+      }
+
+      final fullMatch = match.group(0)!;
+      if (fullMatch.startsWith('**') && fullMatch.endsWith('**')) {
+        spans.add(TextSpan(
+          text: match.group(2),
+          style: baseStyle.copyWith(
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
+        ));
+      } else if (fullMatch.startsWith('*') && fullMatch.endsWith('*')) {
+        spans.add(TextSpan(
+          text: match.group(3),
+          style: baseStyle.copyWith(fontStyle: FontStyle.italic),
+        ));
+      } else if (fullMatch.startsWith('`') && fullMatch.endsWith('`')) {
+        spans.add(TextSpan(
+          text: match.group(4),
+          style: baseStyle.copyWith(
+            fontFamily: 'monospace',
+            backgroundColor: const Color(0xFFF1F5F9),
+            color: const Color(0xFF0F172A),
+          ),
+        ));
+      }
+
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: baseStyle,
+      ));
+    }
+
+    return spans;
   }
 
   // ── Article Sub-components ────────────────────────────────────────────────
