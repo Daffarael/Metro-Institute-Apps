@@ -56,6 +56,27 @@ class AppColors {
   // ── Overlay ────────────────────────────────────────────────────────────────
   static const Color overlay = Color(0x80000000); // 50% black
 
+  // ── Product Badge Colors (Harmonized Metro Palette) ────────────────────────
+  static const Color productBootcamp    = Color(0xFF018556); // Metro Primary Green
+  static const Color productMiniCourse  = Color(0xFF063D2A); // Metro Deep Forest Emerald
+  static const Color productInspireTalk = Color(0xFFD97706); // Metro Warm Gold / Amber
+
+  static Color productTypeColor(String type) {
+    final t = type.toLowerCase();
+    if (t.contains('bootcamp')) return productBootcamp;
+    if (t.contains('mini') || t.contains('course')) return productMiniCourse;
+    if (t.contains('inspire') || t.contains('webinar') || t.contains('talk')) return productInspireTalk;
+    return primary;
+  }
+
+  static String productTypeLabel(String type) {
+    final t = type.toLowerCase();
+    if (t.contains('bootcamp')) return 'BOOTCAMP';
+    if (t.contains('mini') || t.contains('course')) return 'MINI COURSE';
+    if (t.contains('inspire') || t.contains('webinar') || t.contains('talk')) return 'INSPIRE TALKS';
+    return 'PROGRAM';
+  }
+
   // ── Helper ─────────────────────────────────────────────────────────────────
   static Color badgeColor(String badgeLevel) {
     switch (badgeLevel.toUpperCase()) {

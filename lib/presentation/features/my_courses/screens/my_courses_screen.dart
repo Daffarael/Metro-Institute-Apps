@@ -5,7 +5,9 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/bootcamp_remote_datasource.dart';
+import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
 import '../../learn/screens/course_detail_screen.dart';
+import '../../webinar/screens/inspire_talk_detail_screen.dart';
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -17,6 +19,7 @@ class MyCoursesScreen extends StatefulWidget {
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
   final _courseDs   = sl<CourseRemoteDataSource>();
   final _bootcampDs = sl<BootcampRemoteDataSource>();
+  final _webinarDs  = sl<WebinarRemoteDataSource>();
 
   bool _isLoading = true;
   List<Map<String, dynamic>> _allCourses = [];
@@ -53,6 +56,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
       final results = await Future.wait([
         _bootcampDs.getEnrolledBootcamps().catchError((_) => <dynamic>[]),
         _courseDs.getEnrolledCourses().catchError((_) => <dynamic>[]),
+        _webinarDs.getMyWebinars().catchError((_) => <dynamic>[]),
       ]);
 
       final bootcamps = results[0]
@@ -61,10 +65,18 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
       final courses = results[1]
           .map((c) => {for (final en in (c as Map<String, dynamic>).entries) en.key: en.value, 'type': 'mini-course'})
           .toList();
+      final webinars = results[2]
+          .map((w) => {
+                for (final en in (w as Map<String, dynamic>).entries) en.key: en.value,
+                'type': 'webinar',
+                'progress': 100,
+                'thumbnailUrl': (w as Map<String, dynamic>)['bannerUrl'],
+              })
+          .toList();
 
       if (!mounted) return;
       setState(() {
-        _allCourses = [...bootcamps, ...courses]
+        _allCourses = [...bootcamps, ...courses, ...webinars]
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
         _isLoading = false;
@@ -178,6 +190,8 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                   _chip('Bootcamp', 'bootcamp', _typeFilter, (v) => setState(() => _typeFilter = v)),
                   const SizedBox(width: 8),
                   _chip('Mini Course', 'mini-course', _typeFilter, (v) => setState(() => _typeFilter = v)),
+                  const SizedBox(width: 8),
+                  _chip('Inspire Talk', 'webinar', _typeFilter, (v) => setState(() => _typeFilter = v)),
                   const SizedBox(width: 16),
                   _chip('Sedang Belajar', 'in-progress', _statusFilter, (v) => setState(() => _statusFilter = v)),
                   const SizedBox(width: 8),
@@ -332,14 +346,14 @@ class _MyCourseCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: isBootcamp ? AppColors.primary : const Color(0xFF334155),
+                    color: AppColors.productTypeColor(type),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(0),
                       bottomRight: Radius.circular(8),
                     ),
                   ),
                   child: Text(
-                    isBootcamp ? 'BOOTCAMP' : 'MINI COURSE',
+                    AppColors.productTypeLabel(type),
                     style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ),
@@ -422,6 +436,14 @@ class _MyCourseCard extends StatelessWidget {
                         label: 'Detail',
                         outlined: true,
                         onTap: () {
+                          if (type == 'webinar') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => InspireTalkDetailScreen(item: course),
+                              ),
+                            );
+                            return;
+                          }
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => CourseDetailScreen(
@@ -438,12 +460,22 @@ class _MyCourseCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       _ActionBtn(
-                        label: notStarted
-                            ? 'Mulai Belajar ▶'
-                            : (progress > 0 ? 'Lanjut ▶' : 'Mulai ▶'),
+                        label: type == 'webinar'
+                            ? 'Akses Sesi ▶'
+                            : notStarted
+                                ? 'Mulai Belajar ▶'
+                                : (progress > 0 ? 'Lanjut ▶' : 'Mulai ▶'),
                         outlined: false,
                         disabled: false,
                         onTap: () {
+                          if (type == 'webinar') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => InspireTalkDetailScreen(item: course),
+                              ),
+                            );
+                            return;
+                          }
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => CourseDetailScreen(

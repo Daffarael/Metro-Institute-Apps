@@ -358,16 +358,15 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
+                        color: AppColors.productInspireTalk,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
                       ),
                       child: Text(
-                        'INSPIRE TALK',
+                        'INSPIRE TALKS',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF047857),
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                           letterSpacing: 0.5,
                         ),
                       ),

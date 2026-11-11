@@ -287,17 +287,20 @@ class _WishlistCard extends StatelessWidget {
                 ),
                 // Type badge
                 Positioned(
-                  top: 8,
-                  left: 8,
+                  top: 0,
+                  left: 0,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(999),
+                      color: AppColors.productTypeColor(isBootcamp ? 'bootcamp' : 'mini-course'),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(0),
+                        bottomRight: Radius.circular(8),
+                      ),
                     ),
                     child: Text(
-                      isBootcamp ? 'Bootcamp' : 'Mini Course',
-                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                      AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
+                      style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
                 ),

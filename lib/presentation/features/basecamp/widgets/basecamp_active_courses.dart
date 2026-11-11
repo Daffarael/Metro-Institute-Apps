@@ -148,23 +148,19 @@ class BasecampActiveCourses extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                    width: 1,
+                                  color: AppColors.productTypeColor(isBootcamp ? 'bootcamp' : 'mini-course'),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  AppColors.productTypeLabel(isBootcamp ? 'bootcamp' : 'mini-course'),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.4,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              child: Text(
-                                isBootcamp ? 'BOOTCAMP' : 'MINI-COURSE',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.4,
-                                  color: const Color(0xFF0F172A),
-                                ),
                               ),
-                            ),
                             const SizedBox(height: 6),
                             Text(
                               title,
