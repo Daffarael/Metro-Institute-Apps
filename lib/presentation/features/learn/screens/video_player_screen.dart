@@ -859,40 +859,45 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Browser CardTabs Style (like web mentee Overview, Kurikulum, Ulasan) ──
   Widget _buildBrowserCardTabs() {
-    final activeIndex = _tabController.index;
+    return AnimatedBuilder(
+      animation: _tabController,
+      builder: (context, _) {
+        final activeIndex = _tabController.index;
 
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFFE2E8F0),
-      child: Stack(
-        alignment: Alignment.bottomLeft,
-        children: [
-          // Background bottom border line across the entire header
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: 1,
-              color: const Color(0xFFCBD5E1),
-            ),
+        return Container(
+          width: double.infinity,
+          color: const Color(0xFFE2E8F0),
+          child: Stack(
+            alignment: Alignment.bottomLeft,
+            children: [
+              // Background bottom border line across the entire header
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  height: 1,
+                  color: const Color(0xFFCBD5E1),
+                ),
+              ),
+              // Tab items row
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _buildCardTabItem(index: 0, label: 'Modul', isActive: activeIndex == 0),
+                    const SizedBox(width: 4),
+                    _buildCardTabItem(index: 1, label: 'Catatan', isActive: activeIndex == 1),
+                    const SizedBox(width: 4),
+                    _buildCardTabItem(index: 2, label: 'Tanya Jawab', isActive: activeIndex == 2),
+                  ],
+                ),
+              ),
+            ],
           ),
-          // Tab items row
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildCardTabItem(index: 0, label: 'Modul', isActive: activeIndex == 0),
-                const SizedBox(width: 4),
-                _buildCardTabItem(index: 1, label: 'Catatan', isActive: activeIndex == 1),
-                const SizedBox(width: 4),
-                _buildCardTabItem(index: 2, label: 'Tanya Jawab', isActive: activeIndex == 2),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -905,7 +910,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       onTap: () {
         if (_tabController.index != index) {
           _tabController.animateTo(index);
-          setState(() {});
         }
       },
       behavior: HitTestBehavior.opaque,
@@ -927,9 +931,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
-            fontFamilyFallback: const ['Roboto', 'sans-serif'],
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: FontWeight.w700,
             color: isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
