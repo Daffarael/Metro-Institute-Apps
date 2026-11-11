@@ -886,7 +886,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    _buildCardTabItem(index: 0, label: 'Modul', isActive: activeIndex == 0),
+                    _buildCardTabItem(
+                      index: 0,
+                      label: _sessionType == 'MATERIAL' ? 'Materi' : 'Ringkasan',
+                      isActive: activeIndex == 0,
+                    ),
                     const SizedBox(width: 4),
                     _buildCardTabItem(index: 1, label: 'Catatan', isActive: activeIndex == 1),
                     const SizedBox(width: 4),
@@ -1225,7 +1229,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             // Default Video Description
             if (_sessionDescription != null && _sessionDescription!.isNotEmpty) ...[
               Text(
-                'Deskripsi Modul',
+                'Tentang Sesi Ini',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
