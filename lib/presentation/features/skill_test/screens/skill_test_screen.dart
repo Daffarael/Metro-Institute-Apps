@@ -738,102 +738,126 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
     );
   }
 
+  String _getFieldDescription(String? raw) {
+    if (raw == null) return 'Temukan potensimu di dunia teknologi bersama Metro Institute.';
+    final key = raw.toUpperCase().replaceAll('/', '_').replaceAll('-', '_');
+    if (key.contains('UI') || key.contains('UX')) {
+      return 'Kamu memiliki insting visual dan empati yang baik terhadap pengguna. Karir yang ideal: Product Designer, UX Researcher, atau UI Engineer.';
+    }
+    if (key.contains('FRONTEND')) {
+      return 'Kamu memiliki logika terstruktur dan ketertarikan pada interaksi visual. Kuasai React & Next.js untuk membangun antarmuka web modern.';
+    }
+    if (key.contains('BACKEND')) {
+      return 'Pemikiran sistematis adalah kekuatanmu. Bangun fondasi aplikasi yang kokoh, arsitektur data yang skalabel, dan API berkinerja tinggi.';
+    }
+    if (key.contains('MOBILE')) {
+      return 'Kamu tertarik pada produk yang digunakan langsung di genggaman. Pelajari pengembangan aplikasi native atau cross-platform (Flutter/React Native).';
+    }
+    return 'Hasil analisismu menunjukkan kecocokan pada bidang keahlian ini. Eksplorasi sekarang untuk memperdalam potensimu.';
+  }
+
   Widget _buildResultView() {
     final res = _resultData ?? {};
     final topField = res['topField'] ?? res['recommendation'] ?? 'FRONTEND';
     final scores = (res['scores'] as Map<String, dynamic>?) ?? {};
+    final xpEarned = res['xpEarned'] ?? 50;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Recommendation Hero Card (Luxury Dark Squircle)
+          // ── Hero Recommendation Card (Hijau & Kuning Metro) ──
           Container(
-            padding: const EdgeInsets.all(26),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF13171F), Color(0xFF1A222D)],
+                colors: [Color(0xFF018556), Color(0xFF015F3D)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: const Color(0xFF28313E), width: 1.2),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x30000000),
-                  blurRadius: 24,
-                  offset: Offset(0, 8),
+                  color: const Color(0xFF018556).withValues(alpha: 0.28),
+                  blurRadius: 22,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: Column(
               children: [
+                // Top circular badge in Kuning Metro
                 Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                  width: 52,
+                  height: 52,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFAE653), // Kuning Metro solid
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.rocket_launch_rounded, color: AppColors.primary, size: 34),
+                  child: const Icon(
+                    Icons.rocket_launch_rounded,
+                    color: Color(0xFF018556), // Hijau Metro
+                    size: 28,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
+
+                // Label Hasil Analisis (matching Web)
                 const Text(
-                  'Rekomendasi Jalur Karir Anda',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w600),
+                  'HASIL ANALISIS',
+                  style: TextStyle(
+                    color: Color(0xFFFAE653), // Kuning Metro
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
+
+                // Field Title (matching Web)
                 Text(
                   _formatFieldName(topField.toString()),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 23,
+                    fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
+                    letterSpacing: -0.4,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.stars_rounded, size: 14, color: Colors.white),
-                      SizedBox(width: 4),
-                      Text(
-                        'Pilihan Paling Cocok (Best Fit)',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 12),
+
+                // Field Description (Exact Web Text from FIELD_DESCRIPTIONS!)
+                Text(
+                  _getFieldDescription(topField.toString()),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-          // Score Breakdown per Field (Squircle)
+          // ── Score Breakdown per Field (Kesesuaian Minat & Bakat) ──
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(26),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x0A000000),
-                  blurRadius: 20,
-                  offset: Offset(0, 6),
+                  color: const Color(0xFF018556).withValues(alpha: 0.05),
+                  blurRadius: 18,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -842,21 +866,30 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               children: [
                 const Text(
                   'Kesesuaian Minat & Bakat',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary, letterSpacing: -0.2),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0D1117),
+                    letterSpacing: -0.2,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Persentase kecocokan Anda dengan bidang keahlian digital.',
-                  style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF64748B),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 if (scores.isEmpty)
-                  _scoreRow('Kesesuaian Jalur', 95)
+                  _scoreRow('Kesesuaian Jalur', 95, isTop: true)
                 else
                   ...scores.entries.map((e) {
                     final fieldName = _formatFieldName(e.key);
                     final scoreVal = (e.value as num).toInt();
-                    return _scoreRow(fieldName, scoreVal);
+                    final isTop = e.key.toUpperCase() == topField.toString().toUpperCase();
+                    return _scoreRow(fieldName, scoreVal, isTop: isTop);
                   }),
               ],
             ),
@@ -864,23 +897,59 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
           const SizedBox(height: 24),
 
-          // Action Button: Go to Learning
-          TactileMetroButton.dark(
-            onPressed: () => context.go(AppRoutes.learn),
-            height: 52,
+          // ── Action Button: Eksplorasi Sekarang (Hijau Metro Primary - matching Web) ──
+          TactileMetroButton.primary(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              context.go(AppRoutes.learn);
+            },
+            height: 50,
             borderRadius: BorderRadius.circular(16),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.explore_rounded, size: 20, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Eksplorasi Kelas Sesuai Rekomendasi', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white)),
+                Text(
+                  'Eksplorasi Sekarang',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14.5,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+
+          // XP Earned note below button (matching Web: "+XP diperoleh dari test ini")
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.stars_rounded, size: 16, color: Color(0xFFF59E0B)),
+                const SizedBox(width: 5),
+                Text(
+                  '+$xpEarned XP diperoleh dari test ini',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Secondary Action: Kembali ke Basecamp
           TactileMetroButton.secondary(
-            onPressed: () => context.go(AppRoutes.basecamp),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              context.go(AppRoutes.basecamp);
+            },
             height: 48,
             borderRadius: BorderRadius.circular(16),
             text: 'Kembali ke Basecamp',
@@ -890,7 +959,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
     );
   }
 
-  Widget _scoreRow(String label, int percentage) {
+  Widget _scoreRow(String label, int percentage, {bool isTop = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -902,22 +971,30 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isTop ? FontWeight.w700 : FontWeight.w600,
+                    color: const Color(0xFF0D1117),
+                  ),
                 ),
               ),
               Text(
                 '$percentage%',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: isTop ? const Color(0xFF018556) : const Color(0xFFD97706),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 6),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: (percentage / 100).clamp(0.0, 1.0),
-              backgroundColor: AppColors.border,
-              color: percentage >= 70 ? AppColors.primary : AppColors.warning,
+              backgroundColor: const Color(0xFFF1F5F9),
+              color: isTop ? const Color(0xFF018556) : const Color(0xFFFAE653),
               minHeight: 8,
             ),
           ),
