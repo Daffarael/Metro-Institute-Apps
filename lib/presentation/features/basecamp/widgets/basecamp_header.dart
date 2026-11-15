@@ -262,179 +262,20 @@ class BasecampHeader extends StatelessWidget {
                     value: progress,
                     minHeight: 5,
                     backgroundColor: const Color(0xFFF1F5F9),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0F172A)),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 16),
-
-          // ── 3. Dua Kartu Dashboard (Certificates & Courses) ──────────────
-          _buildDashboardStatCards(context),
-
           const SizedBox(height: 14),
 
-          // ── 4. Spotlight Search Bar (di bawah kedua kartu) ───────────────
+          // ── Spotlight Search Bar ──────────────────────────────────────────
           SpotlightSearchBar(
             onTap: () => showSpotlightSearchModal(context),
           ),
         ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // DASHBOARD STAT CARDS (Side-by-side Courses & Certificates - Kuning & Hijau Metro)
-  // ─────────────────────────────────────────────────────────────────────────────
-  Widget _buildDashboardStatCards(BuildContext context) {
-    return Row(
-      children: [
-        // ── Card 1: Courses (Hijau Metro #018556) ──
-        Expanded(
-          child: _buildStatCard(
-            context: context,
-            count: courseCount,
-            label: 'Courses',
-            badgeBgColor: AppColors.accent, // Kuning Metro full solid
-            badgeIcon: Icons.business_center_rounded,
-            iconColor: AppColors.primary, // Hijau Metro
-            cardBgColor: AppColors.primary, // Hijau Metro (#018556)
-            isDarkBg: true,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.go(AppRoutes.learn);
-            },
-          ),
-        ),
-
-        const SizedBox(width: 14),
-
-        // ── Card 2: Certificates (Kuning Metro #FAE653) ──
-        Expanded(
-          child: _buildStatCard(
-            context: context,
-            count: certificateCount,
-            label: 'Certificates',
-            badgeBgColor: AppColors.primary, // Hijau Metro full solid
-            badgeIcon: Icons.workspace_premium_rounded,
-            iconColor: Colors.white, // Putih kontras di atas hijau
-            cardBgColor: AppColors.accent, // Kuning Metro (#FAE653)
-            isDarkBg: false,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.go(AppRoutes.certificate);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required BuildContext context,
-    required int count,
-    required String label,
-    required Color badgeBgColor,
-    required IconData badgeIcon,
-    required Color iconColor,
-    required Color cardBgColor,
-    required bool isDarkBg,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 168,
-        decoration: BoxDecoration(
-          color: cardBgColor,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: isDarkBg
-                  ? const Color(0xFF018556).withValues(alpha: 0.28)
-                  : const Color(0xFFFAE653).withValues(alpha: 0.35),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top left unified solid circular badge
-                  _buildSolidBadge(
-                    badgeBgColor: badgeBgColor,
-                    icon: badgeIcon,
-                    iconColor: iconColor,
-                  ),
-
-                  // Center Big Number & Subtitle
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '$count',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 38,
-                              fontWeight: FontWeight.w800,
-                              color: isDarkBg ? Colors.white : const Color(0xFF0D1117),
-                              height: 1.1,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            label,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: isDarkBg
-                                  ? Colors.white.withValues(alpha: 0.92)
-                                  : const Color(0xFF0D1117).withValues(alpha: 0.75),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-      ),
-    );
-  }
-
-  Widget _buildSolidBadge({
-    required Color badgeBgColor,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: badgeBgColor,
-        shape: BoxShape.circle,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        icon,
-        color: iconColor,
-        size: 21,
       ),
     );
   }

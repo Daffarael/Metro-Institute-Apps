@@ -6,6 +6,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../data/repositories/auth_repository.dart';
+import '../../../common/widgets/tear_ticket_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -50,29 +51,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar Akun', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
-        content: const Text('Apakah Anda yakin ingin keluar dari akun Metro Institute?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
+    final confirm = await TearTicketDialog.show(
+      context,
+      title: 'Keluar dari Akun',
+      description: 'Apakah Anda yakin ingin keluar dari akun Metro Institute Anda?',
+      ticketLabel: 'Keluar Akun',
+      ticketSubtitle: 'Sobek tiket untuk keluar',
+      stubLabel: 'SOBEK',
     );
 
     if (confirm == true) {
@@ -98,11 +83,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         scrolledUnderElevation: 0,
         title: Text(
           'Profil Saya',
-          style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF063D2A),
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF063D2A)),
             onPressed: () => context.push(AppRoutes.notifications),
           ),
         ],
@@ -118,78 +107,117 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Profile Header Card (Pastel squircle with defined border)
+                    // Profile Header Card (Clean Metro White Squircle)
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white, // Clean white card (no purple)
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x0E0F172A),
+                            color: Color(0x0C063D2A),
                             blurRadius: 18,
                             spreadRadius: 1,
                             offset: Offset(0, 5),
                           ),
                         ],
                       ),
-                      child: Column(
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 34,
-                                backgroundColor: AppColors.primaryLight,
-                                child: Text(
-                                  name.isNotEmpty ? name[0].toUpperCase() : 'M',
-                                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.primary),
+                          Container(
+                            width: 66,
+                            height: 66,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.accent, width: 2.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.25),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : 'M',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      name,
-                                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      email,
-                                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryLight,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF063D2A),
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  email,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: const Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF9C3),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFFDE047), width: 1),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.shield_rounded, size: 13, color: Color(0xFFB45309)),
+                                      const SizedBox(width: 5),
+                                      Text(
                                         badge.replaceAll('_', ' '),
-                                        style: const TextStyle(
-                                          color: AppColors.primary,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: const Color(0xFF92400E),
                                           fontSize: 11,
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.3,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE6F4EF),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
-                                tooltip: 'Edit Profil',
-                                onPressed: () async {
-                                  final updated = await context.push<bool>(AppRoutes.editProfile);
-                                  if (updated == true) {
-                                    _loadUser();
-                                  }
-                                },
-                              ),
-                            ],
+                              child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+                            ),
+                            tooltip: 'Edit Profil',
+                            onPressed: () async {
+                              final updated = await context.push<bool>(AppRoutes.editProfile);
+                              if (updated == true) _loadUser();
+                            },
                           ),
                         ],
                       ),
@@ -197,9 +225,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Gamification Highlights (Pastel squircle cards from Reference Image)
+                    // Gamification Highlights (Metro Green & Metro Yellow Cards)
                     Row(
                       children: [
+                        // TOTAL XP CARD (KUNING METRO)
                         Expanded(
                           child: InkWell(
                             onTap: () => context.push(AppRoutes.xpActivity),
@@ -207,14 +236,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF9EE), // Pastel cream
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFFAE653), Color(0xFFFDE047)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: Colors.white, width: 1.5),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Color(0x0A0F172A),
+                                    color: Color(0x22FACC15),
                                     blurRadius: 14,
-                                    offset: Offset(0, 3),
+                                    offset: Offset(0, 4),
                                   ),
                                 ],
                               ),
@@ -226,19 +259,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(6),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: const Color(0xFF063D2A),
                                           borderRadius: BorderRadius.circular(8),
                                         ),
-                                        child: const Icon(Icons.stars_rounded, color: AppColors.xp, size: 18),
+                                        child: const Icon(Icons.stars_rounded, color: Color(0xFFFAE653), size: 16),
                                       ),
                                       const SizedBox(width: 8),
-                                      const Text('Total XP', style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                                      Text(
+                                        'Total XP',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12,
+                                          color: const Color(0xFF063D2A),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
                                     '$totalXp XP',
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFF063D2A),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -246,18 +290,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
+
+                        // STREAK CARD (HIJAU METRO)
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1FBF6), // Pastel mint
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF018556), Color(0xFF016B44)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: Colors.white, width: 1.5),
                               boxShadow: const [
                                 BoxShadow(
-                                  color: Color(0x0A0F172A),
+                                  color: Color(0x24018556),
                                   blurRadius: 14,
-                                  offset: Offset(0, 3),
+                                  offset: Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -269,19 +319,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(6),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: const Color(0xFFFAE653),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: const Icon(Icons.local_fire_department_rounded, color: AppColors.streak, size: 18),
+                                      child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFF063D2A), size: 16),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Text('Streak', style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                                    Text(
+                                      'Streak',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
                                   '$streak Hari',
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),
@@ -292,21 +353,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    const Text(
+                    Text(
                       'Aktivitas & Pembelajaran',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF063D2A),
+                      ),
                     ),
                     const SizedBox(height: 10),
 
-                    // Section 1: Learning & Gamification (Reference squircle)
+                    // Section 1: Learning & Gamification
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x0A0F172A),
+                            color: Color(0x0A063D2A),
                             blurRadius: 16,
                             offset: Offset(0, 4),
                           ),
@@ -321,21 +386,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             subtitle: 'Periksa catatan perolehan poin XP Anda',
                             onTap: () => context.push(AppRoutes.xpActivity),
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0xFFE2E8F0)),
+                          const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.receipt_long_rounded,
-                            iconColor: AppColors.info,
+                            iconColor: AppColors.primary,
                             title: 'Riwayat Transaksi',
                             subtitle: 'Status pembayaran kelas, webinar, dan bootcamp',
                             onTap: () => context.push(AppRoutes.transactions),
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0xFFE2E8F0)),
+                          const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.psychology_outlined,
-                            iconColor: const Color(0xFF8B5CF6),
+                            iconColor: const Color(0xFF059669),
                             title: 'Tes Bakat & Minat (Skill Test)',
                             subtitle: 'Petakan jalur karir digital yang sesuai',
                             onTap: () => context.push(AppRoutes.skillTest),
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
+                          _menuTile(
+                            icon: Icons.workspace_premium_rounded,
+                            iconColor: const Color(0xFFD97706),
+                            title: 'Sertifikat Saya',
+                            subtitle: 'Periksa dan unduh kredensial sertifikat Anda',
+                            onTap: () => context.go(AppRoutes.certificates),
                           ),
                         ],
                       ),
@@ -343,9 +416,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    const Text(
+                    Text(
                       'Pengaturan & Akun',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF063D2A),
+                      ),
                     ),
                     const SizedBox(height: 10),
 
@@ -354,10 +431,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x0A0F172A),
+                            color: Color(0x0A063D2A),
                             blurRadius: 16,
                             offset: Offset(0, 4),
                           ),
@@ -367,7 +444,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           _menuTile(
                             icon: Icons.person_outline_rounded,
-                            iconColor: AppColors.textSecondary,
+                            iconColor: const Color(0xFF64748B),
                             title: 'Edit Informasi Profil',
                             subtitle: 'Perbarui nama, nomor WhatsApp, dan bio',
                             onTap: () async {
@@ -375,26 +452,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (updated == true) _loadUser();
                             },
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0xFFE2E8F0)),
+                          const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.lock_outline_rounded,
-                            iconColor: AppColors.textSecondary,
-                            title: 'Keamanan & Ganti Password',
+                            iconColor: const Color(0xFF64748B),
+                            title: 'Keamanan & Ganti Sandi',
                             subtitle: 'Atur ulang kata sandi akun Anda',
                             onTap: () => context.push(AppRoutes.changePassword),
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0xFFE2E8F0)),
+                          const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.notifications_none_rounded,
-                            iconColor: AppColors.textSecondary,
+                            iconColor: const Color(0xFF64748B),
                             title: 'Pemberitahuan & Notifikasi',
                             subtitle: 'Lihat pesan sistem dan pengingat kelas',
                             onTap: () => context.push(AppRoutes.notifications),
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0xFFE2E8F0)),
+                          const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.help_outline_rounded,
-                            iconColor: AppColors.textSecondary,
+                            iconColor: const Color(0xFF64748B),
                             title: 'Bantuan & FAQ',
                             subtitle: 'Panduan platform Metro Institute',
                             onTap: () {
@@ -407,22 +484,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      const Text('Pusat Bantuan Mentee', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                                      Text(
+                                        'Pusat Bantuan Mentee',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF063D2A),
+                                        ),
+                                      ),
                                       const SizedBox(height: 12),
-                                      const Text(
+                                      Text(
                                         'Jika Anda mengalami kendala terkait materi, sertifikat, atau pembayaran, silakan hubungi tim support Metro Institute melalui WhatsApp atau email resmi kami di support@metroinstitute.id.',
-                                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                          color: const Color(0xFF64748B),
+                                          height: 1.5,
+                                        ),
                                       ),
                                       const SizedBox(height: 20),
                                       ElevatedButton(
                                         onPressed: () => Navigator.pop(ctx),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF0F172A),
+                                          backgroundColor: AppColors.primary,
                                           foregroundColor: Colors.white,
                                           elevation: 0,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                         ),
-                                        child: const Text('Mengerti'),
+                                        child: Text(
+                                          'Mengerti',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -436,30 +531,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 28),
 
-                    // Logout Button (Clean squircle pill)
-                    OutlinedButton(
-                      onPressed: _handleLogout,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error, width: 1.2),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.logout_rounded, size: 18),
-                          SizedBox(width: 8),
-                          Text('Keluar dari Akun', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                        ],
+                    // Destructive Logout Card (Triggers Tiket Sobek)
+                    InkWell(
+                      onTap: _handleLogout,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.logout_rounded, size: 20, color: Color(0xFFDC2626)),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Keluar dari Akun',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                color: const Color(0xFFDC2626),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
-                    const Center(
+                    Center(
                       child: Text(
                         'Metro Institute Mobile • v1.0.0',
-                        style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF94A3B8),
+                        ),
                       ),
                     ),
                   ],
@@ -498,17 +607,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF063D2A),
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: const Color(0xFF64748B),
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textTertiary),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFFCBD5E1)),
           ],
         ),
       ),

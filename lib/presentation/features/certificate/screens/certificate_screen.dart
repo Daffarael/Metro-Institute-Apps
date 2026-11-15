@@ -1382,37 +1382,19 @@ class _CertCard extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      Text(
-                        'Diterbitkan $_dateStr',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF64748B),
+                      Expanded(
+                        child: Text(
+                          'Diterbitkan $_dateStr',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF64748B),
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Credential ID Pill (Metro Green Tint)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE6F4EF),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: const Color(0xFF018556).withValues(alpha: 0.15),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      'ID: $_credId',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF018556),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 16),
 
