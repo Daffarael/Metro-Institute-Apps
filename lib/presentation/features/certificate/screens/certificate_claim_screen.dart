@@ -89,9 +89,13 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
       if (matched != null) {
         final prodType = matched['productType']?.toString().toUpperCase() ?? '';
         final credId = matched['credentialId']?.toString().toUpperCase() ?? '';
-        if (matched['courseId'] != null || prodType == 'MINI_COURSE' || credId.contains('COURSE')) {
+        if (matched['courseId'] != null ||
+            prodType == 'MINI_COURSE' ||
+            credId.contains('COURSE')) {
           _isBootcampActual = false;
-        } else if (matched['bootcampId'] != null || prodType == 'BOOTCAMP' || credId.contains('BOOT')) {
+        } else if (matched['bootcampId'] != null ||
+            prodType == 'BOOTCAMP' ||
+            credId.contains('BOOT')) {
           _isBootcampActual = true;
         }
       }
@@ -99,7 +103,8 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
       // If matched, extract properties
       if (matched != null) {
         _cert = matched;
-        _credentialId = matched['credentialId']?.toString() ??
+        _credentialId =
+            matched['credentialId']?.toString() ??
             (_isBootcampActual
                 ? 'METRO-BOOT-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}'
                 : 'METRO-COURSE-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}');
@@ -127,7 +132,8 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
         // Fallback certificate synthesis if record is still syncing
         final now = DateTime.now();
         _dateStr = '${now.day} ${_monthName(now.month)} ${now.year}';
-        _credentialId = widget.credentialId ??
+        _credentialId =
+            widget.credentialId ??
             (_isBootcampActual
                 ? 'METRO-BOOT-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}'
                 : 'METRO-COURSE-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}');
@@ -170,7 +176,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
       'September',
       'Oktober',
       'November',
-      'Desember'
+      'Desember',
     ];
     return (m >= 1 && m <= 12) ? n[m] : '';
   }
@@ -178,8 +184,10 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
   Future<void> _launchPublicVerify(String url) async {
     final uri = Uri.parse(url);
     try {
-      final launched =
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched) {
         final fallback = await launchUrl(uri, mode: LaunchMode.platformDefault);
         if (!fallback) {
@@ -204,8 +212,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final verifyUrl =
-        'https://metroinstitute.site/certificate/$_credentialId';
+    final verifyUrl = 'https://metroinstitute.site/certificate/$_credentialId';
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F5),
@@ -215,8 +222,11 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF0F172A), size: 18),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Color(0xFF0F172A),
+            size: 18,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -256,7 +266,9 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF018556).withOpacity(0.22),
+                          color: const Color(
+                            0xFF018556,
+                          ).withValues(alpha: 0.22),
                           blurRadius: 18,
                           offset: const Offset(0, 6),
                         ),
@@ -297,7 +309,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.white.withOpacity(0.85),
+                                  color: Colors.white.withValues(alpha: 0.85),
                                   height: 1.3,
                                 ),
                               ),
@@ -326,7 +338,9 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                       child: CertificateCanvasWidget(
                         imageUrl: _imageUrl,
                         config: _config,
-                        productType: _isBootcampActual ? 'BOOTCAMP' : 'MINI_COURSE',
+                        productType: _isBootcampActual
+                            ? 'BOOTCAMP'
+                            : 'MINI_COURSE',
                         menteeName: _menteeName,
                         courseTitle: widget.courseTitle,
                         dateStr: _dateStr,
@@ -379,7 +393,9 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                             Flexible(
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF1F5F9),
                                   borderRadius: BorderRadius.circular(8),
@@ -399,10 +415,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                           ],
                         ),
                         const Divider(height: 18, color: Color(0xFFF1F5F9)),
-                        _buildInfoRow(
-                          label: 'Tanggal Terbit',
-                          value: _dateStr,
-                        ),
+                        _buildInfoRow(label: 'Tanggal Terbit', value: _dateStr),
                         const Divider(height: 18, color: Color(0xFFF1F5F9)),
                         _buildInfoRow(
                           label: 'Validasi',
@@ -424,7 +437,9 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                       context: context,
                       imageUrl: _imageUrl,
                       config: _config,
-                      productType: widget.isBootcamp ? 'BOOTCAMP' : 'MINI_COURSE',
+                      productType: widget.isBootcamp
+                          ? 'BOOTCAMP'
+                          : 'MINI_COURSE',
                       menteeName: _menteeName,
                       courseTitle: widget.courseTitle,
                       dateStr: _dateStr,
@@ -435,8 +450,11 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.file_download_outlined,
-                            color: Colors.white, size: 20),
+                        const Icon(
+                          Icons.file_download_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Unduh Sertifikat (PDF)',
@@ -456,7 +474,10 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                     onPressed: () => _launchPublicVerify(verifyUrl),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+                      side: const BorderSide(
+                        color: Color(0xFFE2E8F0),
+                        width: 1.2,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -465,8 +486,11 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.open_in_new_rounded,
-                            color: Color(0xFF334155), size: 16),
+                        const Icon(
+                          Icons.open_in_new_rounded,
+                          color: Color(0xFF334155),
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Verifikasi Sertifikat Online',
@@ -520,10 +544,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                   textAlign: TextAlign.end,
                 ),
               ),
-              if (trailing != null) ...[
-                const SizedBox(width: 4),
-                trailing,
-              ],
+              if (trailing != null) ...[const SizedBox(width: 4), trailing],
             ],
           ),
         ),
@@ -531,4 +552,3 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
     );
   }
 }
-

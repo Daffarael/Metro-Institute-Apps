@@ -454,10 +454,28 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildPortraitContent() {
     final title = (_detail?['title'] ?? widget.item['title']) as String? ?? 'Detail Kelas';
-    final rawDesc = _detail?['description'] ?? _detail?['shortDescription'] ?? widget.item['description'] ?? widget.item['shortDescription'] ?? '';
-    final description = rawDesc.toString().trim().isNotEmpty
-        ? rawDesc.toString().trim()
-        : 'Pelajari kurikulum terstruktur dengan panduan praktis dan materi berkualitas tinggi.';
+    
+    // Resolve dynamic description directly from admin/database (no hardcoded marketing filler)
+    String description = '';
+    final descCandidates = [
+      _detail?['description'],
+      _detail?['descLong'],
+      widget.item['description'],
+      widget.item['descLong'],
+      _detail?['shortDescription'],
+      _detail?['descShort'],
+      widget.item['shortDescription'],
+      widget.item['descShort'],
+    ];
+    for (final cand in descCandidates) {
+      if (cand != null && cand.toString().trim().isNotEmpty) {
+        description = cand.toString().trim();
+        break;
+      }
+    }
+    if (description.isEmpty) {
+      description = 'Belum ada deskripsi yang ditambahkan untuk kelas ini.';
+    }
     final rawThumb = (_detail?['bannerUrl'] ??
             _detail?['thumbnailUrl'] ??
             _detail?['thumbnail'] ??
@@ -470,9 +488,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final thumbnail = rawThumb.startsWith('http://') || rawThumb.startsWith('https://')
         ? rawThumb
         : (rawThumb.startsWith('/') ? 'https://api.metroinstitute.site$rawThumb' : (rawThumb.isNotEmpty ? 'https://$rawThumb' : ''));
-    final mentorName = (_detail?['instructor']?['name'] ?? _detail?['mentorName'] ?? widget.item['instructor']?['name'] ?? widget.item['mentorName']) as String? ?? 'Mentor Metro';
-    final mentorPhoto = (_detail?['instructor']?['avatar'] ?? _detail?['mentorPhotoUrl'] ?? widget.item['instructor']?['avatar'] ?? widget.item['mentorPhotoUrl']) as String? ?? '';
-    final rating = ((_detail?['rating'] ?? widget.item['rating']) as num?)?.toDouble() ?? 0.0;
     final price = ((_detail?['price'] ?? widget.item['price']) as num?)?.toInt() ?? 0;
     final priceStr = price == 0 ? 'GRATIS' : 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
     final isEnrolled = _detail?['isEnrolled'] == true || widget.item['isEnrolled'] == true;
@@ -533,137 +548,176 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           SafeArea(
             top: true,
             bottom: false,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
-                  _buildTopThumbnail(mediaHeight, thumbnail),
+            child: ScrollConfiguration(
+              behavior: const ScrollBehavior().copyWith(overscroll: false),
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. TOP VIDEO CONTAINER with rounded bottom corners (Thumbnail fills card completely)
+                    _buildTopThumbnail(mediaHeight, thumbnail),
 
-                  // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons)
-                  Transform.translate(
-                    offset: const Offset(0, -22),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildStatsCard(
-                        timeDisplay,
-                        lessonsDisplay,
-                        onTapLessons: () => setState(() => _selectedTab = 1),
+                    // 2. STATS CAPSULE CARD (Floating Bridge: Time & Lessons)
+                    Transform.translate(
+                      offset: const Offset(0, -22),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _buildStatsCard(
+                          timeDisplay,
+                          lessonsDisplay,
+                          onTapLessons: () => setState(() => _selectedTab = 1),
+                        ),
                       ),
                     ),
-                  ),
 
-                  // 3. FLOATING WHITE CONTENT CARD WITH SIGNATURE SCOOPED NOTCH HANDLE & LESSONS
-                  Transform.translate(
-                    offset: const Offset(0, -10),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: ScoopedCardDecoration(
-                        child: Container(
-                          width: double.infinity,
-                          color: Colors.transparent,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // ── TOP HANDLE NOTCH (Elevated / Floating above the scooped dip) ──
-                              Center(
-                                child: Transform.translate(
-                                  offset: const Offset(0, -9),
-                                  child: Container(
-                                    width: 58,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEDE8E3),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: const Color(0xFFE2DDD6),
-                                        width: 0.8,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.12),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.04),
-                                          blurRadius: 2,
-                                          offset: const Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    alignment: Alignment.center,
+                    // 3. FLOATING WHITE CONTENT CARD WITH SIGNATURE SCOOPED NOTCH HANDLE & LESSONS
+                    Transform.translate(
+                      offset: const Offset(0, -10),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ScoopedCardDecoration(
+                          child: Container(
+                            width: double.infinity,
+                            color: Colors.transparent,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // ── TOP HANDLE NOTCH (Elevated / Floating above the scooped dip) ──
+                                Center(
+                                  child: Transform.translate(
+                                    offset: const Offset(0, -9),
                                     child: Container(
-                                      width: 24,
-                                      height: 3.5,
+                                      width: 58,
+                                      height: 16,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF4F4D50),
-                                        borderRadius: BorderRadius.circular(2),
+                                        color: const Color(0xFFEDE8E3),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: const Color(0xFFE2DDD6),
+                                          width: 0.8,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.12),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.04),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Container(
+                                        width: 24,
+                                        height: 3.5,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF4F4D50),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
 
-                              // ── COURSE TITLE ──
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(18, 6, 18, 16),
-                                child: Text(
-                                  title,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFF1E1B18),
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.4,
-                                    height: 1.25,
+                                // ── COURSE TITLE ──
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(18, 6, 18, 16),
+                                  child: Text(
+                                    title,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFF1E1B18),
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.4,
+                                      height: 1.25,
+                                    ),
                                   ),
                                 ),
-                              ),
 
-                              // ── SEGMENTED TAB BAR ("Description" vs "Lessons") ──
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 18),
-                                child: _buildSegmentedTabBar(),
-                              ),
-                              const SizedBox(height: 20),
+                                // ── SEGMENTED TAB BAR ("Description" vs "Lessons") ──
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                                  child: _buildSegmentedTabBar(),
+                                ),
+                                const SizedBox(height: 20),
 
-                              // ── TAB CONTENT: Description vs Lessons ──
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(18, 0, 18, 120),
-                                child: _selectedTab == 0
-                                    ? Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Description text
-                                          Text(
-                                            description,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              color: const Color(0xFF6B655F),
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
-                                              height: 1.6,
+                                // ── TAB CONTENT: Description vs Lessons ──
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 120),
+                                  child: _selectedTab == 0
+                                      ? Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            // Dynamic description text from Admin
+                                            Text(
+                                              description,
+                                              style: GoogleFonts.plusJakartaSans(
+                                                color: const Color(0xFF4A453E),
+                                                fontSize: 14.5,
+                                                fontWeight: FontWeight.w400,
+                                                height: 1.65,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 24),
-
-                                          // Mentor & Rating Row
-                                          _buildMentorAndRatingRow(mentorName, mentorPhoto, rating),
-                                          const SizedBox(height: 24),
-
-                                          // Course Benefits / Highlights Card
-                                          _buildCourseHighlightsCard(),
-                                        ],
-                                      )
-                                    : _buildLessonsList(chapters, isEnrolled, price),
-                              ),
-                            ],
+                                            () {
+                                              final outcomes = ((_detail?['outcomes'] ?? widget.item['outcomes']) as List?)?.whereType<String>().toList();
+                                              if (outcomes != null && outcomes.isNotEmpty) {
+                                                return Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const SizedBox(height: 20),
+                                                    Text(
+                                                      'Yang Akan Kamu Pelajari',
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: const Color(0xFF1E1B18),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+                                                    for (final o in outcomes)
+                                                      Padding(
+                                                        padding: const EdgeInsets.only(bottom: 8),
+                                                        child: Row(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            const Padding(
+                                                              padding: EdgeInsets.only(top: 4, right: 8),
+                                                              child: Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF143E26)),
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                o,
+                                                                style: GoogleFonts.plusJakartaSans(
+                                                                  fontSize: 13.5,
+                                                                  color: const Color(0xFF4A453E),
+                                                                  height: 1.5,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                  ],
+                                                );
+                                              }
+                                              return const SizedBox.shrink();
+                                            }(),
+                                          ],
+                                        )
+                                      : _buildLessonsList(chapters, isEnrolled, price),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -904,72 +958,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // COURSE HIGHLIGHTS / BENEFITS (Shown inside Description Tab)
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildCourseHighlightsCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFEBE6DF)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Keunggulan Program',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1E1B18),
-            ),
-          ),
-          const SizedBox(height: 14),
-          _buildHighlightItem(Icons.all_inclusive_rounded, 'Akses materi selamanya tanpa batas'),
-          const SizedBox(height: 10),
-          _buildHighlightItem(Icons.verified_rounded, 'Sertifikat resmi kelulusan Metro Institute'),
-          const SizedBox(height: 10),
-          _buildHighlightItem(Icons.forum_rounded, 'Grup diskusi komunitas belajar & mentoring'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHighlightItem(IconData icon, String text) {
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: const Color(0xFF143E26), size: 18),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF4A453E),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // STATS CAPSULE CARD (Time & Lessons from reference design)
@@ -1118,96 +1106,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // 2. MENTOR & RATING ROW (Cream UI)
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildMentorAndRatingRow(String mentorName, String mentorPhoto, double rating) {
-    return Row(
-      children: [
-        // Avatar with gradient border ring matching screenshot
-        Container(
-          width: 48,
-          height: 48,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [Color(0xFFF43F5E), Color(0xFF8B5CF6), Color(0xFF3B82F6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          padding: const EdgeInsets.all(2.2),
-          child: ClipOval(
-            child: mentorPhoto.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: mentorPhoto,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: const Color(0xFFEADBCE)),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFFEADBCE),
-                      child: const Icon(Icons.person, color: Color(0xFF8C827A), size: 24),
-                    ),
-                  )
-                : Container(
-                    color: const Color(0xFFEADBCE),
-                    child: const Icon(Icons.person, color: Color(0xFF8C827A), size: 24),
-                  ),
-          ),
-        ),
-        const SizedBox(width: 14),
-
-        // Mentor label & name
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'By',
-                style: GoogleFonts.plusJakartaSans(
-                  color: const Color(0xFF8C827A),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                mentorName,
-                style: GoogleFonts.plusJakartaSans(
-                  color: const Color(0xFF1E1B18),
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w700,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-
-        // Rating with yellow star (only if rating > 0)
-        if (rating > 0)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                rating.toStringAsFixed(1),
-                style: GoogleFonts.plusJakartaSans(
-                  color: const Color(0xFF1E1B18),
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 5),
-              const Icon(
-                Icons.star_rounded,
-                color: Color(0xFFF59E0B),
-                size: 20,
-              ),
-            ],
-          ),
-      ],
-    );
-  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // ───────────────────────────────────────────────────────────────────────────

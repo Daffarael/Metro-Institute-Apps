@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,24 +11,6 @@ import 'text_effect.dart';
 
 /// SplashScreen — Staged Shield Construction, Framer Motion TextEffect,
 /// and Seamless Flight Transition to Top-Left Onboarding Header.
-///
-/// Urutan Animasi Sinematik:
-/// 1. [0.00 – 0.05] Ruang tenang, perisai MULAI PERSIS DI TITIK TENGAH LAYAR (Dead Center).
-/// 2. [0.05 – 0.25] Garis kontur perisai digambar sangat halus, lembut, dan melingkar.
-/// 3. [0.25 – 0.34] Perisai terisi warna hijau zamrud solid (#063D2A) secara lembut mengalir.
-/// 4. [0.34 – 0.46] 3 titik intan (diamonds) mekar anggun terlebih dahulu di puncak perisai.
-/// 5. [0.47 – 0.60] 4 garis pilar kaligrafi "M" asli terukir mengalir perlahan turun ke bawah.
-/// 6. [0.60 – 0.67] Perisai utuh meluncur mulus dari titik tengah ke posisi kiri lockup.
-/// 7. [0.67 – 0.82] Teks "Metro" mekar dengan TextEffect.
-/// 8. [0.81 – 0.97] Teks "Institute" mekar menyusul tepat di bawahnya.
-/// 9. [0.97 – 1.00] Logo utuh dinikmati sejenak sebelum transisi mendarat.
-/// 9. [Flight Transition: ~950ms]:
-///    - Background onboarding malam hari melarut lembut menggantikan latar putih.
-///    - Perisai & teks "Metro Institute" terbang anggun dari titik tengah ke kiri atas.
-///    - Ukuran perisai mengecil dari 82x104 ke 32x38.
-///    - Warna perisai & teks berganti dari hijau zamrud (#063D2A) ke putih murni (Colors.white).
-///    - Teks "Metro" & "Institute" menyatu dari 2 baris menjadi 1 baris horizontal.
-///    - Elemen onboarding (headline & tombol) muncul menyambut pengguna saat logo mendarat di kiri atas.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -59,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _metroTypeProgress;
   late Animation<double> _instituteTypeProgress;
 
+  bool _hasTriggeredOutlineStartHaptic = false;
   bool _hasTriggeredDot1Haptic = false;
   bool _hasTriggeredDot2Haptic = false;
   bool _hasTriggeredDot3Haptic = false;
@@ -70,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   // Warna Brand Utama Metro Institute
   static const Color _brandColor = Color(0xFF063D2A); // Hijau Zamrud Mewah & Kontras Tinggi
 
-  double _measuredMetroWordWidth = 52.5; // Lebar presisi 'Metro ' pada 16.5px bold (termasuk spasi & kerning)
+  double _measuredMetroWordWidth = 52.5; // Lebar presisi 'Metro ' pada 16.5px w700
   double _headerTextHeight = 21.0; // Tinggi teks header onboarding
   double _metroBigHeight = 35.7; // Tinggi 'Metro' 34px bold
   double _instituteBigHeight = 35.7; // Tinggi 'Institute' 34px bold
@@ -83,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   void _measureTextDimensions() {
     try {
-      // Ukur teks header penuh 'Metro Institute' (16.5px bold, height 1.15)
+      // Ukur teks header penuh 'Metro Institute' (16.5px w700, height 1.15, matching LoginScreen)
       final tpHeaderFull = TextPainter(
         text: TextSpan(
           text: 'Metro Institute',
@@ -101,7 +85,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
 
       // Offset caret persis di huruf ke-6 ('I' pada 'Metro Institute')
-      // Mengukur lebar 'Metro' + spasi + kerning font secara presisi sub-pixel
       final caretOffset = tpHeaderFull.getOffsetForCaret(
         const TextPosition(offset: 6),
         Rect.zero,
@@ -135,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           text: 'Metro',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 34,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             letterSpacing: -0.8,
             height: 1.05,
           ),
@@ -151,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           text: 'Institute',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 34,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             letterSpacing: -0.8,
             height: 1.05,
           ),
@@ -181,16 +164,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
     if (!mounted) return;
 
-    // 2. Jeda sangat singkat (60ms) agar mata pengguna siap
-    await Future.delayed(const Duration(milliseconds: 350));
+    // 2. Jeda settle 1100ms: Memastikan native splash window OS (Android 12+ SplashScreen / WindowManager)
+    // sudah 100% lenyap dan user sudah memandang layar putih bersih sebelum garis outline pertama mulai digambar.
+    // Menjamin pada 'flutter run' (cold boot) maupun hot restart, outline SELALU mulai digambar dari 0%.
+    await Future.delayed(const Duration(milliseconds: 1100));
     if (!mounted) return;
 
-    // 3. Pre-cache gambar ditunda di background agar Frame 1 sama sekali tidak lag
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    // 3. TUNDA pre-cache gambar onboarding sampai ukiran logo SELESAI (3800ms)
+    // Hal ini KUNCI agar UI thread 100% bebas dari lag decode gambar saat garis outline digambar dari 0%!
+    Future.delayed(const Duration(milliseconds: 3800), () {
       if (!mounted) return;
-      precacheImage(const AssetImage('assets/images/onboarding_intro.jpg'), context);
-      precacheImage(const AssetImage('assets/images/metro_shield.png'), context);
-      _measureTextDimensions();
+      precacheImage(const AssetImage('assets/images/onboarding_illu_1.png'), context);
+      precacheImage(const AssetImage('assets/images/onboarding_illu_2.png'), context);
     });
 
     // 4. Mulai perakitan logo — garis bingkai dijamin 100% terlihat digambar dari 0%
@@ -198,93 +183,98 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _initAnimations() {
-    // 7600ms: Durasi sinematik logo assembly & typing
+    // 8200ms: Durasi sinematik logo assembly & typing
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 7600),
+      duration: const Duration(milliseconds: 8200),
     );
 
-    // 1. Tracing Outline: Garis perisai digambar melingkar sangat halus (300ms – 1900ms)
+    // 1. Tracing Outline: Garis perisai digambar melingkar sangat halus dari titik 0% (0.00 – 0.24)
+    // Memberikan durasi tracing penuh ~1960ms tanpa hambatan apapun!
     _outlineProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.02, 0.25, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.00, 0.24, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 2. Perisai hijau terisi secara lembut (1900ms – 2740ms)
+    // 2. Perisai hijau terisi secara lembut (0.24 – 0.35)
     _shieldFillOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.25, 0.36, curve: Curves.easeOutCubic),
+        curve: const Interval(0.24, 0.35, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 3. Tiga buah intan muncul TERLEBIH DAHULU di puncak (34% – 46%)
+    // 3. Tiga buah intan muncul TERLEBIH DAHULU di puncak (0.35 – 0.47)
     _dot1Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.34, 0.40, curve: Curves.easeOutCubic),
+        curve: const Interval(0.35, 0.41, curve: Curves.easeOutCubic),
       ),
     );
     _dot2Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.37, 0.43, curve: Curves.easeOutCubic),
+        curve: const Interval(0.38, 0.44, curve: Curves.easeOutCubic),
       ),
     );
     _dot3Carve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.40, 0.46, curve: Curves.easeOutCubic),
+        curve: const Interval(0.41, 0.47, curve: Curves.easeOutCubic),
       ),
     );
 
-    // 4. Setelah tiga buah intan muncul, baru garis-garis "M" terukir perlahan (47% – 60%)
+    // 4. Garis-garis "M" terukir perlahan (0.47 – 0.62)
     _pillarsCarve = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.47, 0.60, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.47, 0.62, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 5. Perisai utuh meluncur mulus dari titik tengah absolut ke posisi kiri (60% – 67%)
+    // 5. Perisai utuh meluncur mulus dari titik tengah absolut ke posisi kiri (0.62 – 0.69)
     _logoShiftProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.60, 0.67, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.62, 0.69, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 6. Animasi "Metro" via Framer Motion TextEffect Blur Preset (67% – 82%)
+    // 6. Animasi "Metro" via Framer Motion TextEffect Blur Preset (0.69 – 0.84)
     _metroTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.67, 0.82, curve: Curves.linear),
+        curve: const Interval(0.69, 0.84, curve: Curves.linear),
       ),
     );
 
-    // Animasi "Institute" via Framer Motion TextEffect Blur Preset di bawahnya (81% – 97%)
+    // Animasi "Institute" via Framer Motion TextEffect Blur Preset di bawahnya (0.83 – 0.98)
     _instituteTypeProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.81, 0.97, curve: Curves.linear),
+        curve: const Interval(0.83, 0.98, curve: Curves.linear),
       ),
     );
 
-    // 6. Flight Controller: Gerakan logo & teks ke kiri atas (1600ms dengan kurva fluid ease)
+    // 6. Flight Controller: Gerakan logo & teks ke kiri atas (2200ms dengan kurva easeInOut yang halus, konsisten & terlihat nyata di tiap frame)
     _flightController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 2200),
     );
 
     _flightAnimation = CurvedAnimation(
       parent: _flightController,
-      curve: const Cubic(0.25, 0.1, 0.25, 1.0), // Gerakan mengalir mulus, proporsional & tanpa henti di ujung
+      curve: Curves.easeInOut,
     );
 
     // Haptic feedback saat ukiran selesai & saat setiap huruf diketik
     _controller.addListener(() {
+      if (_outlineProgress.value > 0.01 && !_hasTriggeredOutlineStartHaptic) {
+        _hasTriggeredOutlineStartHaptic = true;
+        HapticFeedback.selectionClick();
+      }
       if (_dot1Carve.value > 0.5 && !_hasTriggeredDot1Haptic) {
         _hasTriggeredDot1Haptic = true;
         HapticFeedback.selectionClick();
@@ -322,8 +312,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       // 1. Jalankan perakitan logo & teks mekar di tengah layar
       await _controller.forward();
 
-      // Jeda sejenak untuk mengagumi logo utuh di tengah
-      await Future.delayed(const Duration(milliseconds: 250));
+      // Jeda sejenak untuk mengagumi logo utuh di tengah layar
+      await Future.delayed(const Duration(milliseconds: 300));
       if (!mounted) return;
 
       final authRepo = sl<AuthRepository>();
@@ -342,15 +332,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         }
       } else {
         // 2. Jika belum login (Onboarding Flow):
-        // Jalankan animasi pergerakan logo & teks ke kiri atas dan perubahan warna
+        // Jalankan animasi pergerakan logo & teks ke kiri atas secara fluid dan lembut
         await _flightController.forward();
         if (!mounted) return;
 
-        // Jeda mikro 60ms agar frame landing benar-benar dinikmati mata sebelum pergantian rute
+        // Jeda hening 60ms agar frame landing benar-benar dinikmati mata sebelum pergantian rute
         await Future.delayed(const Duration(milliseconds: 60));
         if (!mounted) return;
 
-        // 3. Mendarat sempurna ke halaman login / onboarding
+        // 3. Mendarat instan ke halaman login karena frame akhir SplashScreen sudah 100% identik
         context.go(AppRoutes.login);
       }
     } catch (_) {
@@ -369,9 +359,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final topPadding = mediaQuery.padding.top;
+    final bottomInset = mediaQuery.padding.bottom;
     final screenSize = mediaQuery.size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final bottomBarHeight = 84.0 + (bottomInset > 0 ? bottomInset : 14.0);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -380,12 +372,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         builder: (context, _) {
           final flightT = _flightAnimation.value;
 
-          // ── 1. Geometri Perisai (Proporsi 100% Terkunci 82:104, Anti-Penyek) ──
+          // ── 1. Geometri Perisai (82x104 di tengah -> 32x38 di kiri atas) ──
           const shieldWStart = 82.0;
           const shieldHStart = 104.0;
-          const shieldAspect = shieldWStart / shieldHStart; // 0.78846
-
           const shieldHEnd = 38.0;
+          const shieldWEnd = 32.0;
           const gapStart = 18.0;
 
           // Lebar teks 2-baris di tengah layar
@@ -393,31 +384,29 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           const shiftDistance = (gapStart + textWidthInst) / 2; // 81.25
           final initialShift = -shiftDistance * _logoShiftProgress.value;
 
-          // Posisi Awal (Tengah Layar) & Posisi Akhir (Kiri Atas Onboarding)
+          // Posisi Awal (Tengah Layar)
           final startShieldLeft = (screenWidth / 2) - (shieldWStart / 2) + initialShift;
           final startShieldTop = (screenHeight - shieldHStart) / 2;
 
-          // Geometri Shield Box (Container 32x38 di LoginScreen)
-          const endShieldBoxLeft = 24.0; // Persis horizontal padding 24px LoginScreen
-          final endShieldTop = topPadding + 20.0; // Persis vertical padding 20px LoginScreen
+          // Posisi Akhir (Kiri Atas Onboarding - PERSIS LoginScreen horizontal: 24, vertical: 20)
+          const endShieldBoxLeft = 24.0;
+          final endShieldTop = topPadding + 20.0;
 
-          // Interpolasi posisi & ukuran box perisai (selalu proporsional, tanpa peregangan)
+          // Interpolasi posisi box perisai
           final currentShieldBoxLeft = ui.lerpDouble(startShieldLeft, endShieldBoxLeft, flightT)!;
           final currentShieldTop = ui.lerpDouble(startShieldTop, endShieldTop, flightT)!;
-          final currentShieldBoxWidth = ui.lerpDouble(shieldWStart, 32.0, flightT)!;
-          final currentShieldHeight = ui.lerpDouble(shieldHStart, shieldHEnd, flightT)!;
+          final shieldScaleX = ui.lerpDouble(1.0, shieldWEnd / shieldWStart, flightT)!;
+          final shieldScaleY = ui.lerpDouble(1.0, shieldHEnd / shieldHStart, flightT)!;
 
-          // Warna: mengalir lembut dari hijau zamrud (#063D2A) ke putih murni (Colors.white)
-          final currentBrandColor = Color.lerp(
+          // Warna: mengalir lembut dari hijau zamrud (#063D2A) ke hijau (#143E26) untuk teks
+          final currentTextColor = Color.lerp(
             _brandColor,
-            Colors.white,
+            const Color(0xFF143E26),
             flightT,
           )!;
 
-          // ── Posisi & Dimensi Teks (Bergerak Mulus Bersama Perisai) ─────────
-          final currentFontSize = ui.lerpDouble(34.0, 16.5, flightT)!;
-          final currentLetterSpacing = ui.lerpDouble(-0.8, -0.2, flightT)!;
-          final currentLineHeight = ui.lerpDouble(1.05, 1.15, flightT);
+          // Skala teks via GPU hardware scaling (34.0 -> 16.5)
+          final textScale = ui.lerpDouble(1.0, 16.5 / 34.0, flightT)!;
 
           // Total tinggi teks 2-baris di tengah layar
           final totalBigTextHeight = _metroBigHeight + 2.0 + _instituteBigHeight;
@@ -433,40 +422,44 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           final endTextTop = endShieldTop + (shieldHEnd - _headerTextHeight) / 2;
           final endInstituteLeft = endTextLeft + _measuredMetroWordWidth;
 
-          // Interpolasi Posisi 'Metro' (Melayang naik ke kiri atas bersama perisai)
+          // Interpolasi Posisi 'Metro'
           final currentMetroLeft = ui.lerpDouble(startTextLeft, endTextLeft, flightT)!;
           final currentMetroTop = ui.lerpDouble(startMetroTop, endTextTop, flightT)!;
 
-          // Interpolasi Posisi 'Institute' (Melayang dari bawah naik sejajar ke samping 'Metro')
+          // Interpolasi Posisi 'Institute'
           final currentInstituteLeft = ui.lerpDouble(startTextLeft, endInstituteLeft, flightT)!;
           final currentInstituteTop = ui.lerpDouble(startInstituteTop, endTextTop, flightT)!;
 
-          // ── Transisi Munculnya Elemen Onboarding (Baru Muncul Penuh Tepat Saat Logo & Teks Menetap di Kiri Atas) ──
-          // Background malam hari menggelap mengalir lembut seiring penerbangan (flightT 0.00 -> 1.00)
-          final bgNightOpacity = flightT;
+          // ── Transisi Elemen Onboarding (Muncul Bertahap & Elegan Saat Logo Bergerak) ──
+          final bgOpacity = Curves.easeInOut.transform(flightT);
 
-          // 1. Step Indicator di kanan atas: Mekar saat logo mendekati kiri atas (mencapai 100% di 1.0)
-          final stepIndicatorT = ((flightT - 0.40) / 0.60).clamp(0.0, 1.0);
-          final stepIndicatorOpacity = Curves.easeOutCubic.transform(stepIndicatorT);
+          // Step Indicator di kanan atas: Muncul perlahan saat logo mendekati atas (0.45 - 1.00)
+          final stepIndicatorT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
+          final stepIndicatorOpacity = Curves.easeInOut.transform(stepIndicatorT);
 
-          // 2. Headline "Langkah Awal...": Mengapung lembut dengan kurva perlambatan halus (easeOutCubic)
-          final headlineT = ((flightT - 0.45) / 0.55).clamp(0.0, 1.0);
+          // Ilustrasi Onboarding: Mulai mekar lembut hanya setelah logo sudah naik meninggalkan tengah layar (0.48 - 1.00)
+          final illuT = ((flightT - 0.48) / 0.52).clamp(0.0, 1.0);
+          final illuCurve = Curves.easeOutCubic.transform(illuT);
+          final illuOpacity = illuCurve;
+          final illuOffsetY = (1.0 - illuCurve) * 20.0;
+
+          // Headline Besar: Muncul perlahan mengikuti ilustrasi (0.52 - 1.00)
+          final headlineT = ((flightT - 0.52) / 0.48).clamp(0.0, 1.0);
           final headlineCurve = Curves.easeOutCubic.transform(headlineT);
           final headlineOpacity = headlineCurve;
           final headlineOffsetY = (1.0 - headlineCurve) * 20.0;
 
-          // 3. Subtitle "Pelajari keterampilan...": Mengikuti di bawah headline dengan lembut
-          final subtitleT = ((flightT - 0.52) / 0.48).clamp(0.0, 1.0);
+          // Subtitle: Mengalir perlahan setelah headline (0.58 - 1.00)
+          final subtitleT = ((flightT - 0.58) / 0.42).clamp(0.0, 1.0);
           final subtitleCurve = Curves.easeOutCubic.transform(subtitleT);
           final subtitleOpacity = subtitleCurve;
           final subtitleOffsetY = (1.0 - subtitleCurve) * 16.0;
 
-          // 4. Tombol Continue: Naik lembut dari bawah dengan kurva perlambatan halus (easeOutCubic)
-          final buttonT = ((flightT - 0.60) / 0.40).clamp(0.0, 1.0);
+          // Tombol "Let's Go" Full Bottom: Naik perlahan dari bawah layar (0.65 - 1.00)
+          final buttonT = ((flightT - 0.65) / 0.35).clamp(0.0, 1.0);
           final buttonCurve = Curves.easeOutCubic.transform(buttonT);
           final buttonOpacity = buttonCurve;
-          final buttonOffsetY = (1.0 - buttonCurve) * 20.0;
-          final buttonScale = 0.95 + (0.05 * buttonCurve);
+          final buttonOffsetY = (1.0 - buttonCurve) * 30.0;
 
           return SizedBox(
             width: screenWidth,
@@ -479,255 +472,292 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   child: Container(color: Colors.white),
                 ),
 
-                // ── Latar Belakang Onboarding Malam Hari (Pre-inflated, fade-in mulus saat terbang) ──
+                // ── Latar Belakang Onboarding Hangat (Fade-in mulus saat terbang) ──
                 Positioned.fill(
                   child: Opacity(
-                    opacity: bgNightOpacity,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.asset(
-                            'assets/images/onboarding_intro.jpg',
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => Container(color: const Color(0xFF0D1117)),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.55),
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.60),
-                                  Colors.black.withValues(alpha: 0.95),
-                                ],
-                                stops: const [0.0, 0.30, 0.60, 1.0],
-                              ),
-                            ),
-                          ),
-                        ],
+                    opacity: bgOpacity,
+                    child: Container(
+                      color: const Color(0xFFFAF7F2),
+                    ),
+                  ),
+                ),
+
+                // ── Lingkaran Gradien Dekoratif (Kuning & Mint) ──
+                Positioned(
+                  top: -50,
+                  right: -50,
+                  child: Opacity(
+                    opacity: bgOpacity,
+                    child: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFFEF9C3).withValues(alpha: 0.65),
                       ),
                     ),
                   ),
+                ),
+                Positioned(
+                  bottom: 120,
+                  left: -60,
+                  child: Opacity(
+                    opacity: bgOpacity,
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFE8F5E9).withValues(alpha: 0.55),
+                      ),
+                    ),
+                  ),
+                ),
 
-                // ── Elemen Pendukung Onboarding (Pre-inflated, zero frame-drop on flight start) ──
+                // ── Konten Onboarding (Step Indicator, Ilustrasi, Headline, Subtitle) ──
                 SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      child: IgnorePointer(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Top Row dengan placeholder transparan 38x32 untuk mengunci posisi Spacer & layout 100% identik dengan LoginScreen
-                            Row(
-                              children: [
-                                const SizedBox(height: 38, width: 32),
-                                const SizedBox(width: 10),
-                                const Spacer(),
-                                // Step Indicator di Kanan Atas (Mekar lembut seiring naiknya perisai)
-                                Opacity(
-                                  opacity: stepIndicatorOpacity,
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 20,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(2),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Container(
-                                        width: 8,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.35),
-                                          borderRadius: BorderRadius.circular(2),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-
-                            // Headline Besar Onboarding (Mengapung lembut ke atas dengan fade-in yang menenangkan)
-                            Opacity(
-                              opacity: headlineOpacity,
-                              child: Transform.translate(
-                                offset: Offset(0, headlineOffsetY),
-                                child: Text(
-                                  'Langkah Awal Menuju\nPotensi Tanpa Batas.',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    height: 1.15,
-                                    letterSpacing: -0.8,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Subtitle Onboarding: Muncul perlahan secara bertahap setelah headline
-                            Opacity(
-                              opacity: subtitleOpacity,
-                              child: Transform.translate(
-                                offset: Offset(0, subtitleOffsetY),
-                                child: const Text(
-                                  'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
-                                  style: TextStyle(
-                                    fontSize: 13.5,
-                                    color: Color(0xFFCBD5E1),
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 52),
-
-                            // Tombol Continue Onboarding: Muncul perlahan dari bawah setelah subtitle (100% identik dengan LoginScreen)
-                            Opacity(
-                              opacity: buttonOpacity,
-                              child: Transform.translate(
-                                offset: Offset(0, buttonOffsetY),
-                                child: Transform.scale(
-                                  scale: buttonScale,
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    height: 54,
-                                    child: Container(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: IgnorePointer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top Row (Placeholder transparan untuk mengunci Spacer & Step Indicator layout)
+                          Row(
+                            children: [
+                              const SizedBox(width: 32, height: 38),
+                              const SizedBox(width: 10),
+                              const Spacer(),
+                              // Step Indicator di Kanan Atas
+                              Opacity(
+                                opacity: stepIndicatorOpacity,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 22,
+                                      height: 6,
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(28),
+                                        color: const Color(0xFF143E26),
+                                        borderRadius: BorderRadius.circular(3),
                                       ),
-                                      child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Continue',
-                                            style: TextStyle(
-                                              fontSize: 15.5,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 0.2,
-                                              color: Color(0xFF0D1117),
-                                            ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Icon(
-                                            Icons.arrow_forward_rounded,
-                                            size: 17,
-                                            color: Color(0xFF0D1117),
-                                          ),
-                                        ],
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      width: 7,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFACC15),
+                                        borderRadius: BorderRadius.circular(3),
                                       ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const Spacer(flex: 2),
+
+                          // Ilustrasi Onboarding HD (Tanpa bingkai kotak, menyatu ke latar)
+                          Opacity(
+                            opacity: illuOpacity,
+                            child: Transform.translate(
+                              offset: Offset(0, illuOffsetY),
+                              child: Center(
+                                child: SizedBox(
+                                  height: screenHeight * 0.31,
+                                  child: RepaintBoundary(
+                                    child: Image.asset(
+                                      'assets/images/onboarding_illu_1.png',
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
+                          ),
 
-                            // Ruang bawah 24px persis sama dengan LoginScreen agar tidak ada loncatan
-                            const SizedBox(height: 24),
-                          ],
-                        ),
+                          const Spacer(flex: 2),
+
+                          // Headline Besar Onboarding
+                          Opacity(
+                            opacity: headlineOpacity,
+                            child: Transform.translate(
+                              offset: Offset(0, headlineOffsetY),
+                              child: Text(
+                                'Langkah Awal Menuju\nPotensi Tanpa Batas.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 27,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF143E26),
+                                  height: 1.2,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Subtitle Onboarding
+                          Opacity(
+                            opacity: subtitleOpacity,
+                            child: Transform.translate(
+                              offset: Offset(0, subtitleOffsetY),
+                              child: Text(
+                                'Pelajari keterampilan teknologi masa kini, eksplorasi kurikulum berbasis industri, dan persiapkan karir digital impian Anda.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF5C5850),
+                                  height: 1.55,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: bottomBarHeight + 20),
+                        ],
                       ),
                     ),
                   ),
-                // ── Kata 'Metro' (Mengetik di tengah lalu terbang anggun ke kiri atas) ──
+                ),
+
+                // ── Tombol "Let's Go" Full Bottom (Naik lembut dari bawah layar) ──
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Opacity(
+                    opacity: buttonOpacity,
+                    child: Transform.translate(
+                      offset: Offset(0, buttonOffsetY),
+                      child: FullBottomLetsGoButton(
+                        onTap: () {
+                          if (mounted) context.go(AppRoutes.login);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ── Kata 'Metro' (GPU-accelerated Transform.scale, zero layout recomputation) ──
                 if (_logoShiftProgress.value > 0.01)
                   Positioned(
                     left: currentMetroLeft,
                     top: currentMetroTop,
                     child: flightT > 0.0
-                        ? Text(
-                            'Metro',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: currentFontSize,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: currentLetterSpacing,
-                              color: currentBrandColor,
-                              height: currentLineHeight,
+                        ? Transform.scale(
+                            scale: textScale,
+                            alignment: Alignment.topLeft,
+                            child: RepaintBoundary(
+                              child: Text(
+                                'Metro',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 34.0,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.8,
+                                  color: currentTextColor,
+                                  height: 1.05,
+                                ),
+                              ),
                             ),
                           )
-                        : TextEffect(
-                            text: 'Metro',
-                            preset: TextEffectPreset.blur,
-                            blurColor: Colors.white,
-                            per: TextEffectPer.char,
-                            overlap: 0.65,
-                            progress: _metroTypeProgress.value,
-                            curve: Curves.easeOutCubic,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: currentFontSize,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: currentLetterSpacing,
-                              color: currentBrandColor,
-                              height: currentLineHeight,
-                            ),
-                          ),
+                        : (_metroTypeProgress.value < 1.0)
+                            ? TextEffect(
+                                text: 'Metro',
+                                preset: TextEffectPreset.blur,
+                                blurColor: Colors.white,
+                                per: TextEffectPer.char,
+                                overlap: 0.65,
+                                progress: _metroTypeProgress.value,
+                                curve: Curves.easeOutCubic,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 34.0,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.8,
+                                  color: currentTextColor,
+                                  height: 1.05,
+                                ),
+                              )
+                            : Text(
+                                'Metro',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 34.0,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.8,
+                                  color: currentTextColor,
+                                  height: 1.05,
+                                ),
+                              ),
                   ),
 
-                // ── Kata 'Institute' (Mengetik di bawah 'Metro' lalu terbang naik sejajar ke samping 'Metro') ──
+                // ── Kata 'Institute' (GPU-accelerated Transform.scale, zero layout recomputation) ──
                 if (_logoShiftProgress.value > 0.01)
                   Positioned(
                     left: currentInstituteLeft,
                     top: currentInstituteTop,
                     child: flightT > 0.0
-                        ? Text(
-                            'Institute',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: currentFontSize,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: currentLetterSpacing,
-                              color: currentBrandColor,
-                              height: currentLineHeight,
+                        ? Transform.scale(
+                            scale: textScale,
+                            alignment: Alignment.topLeft,
+                            child: RepaintBoundary(
+                              child: Text(
+                                'Institute',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 34.0,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.8,
+                                  color: currentTextColor,
+                                  height: 1.05,
+                                ),
+                              ),
                             ),
                           )
-                        : TextEffect(
-                            text: 'Institute',
-                            preset: TextEffectPreset.blur,
-                            blurColor: Colors.white,
-                            per: TextEffectPer.char,
-                            overlap: 0.65,
-                            progress: _instituteTypeProgress.value,
-                            curve: Curves.easeOutCubic,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: currentFontSize,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: currentLetterSpacing,
-                              color: currentBrandColor,
-                              height: currentLineHeight,
-                            ),
-                          ),
+                        : (_instituteTypeProgress.value < 1.0)
+                            ? TextEffect(
+                                text: 'Institute',
+                                preset: TextEffectPreset.blur,
+                                blurColor: Colors.white,
+                                per: TextEffectPer.char,
+                                overlap: 0.65,
+                                progress: _instituteTypeProgress.value,
+                                curve: Curves.easeOutCubic,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 34.0,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.8,
+                                  color: currentTextColor,
+                                  height: 1.05,
+                                ),
+                              )
+                            : Text(
+                                'Institute',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 34.0,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.8,
+                                  color: currentTextColor,
+                                  height: 1.05,
+                                ),
+                              ),
                   ),
 
-                // ── Perisai Vektor Orisinal (Bergerak & Berubah Warna Murni) ─
-                // Rasio 82:104 terkunci 100%, kurva orisinal utuh, mendarat presisi di box 32x38
+                // ── Perisai Vektor Orisinal (GPU-accelerated Transform.scale, fixed bounds) ─
                 Positioned(
                   left: currentShieldBoxLeft,
                   top: currentShieldTop,
-                  width: currentShieldBoxWidth,
-                  height: currentShieldHeight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        if (flightT > 0.0)
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.12 * flightT),
-                            blurRadius: 14,
-                          ),
-                      ],
-                    ),
-                    child: Center(
+                  child: Transform.scale(
+                    scaleX: shieldScaleX,
+                    scaleY: shieldScaleY,
+                    alignment: Alignment.topLeft,
+                    child: RepaintBoundary(
                       child: SizedBox(
-                        width: currentShieldHeight * shieldAspect,
-                        height: currentShieldHeight,
+                        width: shieldWStart,
+                        height: shieldHStart,
                         child: CustomPaint(
+                          isComplex: true,
+                          willChange: flightT == 0.0,
                           painter: LogoCarvingPainter(
                             outlineProgress: _outlineProgress.value,
                             shieldFillOpacity: _shieldFillOpacity.value,
@@ -735,7 +765,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             dot2Carve: _dot2Carve.value,
                             dot3Carve: _dot3Carve.value,
                             pillarsCarve: _pillarsCarve.value,
-                            logoColor: currentBrandColor,
+                            logoColor: const Color(0xFF063D2A),
                           ),
                         ),
                       ),
@@ -1016,4 +1046,355 @@ class LogoCarvingPainter extends CustomPainter {
         oldDelegate.pillarsCarve != pillarsCarve ||
         oldDelegate.logoColor != logoColor;
   }
+}
+
+/// Exact vector shield icon matching the loading page (100% vector carved)
+class MetroShieldIcon extends StatelessWidget {
+  final double width;
+  final double height;
+  final Color color;
+
+  const MetroShieldIcon({
+    super.key,
+    this.width = 32,
+    this.height = 38,
+    this.color = const Color(0xFF063D2A),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: CustomPaint(
+        painter: LogoCarvingPainter(
+          outlineProgress: 1.0,
+          shieldFillOpacity: 1.0,
+          dot1Carve: 1.0,
+          dot2Carve: 1.0,
+          dot3Carve: 1.0,
+          pillarsCarve: 1.0,
+          logoColor: color,
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-width bottom "Let's Go" button anchored flush to the bottom of the screen,
+/// matching the user's reference design 100% in signature Metro Institute Green.
+class FullBottomLetsGoButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final String text;
+  final Color backgroundColor;
+  final bool pointingUp;
+
+  const FullBottomLetsGoButton({
+    super.key,
+    required this.onTap,
+    this.text = "Let's Go",
+    this.backgroundColor = const Color(0xFF143E26),
+    this.pointingUp = false,
+  });
+
+  @override
+  State<FullBottomLetsGoButton> createState() => _FullBottomLetsGoButtonState();
+}
+
+class _FullBottomLetsGoButtonState extends State<FullBottomLetsGoButton> with TickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _scaleAnim;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 90),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+
+    // Continuous sequential wave animation for blinking chevrons
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    HapticFeedback.lightImpact();
+    widget.onTap();
+  }
+
+  /// Computes a smooth travelling pulse opacity [0.25 .. 1.0] for chevron index
+  double _getChevronOpacity(double t, int index) {
+    final start = index * 0.16;
+    final end = start + 0.38;
+    if (t >= start && t <= end) {
+      final p = (t - start) / (end - start);
+      final sine = math.sin(p * math.pi);
+      return 0.25 + 0.75 * sine;
+    }
+    return 0.25;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final totalHeight = 84.0 + (bottomInset > 0 ? bottomInset : 14.0);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _animController.forward(),
+      onTapUp: (_) => _animController.reverse(),
+      onTapCancel: () => _animController.reverse(),
+      onTap: _handleTap,
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnim.value,
+          alignment: Alignment.bottomCenter,
+          child: child,
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          height: totalHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 1. Metro Green contoured base sheet with top arch and center notch
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _FullBottomLetsGoPainter(color: widget.backgroundColor),
+                ),
+              ),
+
+              // Foreground Row: "Let's Go" and Blinking Chevrons >>>
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 22,
+                bottom: bottomInset > 0 ? bottomInset : 10,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Left: Text with Comic Neue font (matching reference style & slightly larger)
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            widget.text,
+                            maxLines: 1,
+                            style: GoogleFonts.comicNeue(
+                              fontSize: 22.0,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ).copyWith(
+                              fontFamilyFallback: const ['Comic Sans MS', 'Chalkboard SE', 'sans-serif'],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Right: Animated Chevrons (Horizontal >>> or Upward ^^^)
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, _) {
+                          final t = _pulseController.value;
+                          if (widget.pointingUp) {
+                            return SizedBox(
+                              width: 20,
+                              height: 30,
+                              child: CustomPaint(
+                                painter: _UpwardChevronsPainter(
+                                  t: t,
+                                  getOpacity: _getChevronOpacity,
+                                ),
+                              ),
+                            );
+                          }
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 15,
+                                color: Colors.white.withValues(
+                                  alpha: _getChevronOpacity(t, 0),
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 15,
+                                color: Colors.white.withValues(
+                                  alpha: _getChevronOpacity(t, 1),
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 15,
+                                color: Colors.white.withValues(
+                                  alpha: _getChevronOpacity(t, 2),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Custom painter for sleek vertical chevrons pointing upwards,
+/// with sequential light wave gliding from bottom to top.
+class _UpwardChevronsPainter extends CustomPainter {
+  final double t;
+  final double Function(double t, int index) getOpacity;
+
+  const _UpwardChevronsPainter({required this.t, required this.getOpacity});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    // 3 chevrons vertically spaced
+    // index 0: bottom, index 1: mid, index 2: top
+    // Sequential pulse flows from bottom to top
+    final yOffsets = [
+      size.height * 0.80, // bottom (index 0)
+      size.height * 0.50, // mid (index 1)
+      size.height * 0.20, // top (index 2)
+    ];
+
+    const strokeWidth = 2.4;
+    const chevronHalfWidth = 7.0;
+    const chevronHeight = 5.0;
+
+    for (int i = 0; i < 3; i++) {
+      final alpha = getOpacity(t, i);
+      final paint = Paint()
+        ..color = Colors.white.withValues(alpha: alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final yc = yOffsets[i];
+      final path = Path()
+        ..moveTo(cx - chevronHalfWidth, yc + chevronHeight / 2)
+        ..lineTo(cx, yc - chevronHeight / 2)
+        ..lineTo(cx + chevronHalfWidth, yc + chevronHeight / 2);
+
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _UpwardChevronsPainter oldDelegate) =>
+      oldDelegate.t != t;
+}
+
+class _FullBottomLetsGoPainter extends CustomPainter {
+  final Color color;
+
+  const _FullBottomLetsGoPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    final centerX = w / 2;
+    const notchHalfW = 26.0;
+    const notchDepth = 12.0;
+
+    final path = Path();
+
+    // 1. Bottom-left to bottom-right (flush against bottom screen edge)
+    path.moveTo(0, h);
+    path.lineTo(w, h);
+
+    // 2. Right edge going up to where top corner starts
+    path.lineTo(w, 42);
+
+    // 3. Top-right corner rounded transition
+    path.quadraticBezierTo(
+      w, 24,
+      w - 20, 20,
+    );
+
+    // 4. Right top arch: slopes gently up to notch right crest
+    path.quadraticBezierTo(
+      w * 0.74, 1.5,
+      centerX + notchHalfW, 0,
+    );
+
+    // 5. Center notch: smooth concave circular dip
+    path.cubicTo(
+      centerX + notchHalfW * 0.55, 0,
+      centerX + notchHalfW * 0.40, notchDepth,
+      centerX, notchDepth,
+    );
+    path.cubicTo(
+      centerX - notchHalfW * 0.40, notchDepth,
+      centerX - notchHalfW * 0.55, 0,
+      centerX - notchHalfW, 0,
+    );
+
+    // 6. Left top arch: slopes gently down from notch left crest to left corner
+    path.quadraticBezierTo(
+      w * 0.26, 1.5,
+      20, 20,
+    );
+
+    // 7. Top-left corner rounded transition
+    path.quadraticBezierTo(
+      0, 24,
+      0, 42,
+    );
+
+    // 8. Left edge down to (0, h)
+    path.lineTo(0, h);
+    path.close();
+
+    // Soft upward drop shadow in Metro Green tone
+    final shadowPaint = Paint()
+      ..color = color.withValues(alpha: 0.28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    canvas.drawPath(path.shift(const Offset(0, -3)), shadowPaint);
+
+    // Solid Metro Green fill
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(path, fillPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FullBottomLetsGoPainter oldDelegate) => oldDelegate.color != color;
 }

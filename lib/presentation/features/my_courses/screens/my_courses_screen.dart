@@ -17,24 +17,24 @@ class MyCoursesScreen extends StatefulWidget {
 }
 
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
-  final _courseDs   = sl<CourseRemoteDataSource>();
+  final _courseDs = sl<CourseRemoteDataSource>();
   final _bootcampDs = sl<BootcampRemoteDataSource>();
-  final _webinarDs  = sl<WebinarRemoteDataSource>();
+  final _webinarDs = sl<WebinarRemoteDataSource>();
 
   bool _isLoading = true;
   List<Map<String, dynamic>> _allCourses = [];
   List<Map<String, dynamic>> _filtered = [];
 
   final _searchCtrl = TextEditingController();
-  String _typeFilter   = ''; // '' | 'bootcamp' | 'mini-course'
+  String _typeFilter = ''; // '' | 'bootcamp' | 'mini-course'
   String _statusFilter = ''; // '' | 'in-progress' | 'completed'
-  String _fieldFilter  = ''; // '' | 'UI_UX' | 'FRONTEND' | 'BACKEND' | 'MOBILE'
+  String _fieldFilter = ''; // '' | 'UI_UX' | 'FRONTEND' | 'BACKEND' | 'MOBILE'
 
   static const Map<String, String> _fieldLabels = {
-    'UI_UX':    'UI/UX Design',
+    'UI_UX': 'UI/UX Design',
     'FRONTEND': 'Frontend Dev',
-    'BACKEND':  'Backend Dev',
-    'MOBILE':   'Mobile Dev',
+    'BACKEND': 'Backend Dev',
+    'MOBILE': 'Mobile Dev',
   };
 
   @override
@@ -60,25 +60,42 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
       ]);
 
       final bootcamps = results[0]
-          .map((b) => {for (final en in (b as Map<String, dynamic>).entries) en.key: en.value, 'type': 'bootcamp'})
+          .map(
+            (b) => {
+              for (final en in (b as Map<String, dynamic>).entries)
+                en.key: en.value,
+              'type': 'bootcamp',
+            },
+          )
           .toList();
       final courses = results[1]
-          .map((c) => {for (final en in (c as Map<String, dynamic>).entries) en.key: en.value, 'type': 'mini-course'})
+          .map(
+            (c) => {
+              for (final en in (c as Map<String, dynamic>).entries)
+                en.key: en.value,
+              'type': 'mini-course',
+            },
+          )
           .toList();
       final webinars = results[2]
-          .map((w) => {
-                for (final en in (w as Map<String, dynamic>).entries) en.key: en.value,
-                'type': 'webinar',
-                'progress': 100,
-                'thumbnailUrl': (w as Map<String, dynamic>)['bannerUrl'],
-              })
+          .map(
+            (w) => {
+              for (final en in (w as Map<String, dynamic>).entries)
+                en.key: en.value,
+              'type': 'webinar',
+              'progress': 100,
+              'thumbnailUrl': (w)['bannerUrl'],
+            },
+          )
           .toList();
 
       if (!mounted) return;
       setState(() {
-        _allCourses = [...bootcamps, ...courses, ...webinars]
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
+        _allCourses = [
+          ...bootcamps,
+          ...courses,
+          ...webinars,
+        ].map((e) => Map<String, dynamic>.from(e)).toList();
         _isLoading = false;
       });
       _applyFilters();
@@ -91,22 +108,28 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
     final q = _searchCtrl.text.toLowerCase();
     setState(() {
       _filtered = _allCourses.where((c) {
-        final title   = (c['title'] as String? ?? '').toLowerCase();
-        final type    = c['type'] as String? ?? '';
-        final field   = c['field'] as String? ?? '';
-        final prog    = (c['progress'] as num?)?.toDouble() ?? 0;
+        final title = (c['title'] as String? ?? '').toLowerCase();
+        final type = c['type'] as String? ?? '';
+        final field = c['field'] as String? ?? '';
+        final prog = (c['progress'] as num?)?.toDouble() ?? 0;
 
         if (q.isNotEmpty && !title.contains(q)) return false;
         if (_typeFilter.isNotEmpty && type != _typeFilter) return false;
         if (_fieldFilter.isNotEmpty && field != _fieldFilter) return false;
-        if (_statusFilter == 'in-progress' && !(prog > 0 && prog < 100)) return false;
-        if (_statusFilter == 'completed'   && prog < 100) return false;
+        if (_statusFilter == 'in-progress' && !(prog > 0 && prog < 100))
+          return false;
+        if (_statusFilter == 'completed' && prog < 100) return false;
         return true;
       }).toList();
     });
   }
 
-  Widget _chip(String label, String val, String current, void Function(String) onTap) {
+  Widget _chip(
+    String label,
+    String val,
+    String current,
+    void Function(String) onTap,
+  ) {
     final active = current == val;
     return GestureDetector(
       onTap: () {
@@ -150,7 +173,11 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         ),
         title: Text(
           'Kursus Saya',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 17, color: AppColors.textPrimary),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            fontSize: 17,
+            color: AppColors.textPrimary,
+          ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -168,11 +195,21 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               style: GoogleFonts.inter(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Cari kursus saya...',
-                hintStyle: GoogleFonts.inter(fontSize: 14, color: AppColors.textTertiary),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.textTertiary),
+                hintStyle: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: AppColors.textTertiary,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  size: 20,
+                  color: AppColors.textTertiary,
+                ),
                 filled: true,
                 fillColor: AppColors.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(999), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(999),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
             ),
@@ -187,20 +224,52 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  _chip('Bootcamp', 'bootcamp', _typeFilter, (v) => setState(() => _typeFilter = v)),
+                  _chip(
+                    'Bootcamp',
+                    'bootcamp',
+                    _typeFilter,
+                    (v) => setState(() => _typeFilter = v),
+                  ),
                   const SizedBox(width: 8),
-                  _chip('Mini Course', 'mini-course', _typeFilter, (v) => setState(() => _typeFilter = v)),
+                  _chip(
+                    'Mini Course',
+                    'mini-course',
+                    _typeFilter,
+                    (v) => setState(() => _typeFilter = v),
+                  ),
                   const SizedBox(width: 8),
-                  _chip('Inspire Talk', 'webinar', _typeFilter, (v) => setState(() => _typeFilter = v)),
+                  _chip(
+                    'Inspire Talk',
+                    'webinar',
+                    _typeFilter,
+                    (v) => setState(() => _typeFilter = v),
+                  ),
                   const SizedBox(width: 16),
-                  _chip('Sedang Belajar', 'in-progress', _statusFilter, (v) => setState(() => _statusFilter = v)),
+                  _chip(
+                    'Sedang Belajar',
+                    'in-progress',
+                    _statusFilter,
+                    (v) => setState(() => _statusFilter = v),
+                  ),
                   const SizedBox(width: 8),
-                  _chip('Selesai', 'completed', _statusFilter, (v) => setState(() => _statusFilter = v)),
+                  _chip(
+                    'Selesai',
+                    'completed',
+                    _statusFilter,
+                    (v) => setState(() => _statusFilter = v),
+                  ),
                   const SizedBox(width: 16),
-                  ..._fieldLabels.entries.map((fieldEntry) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: _chip(fieldEntry.value.split(' ').first, fieldEntry.key, _fieldFilter, (v) => setState(() => _fieldFilter = v)),
-                      )),
+                  ..._fieldLabels.entries.map(
+                    (fieldEntry) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _chip(
+                        fieldEntry.value.split(' ').first,
+                        fieldEntry.key,
+                        _fieldFilter,
+                        (v) => setState(() => _fieldFilter = v),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -212,19 +281,22 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
             child: _isLoading
                 ? _buildSkeleton()
                 : _filtered.isEmpty
-                    ? _buildEmpty()
-                    : RefreshIndicator(
-                        color: AppColors.primary,
-                        onRefresh: _load,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                          itemCount: _filtered.length,
-                          itemBuilder: (_, i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _MyCourseCard(course: _filtered[i], fieldLabels: _fieldLabels),
-                          ),
+                ? _buildEmpty()
+                : RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: _load,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      itemCount: _filtered.length,
+                      itemBuilder: (_, i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _MyCourseCard(
+                          course: _filtered[i],
+                          fieldLabels: _fieldLabels,
                         ),
                       ),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -238,7 +310,10 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
       itemBuilder: (context, idx) => Container(
         margin: const EdgeInsets.only(bottom: 14),
         height: 120,
-        decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(
+          color: AppColors.border,
+          borderRadius: BorderRadius.circular(14),
+        ),
       ),
     );
   }
@@ -253,34 +328,64 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
             const Text('📚', style: TextStyle(fontSize: 52)),
             const SizedBox(height: 16),
             Text(
-              _searchCtrl.text.isNotEmpty || _typeFilter.isNotEmpty || _statusFilter.isNotEmpty || _fieldFilter.isNotEmpty
+              _searchCtrl.text.isNotEmpty ||
+                      _typeFilter.isNotEmpty ||
+                      _statusFilter.isNotEmpty ||
+                      _fieldFilter.isNotEmpty
                   ? 'Tidak ada kursus yang sesuai'
                   : 'Belum ada kursus',
-              style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              style: GoogleFonts.inter(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              _searchCtrl.text.isNotEmpty || _typeFilter.isNotEmpty || _statusFilter.isNotEmpty || _fieldFilter.isNotEmpty
+              _searchCtrl.text.isNotEmpty ||
+                      _typeFilter.isNotEmpty ||
+                      _statusFilter.isNotEmpty ||
+                      _fieldFilter.isNotEmpty
                   ? 'Coba ubah filter atau kata kunci pencarian.'
                   : 'Mulai perjalanan belajarmu sekarang!',
-              style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
               textAlign: TextAlign.center,
             ),
-            if (_searchCtrl.text.isNotEmpty || _typeFilter.isNotEmpty || _statusFilter.isNotEmpty || _fieldFilter.isNotEmpty) ...[
+            if (_searchCtrl.text.isNotEmpty ||
+                _typeFilter.isNotEmpty ||
+                _statusFilter.isNotEmpty ||
+                _fieldFilter.isNotEmpty) ...[
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () {
                   _searchCtrl.clear();
-                  setState(() { _typeFilter = ''; _statusFilter = ''; _fieldFilter = ''; });
+                  setState(() {
+                    _typeFilter = '';
+                    _statusFilter = '';
+                    _fieldFilter = '';
+                  });
                   _applyFilters();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 11,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.primary),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('Reset Filter', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.primary)),
+                  child: Text(
+                    'Reset Filter',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -300,23 +405,33 @@ class _MyCourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final type        = course['type'] as String? ?? '';
-    final title       = course['title'] as String? ?? '';
-    final field       = course['field'] as String? ?? '';
-    final level       = course['level'] as String? ?? '';
-    final progress    = (course['progress'] as num?)?.toDouble() ?? 0;
-    final thumbnail   = (course['thumbnailUrl'] ?? course['thumbnail']) as String?;
-    final isBootcamp  = type == 'bootcamp';
+    final type = course['type'] as String? ?? '';
+    final title = course['title'] as String? ?? '';
+    final field = course['field'] as String? ?? '';
+    final level = course['level'] as String? ?? '';
+    final progress = (course['progress'] as num?)?.toDouble() ?? 0;
+    final thumbnail =
+        (course['thumbnailUrl'] ?? course['thumbnail']) as String?;
+    final isBootcamp = type == 'bootcamp';
     final isCompleted = progress >= 100;
-    final startDate   = course['startDate'] as String?;
-    final notStarted  = isBootcamp && startDate != null && DateTime.tryParse(startDate)?.isAfter(DateTime.now()) == true;
+    final startDate = course['startDate'] as String?;
+    final notStarted =
+        isBootcamp &&
+        startDate != null &&
+        DateTime.tryParse(startDate)?.isAfter(DateTime.now()) == true;
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Row(
@@ -333,9 +448,17 @@ class _MyCourseCard extends StatelessWidget {
                     width: 110,
                     height: 120,
                     fit: BoxFit.cover,
-                    errorWidget: (ctx, err, stack) => const Icon(Icons.book_outlined, size: 32, color: AppColors.textTertiary),
+                    errorWidget: (ctx, err, stack) => const Icon(
+                      Icons.book_outlined,
+                      size: 32,
+                      color: AppColors.textTertiary,
+                    ),
                   )
-                : const Icon(Icons.book_outlined, size: 32, color: AppColors.textTertiary),
+                : const Icon(
+                    Icons.book_outlined,
+                    size: 32,
+                    color: AppColors.textTertiary,
+                  ),
           ),
 
           // Content
@@ -355,15 +478,28 @@ class _MyCourseCard extends StatelessWidget {
                             Flexible(
                               child: Text(
                                 fieldLabels[field] ?? field,
-                                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (level.isNotEmpty) ...[
-                              Text(' • ', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary)),
+                              Text(
+                                ' • ',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppColors.textTertiary,
+                                ),
+                              ),
                               Text(
                                 _levelLabel(level),
-                                style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppColors.textTertiary,
+                                ),
                               ),
                             ],
                           ],
@@ -371,7 +507,10 @@ class _MyCourseCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.productTypeColor(type),
                           borderRadius: BorderRadius.circular(4),
@@ -392,7 +531,12 @@ class _MyCourseCard extends StatelessWidget {
                   // Title
                   Text(
                     title,
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary, height: 1.3),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      height: 1.3,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -405,13 +549,21 @@ class _MyCourseCard extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Progress', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary)),
+                          Text(
+                            'Progress',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
                           Text(
                             isCompleted ? 'Selesai ✓' : '${progress.toInt()}%',
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: isCompleted ? AppColors.primary : AppColors.textPrimary,
+                              color: isCompleted
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -442,7 +594,8 @@ class _MyCourseCard extends StatelessWidget {
                           if (type == 'webinar') {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => InspireTalkDetailScreen(item: course),
+                                builder: (_) =>
+                                    InspireTalkDetailScreen(item: course),
                               ),
                             );
                             return;
@@ -466,15 +619,16 @@ class _MyCourseCard extends StatelessWidget {
                         label: type == 'webinar'
                             ? 'Akses Sesi ▶'
                             : notStarted
-                                ? 'Mulai Belajar ▶'
-                                : (progress > 0 ? 'Lanjut ▶' : 'Mulai ▶'),
+                            ? 'Mulai Belajar ▶'
+                            : (progress > 0 ? 'Lanjut ▶' : 'Mulai ▶'),
                         outlined: false,
                         disabled: false,
                         onTap: () {
                           if (type == 'webinar') {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => InspireTalkDetailScreen(item: course),
+                                builder: (_) =>
+                                    InspireTalkDetailScreen(item: course),
                               ),
                             );
                             return;
@@ -506,10 +660,10 @@ class _MyCourseCard extends StatelessWidget {
 
   String _levelLabel(String level) {
     const labels = {
-      'BEGINNER':     'Pemula',
-      'ELEMENTARY':   'Dasar',
+      'BEGINNER': 'Pemula',
+      'ELEMENTARY': 'Dasar',
       'INTERMEDIATE': 'Menengah',
-      'ADVANCED':     'Mahir',
+      'ADVANCED': 'Mahir',
     };
     return labels[level] ?? level;
   }
@@ -538,14 +692,14 @@ class _ActionBtn extends StatelessWidget {
           color: disabled
               ? AppColors.backgroundSubtle
               : outlined
-                  ? AppColors.surface
-                  : AppColors.primary,
+              ? AppColors.surface
+              : AppColors.primary,
           border: Border.all(
             color: disabled
                 ? AppColors.border
                 : outlined
-                    ? AppColors.border
-                    : AppColors.primary,
+                ? AppColors.border
+                : AppColors.primary,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -557,8 +711,8 @@ class _ActionBtn extends StatelessWidget {
             color: disabled
                 ? AppColors.textTertiary
                 : outlined
-                    ? AppColors.textPrimary
-                    : Colors.white,
+                ? AppColors.textPrimary
+                : Colors.white,
           ),
         ),
       ),

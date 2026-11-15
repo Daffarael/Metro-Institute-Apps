@@ -44,7 +44,10 @@ class TactileMetroButton extends StatefulWidget {
     this.isLoading = false,
     this.fontSize = 14,
     this.padding,
-  }) : assert(child != null || text != null, 'Either child or text must be provided');
+  }) : assert(
+         child != null || text != null,
+         'Either child or text must be provided',
+       );
 
   /// Primary Metro Green with dark forest green 3D base
   factory TactileMetroButton.primary({
@@ -65,7 +68,6 @@ class TactileMetroButton extends StatefulWidget {
       key: key,
       onPressed: onPressed,
       text: text,
-      child: child,
       icon: icon,
       backgroundColor: AppColors.primary,
       baseColor: const Color(0xFF015F3D),
@@ -77,6 +79,7 @@ class TactileMetroButton extends StatefulWidget {
       isDisabled: isDisabled,
       isLoading: isLoading,
       padding: padding,
+      child: child,
     );
   }
 
@@ -99,7 +102,6 @@ class TactileMetroButton extends StatefulWidget {
       key: key,
       onPressed: onPressed,
       text: text,
-      child: child,
       icon: icon,
       backgroundColor: const Color(0xFF0F172A),
       baseColor: const Color(0xFF000000),
@@ -111,6 +113,7 @@ class TactileMetroButton extends StatefulWidget {
       isDisabled: isDisabled,
       isLoading: isLoading,
       padding: padding,
+      child: child,
     );
   }
 
@@ -133,7 +136,6 @@ class TactileMetroButton extends StatefulWidget {
       key: key,
       onPressed: onPressed,
       text: text,
-      child: child,
       icon: icon,
       backgroundColor: Colors.white,
       baseColor: const Color(0xFFCBD5E1),
@@ -146,6 +148,7 @@ class TactileMetroButton extends StatefulWidget {
       isDisabled: isDisabled,
       isLoading: isLoading,
       padding: padding,
+      child: child,
     );
   }
 
@@ -168,7 +171,6 @@ class TactileMetroButton extends StatefulWidget {
       key: key,
       onPressed: onPressed,
       text: text,
-      child: child,
       icon: icon,
       backgroundColor: Colors.white,
       baseColor: const Color(0xFFA7F3D0),
@@ -181,6 +183,7 @@ class TactileMetroButton extends StatefulWidget {
       isDisabled: isDisabled,
       isLoading: isLoading,
       padding: padding,
+      child: child,
     );
   }
 
@@ -203,7 +206,6 @@ class TactileMetroButton extends StatefulWidget {
       key: key,
       onPressed: onPressed,
       text: text,
-      child: child,
       icon: icon,
       backgroundColor: const Color(0xFFFFDD00),
       baseColor: const Color(0xFFD97706),
@@ -215,6 +217,7 @@ class TactileMetroButton extends StatefulWidget {
       isDisabled: isDisabled,
       isLoading: isLoading,
       padding: padding,
+      child: child,
     );
   }
 
@@ -237,7 +240,6 @@ class TactileMetroButton extends StatefulWidget {
       key: key,
       onPressed: onPressed,
       text: text,
-      child: child,
       icon: icon,
       backgroundColor: const Color(0xFFEF4444),
       baseColor: const Color(0xFFB91C1C),
@@ -249,6 +251,7 @@ class TactileMetroButton extends StatefulWidget {
       isDisabled: isDisabled,
       isLoading: isLoading,
       padding: padding,
+      child: child,
     );
   }
 
@@ -262,7 +265,8 @@ class _TactileMetroButtonState extends State<TactileMetroButton> {
   @override
   Widget build(BuildContext context) {
     final radius = widget.borderRadius ?? BorderRadius.circular(14);
-    final bool canPress = !widget.isDisabled && !widget.isLoading && widget.onPressed != null;
+    final bool canPress =
+        !widget.isDisabled && !widget.isLoading && widget.onPressed != null;
 
     final double pushDepth = _isPressed && canPress ? 3.0 : 0.0;
     final double baseDepth = _isPressed && canPress ? 1.0 : 4.0;
@@ -285,7 +289,11 @@ class _TactileMetroButtonState extends State<TactileMetroButton> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (widget.icon != null) ...[
-            Icon(widget.icon, size: widget.fontSize + 4, color: widget.textColor),
+            Icon(
+              widget.icon,
+              size: widget.fontSize + 4,
+              color: widget.textColor,
+            ),
             const SizedBox(width: 8),
           ],
           Text(
@@ -430,7 +438,11 @@ class _TactileMetroIconButtonState extends State<TactileMetroIconButton> {
           ],
         ),
         child: Center(
-          child: Icon(widget.icon, color: widget.iconColor, size: widget.iconSize),
+          child: Icon(
+            widget.icon,
+            color: widget.iconColor,
+            size: widget.iconSize,
+          ),
         ),
       ),
     );

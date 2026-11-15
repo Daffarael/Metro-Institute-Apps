@@ -138,6 +138,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
+        serverClientId:
+            '295180634067-ol2hcifrsefnuv7luhhbb5fflp7hj1lq.apps.googleusercontent.com',
       );
 
       final googleUser = await googleSignIn.signIn();
@@ -316,12 +318,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Akun Google Anda ($email) berhasil dihubungkan. Lengkapi data di bawah ini untuk sertifikat dan komunikasi kelas Anda.',
+                          'Lengkapi data berikut untuk penerbitan sertifikat Anda.',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 12.8,
+                            fontSize: 13,
                             color: Color(0xFF64748B),
-                            height: 1.45,
+                            height: 1.4,
                           ),
                         ),
                         const SizedBox(height: 22),
@@ -387,7 +389,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'Nama ini yang akan tercetak resmi di sertifikat kelulusan Anda.',
+                                  'Tercetak resmi di sertifikat kelulusan.',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w500,
@@ -435,7 +437,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'Digunakan untuk undangan grup WhatsApp kelas dan koordinasi mentor.',
+                                  'Untuk grup WhatsApp kelas & mentor.',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w500,

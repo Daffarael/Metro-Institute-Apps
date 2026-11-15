@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -93,15 +92,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   String? _selectedQuizOptionId;
   bool _quizSubmitted = false;
 
-  // Reading timer state for MATERIAL sessions
-  Timer? _readingTimer;
-  int _requiredReadingSeconds = 180;
-  int _remainingReadingSeconds = 180;
+  // Scroll & Completion state for MATERIAL sessions
+  final ScrollController _overviewScrollController = ScrollController();
+  bool _hasScrolledToBottom = false;
   int _xpReward = 10;
 
   @override
   void initState() {
     super.initState();
+    _overviewScrollController.addListener(_onOverviewScroll);
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
@@ -125,9 +124,27 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     _loadSessionAndPlayer();
   }
 
+  void _onOverviewScroll() {
+    if (_sessionType != 'MATERIAL' || _hasScrolledToBottom) return;
+    if (_overviewScrollController.hasClients) {
+      final pos = _overviewScrollController.position;
+      final maxScroll = pos.maxScrollExtent;
+      final currentScroll = pos.pixels;
+
+      if (maxScroll <= 40 || currentScroll >= maxScroll - 50) {
+        if (!_hasScrolledToBottom && mounted) {
+          setState(() {
+            _hasScrolledToBottom = true;
+          });
+        }
+      }
+    }
+  }
+
   @override
   void dispose() {
-    _readingTimer?.cancel();
+    _overviewScrollController.removeListener(_onOverviewScroll);
+    _overviewScrollController.dispose();
     _tabController.dispose();
     _noteInputController.dispose();
     _qnaInputController.dispose();
@@ -223,11 +240,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             }
           }
 
-          final rawDuration = current['videoDuration'] ?? current['durationMin'];
-          final durationSec = (rawDuration != null && (rawDuration as num) > 0)
-              ? ((rawDuration as num) < 60 ? ((rawDuration as num) * 60).toInt() : (rawDuration as num).toInt())
-              : 0;
-          final remainingSec = isComp ? 0 : durationSec;
           final rawXp = current['xpReward'];
           final xpVal = (rawXp is num && rawXp > 0) ? rawXp.toInt() : 10;
 
@@ -258,11 +270,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _prevSessionId = sessionData['prevSessionId'] as String?;
               _nextSessionId = sessionData['nextSessionId'] as String?;
               _isSessionFinished = isComp;
-              _requiredReadingSeconds = durationSec;
-              _remainingReadingSeconds = remainingSec;
               _xpReward = xpVal;
-              _isUnlocked = isComp || (rawType != 'VIDEO' && rawType != 'MATERIAL'); // non-video/non-material unlocks immediately
+              _isUnlocked = isComp || (rawType != 'VIDEO');
               _isLoadingSessionData = false;
+            });
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _checkContentScrollability();
             });
           }
         } else {
@@ -286,9 +299,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       setState(() {
         _isPlayerInitializing = false;
         _playerErrorMessage = null;
-        _isUnlocked = _isSessionFinished || _remainingReadingSeconds <= 0;
+        _isUnlocked = true;
       });
-      _startReadingTimer();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkContentScrollability();
+      });
     } else {
       setState(() {
         _isPlayerInitializing = false;
@@ -298,31 +313,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     }
   }
 
-  void _startReadingTimer() {
-    _readingTimer?.cancel();
-    if (_isSessionFinished || _sessionType != 'MATERIAL' || _remainingReadingSeconds <= 0) return;
-    _readingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_remainingReadingSeconds > 0) {
+  void _checkContentScrollability() {
+    if (!mounted || _sessionType != 'MATERIAL' || _hasScrolledToBottom) return;
+    if (_overviewScrollController.hasClients) {
+      final pos = _overviewScrollController.position;
+      if (pos.maxScrollExtent <= 40) {
         setState(() {
-          _remainingReadingSeconds--;
-        });
-      } else {
-        timer.cancel();
-        setState(() {
-          _isUnlocked = true;
+          _hasScrolledToBottom = true;
         });
       }
-    });
-  }
-
-  String _formatReadingTime(int totalSeconds) {
-    final m = totalSeconds ~/ 60;
-    final s = totalSeconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
   }
 
   void _loadTabContent() {
@@ -690,12 +690,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       final xpEarned = res['xpEarned'] ?? 15;
 
       if (!mounted) return;
-      _readingTimer?.cancel();
       setState(() {
         _isSessionFinished = true;
         _isUnlocked = true;
         _currentProgressFraction = 1.0;
-        _remainingReadingSeconds = 0;
         _isSubmittingProgress = false;
       });
 
@@ -793,7 +791,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   void _goToPrevSession(String prevId) {
-    _readingTimer?.cancel();
     _disposePlayer();
 
     final prevInfo = _findSessionInfo(prevId);
@@ -850,7 +847,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       return;
     }
 
-    _readingTimer?.cancel();
     _disposePlayer();
 
     final nextInfo = _findSessionInfo(nextId);
@@ -987,7 +983,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       ),
 
                       // Bottom Navigation Bar (3D Tactile Push-Down Buttons)
-                      _buildBottomActionDock(),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOutCubic,
+                        child: _buildBottomActionDock(),
+                      ),
                     ],
                   ),
                 ),
@@ -1286,75 +1286,83 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // For VIDEO, show the Session Title & Course Title Header
-          if (_sessionType == 'VIDEO') ...[
-            Text(
-              _currentTitle ?? widget.title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF0F172A),
-                letterSpacing: -0.3,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              widget.courseTitle,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                color: const Color(0xFF64748B),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // ── Session Body Content Based on Type ──
-          if (_sessionType == 'MATERIAL') ...[
-            _buildMaterialContent(),
-          ] else if (_sessionType == 'QUIZ') ...[
-            _buildQuizContent(),
-          ] else if (_sessionType == 'LIVE') ...[
-            _buildLiveContent(),
-          ] else ...[
-            // Default Video Description
-            if (_sessionDescription != null && _sessionDescription!.isNotEmpty) ...[
+    return NotificationListener<ScrollNotification>(
+      onNotification: (scrollInfo) {
+        if (_sessionType == 'MATERIAL' && !_hasScrolledToBottom) {
+          final maxScroll = scrollInfo.metrics.maxScrollExtent;
+          final currentScroll = scrollInfo.metrics.pixels;
+          if (maxScroll <= 40 || currentScroll >= maxScroll - 50) {
+            if (!_hasScrolledToBottom && mounted) {
+              setState(() {
+                _hasScrolledToBottom = true;
+              });
+            }
+          }
+        }
+        return false;
+      },
+      child: SingleChildScrollView(
+        controller: _overviewScrollController,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // For VIDEO, show the Session Title Header
+            if (_sessionType == 'VIDEO') ...[
               Text(
-                'Tentang Sesi Ini',
+                _currentTitle ?? widget.title,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
                   color: const Color(0xFF0F172A),
-                  letterSpacing: -0.2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
-                ),
-                child: Text(
-                  _sessionDescription!,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: const Color(0xFF475569), height: 1.6),
+                  letterSpacing: -0.3,
+                  height: 1.3,
                 ),
               ),
               const SizedBox(height: 16),
             ],
-            // Attached materials for video session (if any)
-            if (_materials.isNotEmpty) _buildAttachmentList(),
+
+            // ── Session Body Content Based on Type ──
+            if (_sessionType == 'MATERIAL') ...[
+              _buildMaterialContent(),
+            ] else if (_sessionType == 'QUIZ') ...[
+              _buildQuizContent(),
+            ] else if (_sessionType == 'LIVE') ...[
+              _buildLiveContent(),
+            ] else ...[
+              // Default Video Description
+              if (_sessionDescription != null && _sessionDescription!.isNotEmpty) ...[
+                Text(
+                  'Tentang Sesi Ini',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+                  ),
+                  child: Text(
+                    _sessionDescription!,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: const Color(0xFF475569), height: 1.6),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              // Attached materials for video session (if any)
+              if (_materials.isNotEmpty) _buildAttachmentList(),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -2387,9 +2395,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Bottom Action Dock: 3D Tactile Push-Down Buttons ──────────────────────
   Widget _buildBottomActionDock() {
+    // Untuk sesi materi: tombol hanya muncul ketika sudah di-scroll ke bawah banget
+    if (_sessionType == 'MATERIAL' && !_hasScrolledToBottom) {
+      return const SizedBox.shrink();
+    }
+
     final bool isQuiz = _sessionType == 'QUIZ';
     final bool isMaterial = _sessionType == 'MATERIAL';
-    final bool canCompleteMaterial = isMaterial && (_isUnlocked || _remainingReadingSeconds <= 0);
+    final bool canCompleteMaterial = isMaterial;
     final bool canCompleteVideo = _isUnlocked || _currentProgressFraction >= 0.95;
     final bool canSubmitQuiz = _selectedQuizOptionId != null;
     final bool isActionActive = isQuiz
@@ -2401,33 +2414,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ? 'Selesai'
         : (isQuiz
             ? 'Kirim Jawaban'
-            : (isMaterial
-                ? (_remainingReadingSeconds > 0
-                    ? 'Baca min. ${(_requiredReadingSeconds / 60).ceil()}m (${_formatReadingTime(_remainingReadingSeconds)})'
-                    : 'Selesaikan Modul')
-                : 'Selesaikan Modul'));
+            : 'Selesaikan Modul');
 
     final VoidCallback? onMainPressed = _isSessionFinished
         ? null
         : (isQuiz
             ? (canSubmitQuiz ? _submitQuizAnswer : null)
             : (isMaterial
-                ? (canCompleteMaterial
-                    ? (_isSubmittingProgress ? null : _handleCompleteSession)
-                    : () {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Harap baca modul dengan saksama. Tombol aktif dalam ${_formatReadingTime(_remainingReadingSeconds)}.',
-                            ),
-                            backgroundColor: const Color(0xFF1E293B),
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        );
-                      })
+                ? (_isSubmittingProgress ? null : _handleCompleteSession)
                 : (canCompleteVideo
                     ? (_isSubmittingProgress ? null : _handleCompleteSession)
                     : () {
