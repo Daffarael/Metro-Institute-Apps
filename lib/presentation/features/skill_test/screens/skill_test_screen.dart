@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -406,33 +407,18 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
             const Spacer(flex: 2),
 
-            // Tombol Mulai Test (Animasi 3D Tactile Push-Down Khas Mobile Metro)
-            TactileMetroButton.primary(
-              onPressed: () {
+            // Tombol Mulai Test dengan Animasi Blinking Chevrons (>>>) & Scale Press Khas Mobile Metro
+            _MetroAnimatedCtaButton(
+              onTap: () {
                 setState(() {
                   _mode = 'TEST';
                   _currentIndex = 0;
                 });
               },
+              text: 'Mulai Test',
               height: 50,
               fontSize: 16,
               borderRadius: BorderRadius.circular(16),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Mulai Test',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, size: 20, color: Colors.white),
-                ],
-              ),
             ),
 
             const SizedBox(height: 6),
@@ -719,8 +705,8 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               if (_currentIndex > 0) const SizedBox(width: 12),
               Expanded(
                 flex: 2,
-                child: TactileMetroButton.primary(
-                  onPressed: selectedOption == null
+                child: _MetroAnimatedCtaButton(
+                  onTap: selectedOption == null
                       ? null
                       : () {
                           if (_currentIndex < _questions.length - 1) {
@@ -930,6 +916,198 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Animated Metro CTA Button matching the onboarding/splash screen animation:
+/// • Continuous sequential travelling wave animation on trailing chevrons (>>>)
+/// • Smooth tactile scale compression on press (1.0 -> 0.96)
+/// • Crisp haptic feedback on tap
+/// • Signature Metro Green (#018556) with 3D base shadow
+class _MetroAnimatedCtaButton extends StatefulWidget {
+  final VoidCallback? onTap;
+  final String text;
+  final double height;
+  final double fontSize;
+  final BorderRadius? borderRadius;
+  final Color backgroundColor;
+  final bool isLoading;
+  final bool isDisabled;
+
+  const _MetroAnimatedCtaButton({
+    required this.onTap,
+    this.text = 'Mulai Test',
+    this.height = 50,
+    this.fontSize = 16,
+    this.borderRadius,
+    this.backgroundColor = AppColors.primary,
+    this.isLoading = false,
+    this.isDisabled = false,
+  });
+
+  @override
+  State<_MetroAnimatedCtaButton> createState() => _MetroAnimatedCtaButtonState();
+}
+
+class _MetroAnimatedCtaButtonState extends State<_MetroAnimatedCtaButton>
+    with TickerProviderStateMixin {
+  late final AnimationController _animController;
+  late final Animation<double> _scaleAnim;
+  late final AnimationController _pulseController;
+  bool _isTapped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 90),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  double _getChevronOpacity(double t, int index) {
+    final start = index * 0.16;
+    final end = start + 0.38;
+    if (t >= start && t <= end) {
+      final p = (t - start) / (end - start);
+      final sine = math.sin(p * math.pi);
+      return 0.25 + 0.75 * sine;
+    }
+    return 0.25;
+  }
+
+  void _handleTap() async {
+    if (widget.isDisabled || widget.isLoading || widget.onTap == null) return;
+    if (_isTapped) return;
+    _isTapped = true;
+    HapticFeedback.lightImpact();
+    await _animController.forward();
+    await _animController.reverse();
+    await Future.delayed(const Duration(milliseconds: 70));
+    if (mounted) {
+      widget.onTap?.call();
+    }
+    _isTapped = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = widget.borderRadius ?? BorderRadius.circular(16);
+    final bool canPress = !widget.isDisabled && !widget.isLoading && widget.onTap != null;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: canPress ? (_) => _animController.forward() : null,
+      onTapUp: canPress ? (_) => _animController.reverse() : null,
+      onTapCancel: canPress ? () => _animController.reverse() : null,
+      onTap: canPress ? _handleTap : null,
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnim.value,
+          alignment: Alignment.center,
+          child: child,
+        ),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 180),
+          opacity: widget.isDisabled ? 0.5 : 1.0,
+          child: Container(
+            height: widget.height,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: widget.backgroundColor,
+              borderRadius: radius,
+              boxShadow: widget.isDisabled
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF015F3D).withValues(alpha: 0.7),
+                        offset: const Offset(0, 3.5),
+                        blurRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: widget.backgroundColor.withValues(alpha: 0.25),
+                        offset: const Offset(0, 4),
+                        blurRadius: 10,
+                      ),
+                    ],
+            ),
+            child: widget.isLoading
+                ? const Center(
+                    child: SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.text,
+                        style: TextStyle(
+                          fontSize: widget.fontSize,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, _) {
+                          final t = _pulseController.value;
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 12.5,
+                                color: Colors.white.withValues(
+                                  alpha: _getChevronOpacity(t, 0),
+                                ),
+                              ),
+                              const SizedBox(width: 2.5),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 12.5,
+                                color: Colors.white.withValues(
+                                  alpha: _getChevronOpacity(t, 1),
+                                ),
+                              ),
+                              const SizedBox(width: 2.5),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 12.5,
+                                color: Colors.white.withValues(
+                                  alpha: _getChevronOpacity(t, 2),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+          ),
+        ),
       ),
     );
   }
