@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/skill_test_remote_datasource.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../../common/widgets/splash_screen.dart';
+import '../../../common/widgets/tactile_metro_button.dart';
 
 class SkillTestScreen extends StatefulWidget {
   const SkillTestScreen({super.key});
@@ -156,16 +157,12 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            TactileMetroButton.primary(
               onPressed: () => Navigator.pop(ctx),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Lihat Hasil Rekomendasi', style: TextStyle(fontWeight: FontWeight.w700)),
+              height: 48,
+              fontSize: 14.5,
+              borderRadius: BorderRadius.circular(14),
+              text: 'Lihat Hasil Rekomendasi',
             ),
           ],
         ),
@@ -259,42 +256,23 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
           children: [
             const SizedBox(height: 4),
 
-            // Metro Institute Brand Lockup (Logo Jelas + Tulisan "Metro Institute")
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.25),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: const MetroShieldIcon(
-                    width: 18,
-                    height: 18,
-                    color: Colors.white,
+            // Metro Institute Logo Resmi (Sesuai Card Login Web Beserta Tulisannya)
+            Center(
+              child: Image.asset(
+                'assets/images/logo_metro_clean.png',
+                height: 48,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Image.asset(
+                  'assets/images/logo_metro_color.png',
+                  height: 42,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.asset(
+                    'assets/images/logo.png',
+                    height: 40,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(width: 9),
-                const Text(
-                  'Metro Institute',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
+              ),
             ),
 
             const Spacer(flex: 2),
@@ -442,40 +420,32 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
             const Spacer(flex: 2),
 
-            // Tombol Mulai Test (Hijau Metro Solid & Tegas)
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  setState(() {
-                    _mode = 'TEST';
-                    _currentIndex = 0;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Mulai Test',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.2,
-                      ),
+            // Tombol Mulai Test (Animasi 3D Tactile Push-Down Khas Mobile Metro)
+            TactileMetroButton.primary(
+              onPressed: () {
+                setState(() {
+                  _mode = 'TEST';
+                  _currentIndex = 0;
+                });
+              },
+              height: 50,
+              fontSize: 16,
+              borderRadius: BorderRadius.circular(16),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Mulai Test',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.2,
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward_rounded, size: 18),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, size: 20, color: Colors.white),
+                ],
               ),
             ),
 
@@ -567,15 +537,12 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
             const SizedBox(height: 12),
             Text(_errorMessage!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 16),
-            ElevatedButton(
+            TactileMetroButton.primary(
               onPressed: _checkStatusAndLoad,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Coba Lagi'),
+              height: 44,
+              fontSize: 14,
+              borderRadius: BorderRadius.circular(12),
+              text: 'Coba Lagi',
             ),
           ],
         ),
@@ -751,25 +718,22 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
             children: [
               if (_currentIndex > 0)
                 Expanded(
-                  child: OutlinedButton(
+                  child: TactileMetroButton.secondary(
                     onPressed: () {
                       setState(() {
                         _currentIndex--;
                       });
                     },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(color: AppColors.border),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Sebelumnya', style: TextStyle(fontWeight: FontWeight.w600)),
+                    height: 48,
+                    fontSize: 13.5,
+                    borderRadius: BorderRadius.circular(14),
+                    text: 'Sebelumnya',
                   ),
                 ),
               if (_currentIndex > 0) const SizedBox(width: 12),
               Expanded(
                 flex: 2,
-                child: ElevatedButton(
+                child: TactileMetroButton.primary(
                   onPressed: selectedOption == null
                       ? null
                       : () {
@@ -781,23 +745,12 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
                             _handleSubmit();
                           }
                         },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text(
-                          _currentIndex < _questions.length - 1 ? 'Selanjutnya' : 'Selesaikan & Kirim',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                        ),
+                  isDisabled: selectedOption == null,
+                  isLoading: _isSubmitting,
+                  height: 48,
+                  fontSize: 14,
+                  borderRadius: BorderRadius.circular(14),
+                  text: _currentIndex < _questions.length - 1 ? 'Selanjutnya' : 'Selesaikan & Kirim',
                 ),
               ),
             ],
@@ -934,34 +887,25 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
           const SizedBox(height: 24),
 
           // Action Button: Go to Learning
-          ElevatedButton(
+          TactileMetroButton.dark(
             onPressed: () => context.go(AppRoutes.learn),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D1117),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            ),
+            height: 52,
+            borderRadius: BorderRadius.circular(16),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.explore_rounded, size: 20),
+                Icon(Icons.explore_rounded, size: 20, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Eksplorasi Kelas Sesuai Rekomendasi', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                Text('Eksplorasi Kelas Sesuai Rekomendasi', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white)),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          OutlinedButton(
+          TactileMetroButton.secondary(
             onPressed: () => context.go(AppRoutes.basecamp),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            ),
-            child: const Text('Kembali ke Basecamp', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            height: 48,
+            borderRadius: BorderRadius.circular(16),
+            text: 'Kembali ke Basecamp',
           ),
         ],
       ),
