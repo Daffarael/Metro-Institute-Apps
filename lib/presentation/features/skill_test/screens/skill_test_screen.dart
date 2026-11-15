@@ -679,53 +679,59 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
           ),
         ),
 
-        // Navigation Footer
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            border: Border(top: BorderSide(color: AppColors.border)),
-          ),
-          child: Row(
-            children: [
-              if (_currentIndex > 0)
+        // Navigation Footer (Wrapped in SafeArea to prevent navigation bar insets & RenderFlex overflows)
+        SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.border)),
+            ),
+            child: Row(
+              children: [
+                if (_currentIndex > 0) ...[
+                  Expanded(
+                    flex: _currentIndex < _questions.length - 1 ? 1 : 2,
+                    child: TactileMetroButton.secondary(
+                      onPressed: () {
+                        setState(() {
+                          _currentIndex--;
+                        });
+                      },
+                      height: 48,
+                      fontSize: 13.5,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      borderRadius: BorderRadius.circular(14),
+                      text: 'Sebelumnya',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
-                  child: TactileMetroButton.secondary(
-                    onPressed: () {
-                      setState(() {
-                        _currentIndex--;
-                      });
-                    },
+                  flex: _currentIndex > 0 && _currentIndex == _questions.length - 1 ? 3 : 1,
+                  child: _MetroAnimatedCtaButton(
+                    onTap: selectedOption == null
+                        ? null
+                        : () {
+                            if (_currentIndex < _questions.length - 1) {
+                              setState(() {
+                                _currentIndex++;
+                              });
+                            } else {
+                              _handleSubmit();
+                            }
+                          },
+                    isDisabled: selectedOption == null,
+                    isLoading: _isSubmitting,
                     height: 48,
-                    fontSize: 13.5,
+                    fontSize: 14,
                     borderRadius: BorderRadius.circular(14),
-                    text: 'Sebelumnya',
+                    text: _currentIndex < _questions.length - 1 ? 'Selanjutnya' : 'Selesaikan & Kirim',
                   ),
                 ),
-              if (_currentIndex > 0) const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: _MetroAnimatedCtaButton(
-                  onTap: selectedOption == null
-                      ? null
-                      : () {
-                          if (_currentIndex < _questions.length - 1) {
-                            setState(() {
-                              _currentIndex++;
-                            });
-                          } else {
-                            _handleSubmit();
-                          }
-                        },
-                  isDisabled: selectedOption == null,
-                  isLoading: _isSubmitting,
-                  height: 48,
-                  fontSize: 14,
-                  borderRadius: BorderRadius.circular(14),
-                  text: _currentIndex < _questions.length - 1 ? 'Selanjutnya' : 'Selesaikan & Kirim',
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -1064,13 +1070,18 @@ class _MetroAnimatedCtaButtonState extends State<_MetroAnimatedCtaButton>
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          widget.text,
-                          style: TextStyle(
-                            fontSize: widget.fontSize,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.2,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.text,
+                              style: TextStyle(
+                                fontSize: widget.fontSize,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
                           ),
                         ),
                         if (widget.showArrow) ...[

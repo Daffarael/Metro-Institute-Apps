@@ -296,15 +296,20 @@ class _TactileMetroButtonState extends State<TactileMetroButton> {
             ),
             const SizedBox(width: 8),
           ],
-          Text(
-            widget.text ?? '',
-            style: TextStyle(
-              fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
-              fontFamilyFallback: const ['Roboto', 'sans-serif'],
-              fontWeight: FontWeight.w800,
-              fontSize: widget.fontSize,
-              color: widget.textColor,
-              letterSpacing: 0.2,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                widget.text ?? '',
+                style: TextStyle(
+                  fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+                  fontFamilyFallback: const ['Roboto', 'sans-serif'],
+                  fontWeight: FontWeight.w800,
+                  fontSize: widget.fontSize,
+                  color: widget.textColor,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ),
           ),
         ],
