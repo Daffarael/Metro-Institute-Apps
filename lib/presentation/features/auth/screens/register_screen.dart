@@ -186,7 +186,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             duration: Duration(seconds: 2),
           ),
         );
-        context.go(AppRoutes.basecamp);
+        if (!user.skillTestDone) {
+          context.go(AppRoutes.skillTest);
+        } else {
+          context.go(AppRoutes.basecamp);
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -491,7 +495,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                       );
 
-                                      context.go(AppRoutes.basecamp);
+                                      final updatedUser = await authRepo.getSavedUser();
+                                      if (updatedUser != null && !updatedUser.skillTestDone) {
+                                        context.go(AppRoutes.skillTest);
+                                      } else {
+                                        context.go(AppRoutes.basecamp);
+                                      }
                                     } catch (e) {
                                       setSheetState(() {
                                         isSubmitting = false;

@@ -322,9 +322,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
       if (loggedIn) {
         try {
-          await authRepo.refreshProfile();
+          final user = await authRepo.refreshProfile();
           if (!mounted) return;
-          context.go(AppRoutes.basecamp);
+          if (!user.skillTestDone) {
+            context.go(AppRoutes.skillTest);
+          } else {
+            context.go(AppRoutes.basecamp);
+          }
         } catch (_) {
           await authRepo.logout();
           if (!mounted) return;

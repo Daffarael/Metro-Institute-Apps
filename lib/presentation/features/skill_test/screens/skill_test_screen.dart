@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/di/injection_container.dart';
@@ -20,8 +21,8 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
-  // Mode: 'TEST' or 'RESULT'
-  String _mode = 'TEST';
+  // Mode: 'INTRO', 'TEST', or 'RESULT'
+  String _mode = 'INTRO';
 
   // Questions data
   List<dynamic> _questions = [];
@@ -66,7 +67,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
       final questions = await _skillTestDataSource.getQuestions();
       if (!mounted) return;
       setState(() {
-        _mode = 'TEST';
+        _mode = 'INTRO';
         _questions = questions;
         _isLoading = false;
       });
@@ -200,20 +201,54 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
         backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
+        centerTitle: true,
         title: Text(
-          _mode == 'RESULT' ? 'Hasil Tes Bakat & Minat' : 'Tes Bakat & Minat',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+          _mode == 'RESULT'
+              ? 'Hasil Tes Bakat & Minat'
+              : _mode == 'INTRO'
+                  ? 'Skill Test Awal'
+                  : 'Tes Bakat & Minat',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: AppColors.textPrimary,
+          ),
           onPressed: () {
-            if (context.canPop()) {
+            if (_mode == 'TEST') {
+              setState(() {
+                _mode = 'INTRO';
+              });
+            } else if (context.canPop()) {
               context.pop();
             } else {
               context.go(AppRoutes.basecamp);
             }
           },
         ),
+        actions: [
+          if (_mode == 'INTRO')
+            TextButton(
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                context.go(AppRoutes.basecamp);
+              },
+              child: const Text(
+                'Lewati',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -221,7 +256,361 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               ? _buildErrorView()
               : _mode == 'RESULT'
                   ? _buildResultView()
-                  : _buildQuestionnaireView(),
+                  : _mode == 'INTRO'
+                      ? _buildIntroView()
+                      : _buildQuestionnaireView(),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTRO VIEW (Skill Test Awal - 4 Info Cards Hijau & Kuning Metro Sejajar & Rapi)
+  // ─────────────────────────────────────────────────────────────────────────────
+  Widget _buildIntroView() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 8),
+
+              // Metro Institute logo badge
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo_clean.png',
+                      height: 24,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.school_rounded,
+                        size: 22,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Metro Institute',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Circle icon badge (Pencil / Edit)
+              Center(
+                child: Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0C000000),
+                        blurRadius: 18,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.edit_outlined,
+                      size: 30,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Title
+              const Text(
+                'Skill Test Awal',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.5,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Subtitle
+              const Text(
+                'Sebelum mulai, kami ingin mengetahui kemampuanmu saat ini. Hasil tes ini membantu kami menentukan jalur belajar yang paling sesuai untukmu.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF64748B),
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── 4 KARTU INFO (Grid 2x2 Sejajar & Rapi - Hijau & Kuning Metro) ──
+              // Baris 1: Jumlah Soal (Hijau) & Waktu per Soal (Kuning)
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildIntroCard(
+                      label: 'JUMLAH SOAL',
+                      value: '${_questions.isNotEmpty ? _questions.length : 12} Pertanyaan',
+                      icon: Icons.assignment_outlined,
+                      cardBg: AppColors.primary, // Hijau Metro (#018556)
+                      badgeBg: AppColors.accent,  // Kuning Metro (#FAE653)
+                      iconColor: AppColors.primary,
+                      textColor: Colors.white,
+                      labelColor: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildIntroCard(
+                      label: 'WAKTU PER SOAL',
+                      value: '30 Detik',
+                      icon: Icons.timer_outlined,
+                      cardBg: AppColors.accent,  // Kuning Metro (#FAE653)
+                      badgeBg: AppColors.primary, // Hijau Metro (#018556)
+                      iconColor: Colors.white,
+                      textColor: AppColors.textPrimary,
+                      labelColor: AppColors.textPrimary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Baris 2: Tipe Soal (Kuning) & Tujuan (Hijau)
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildIntroCard(
+                      label: 'TIPE SOAL',
+                      value: 'Pilihan Ganda',
+                      icon: Icons.check_box_outlined,
+                      cardBg: AppColors.accent,  // Kuning Metro (#FAE653)
+                      badgeBg: AppColors.primary, // Hijau Metro (#018556)
+                      iconColor: Colors.white,
+                      textColor: AppColors.textPrimary,
+                      labelColor: AppColors.textPrimary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildIntroCard(
+                      label: 'TUJUAN',
+                      value: 'Personalisasi Belajar',
+                      icon: Icons.track_changes_rounded,
+                      cardBg: AppColors.primary, // Hijau Metro (#018556)
+                      badgeBg: AppColors.accent,  // Kuning Metro (#FAE653)
+                      iconColor: AppColors.primary,
+                      textColor: Colors.white,
+                      labelColor: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Tips Box
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.lightbulb_outline_rounded,
+                      size: 20,
+                      color: Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Tips: ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12.5,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Jawab dengan jujur sesuai kemampuanmu sekarang. Tidak ada nilai benar atau salah.',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // Tombol Mulai Test (Hijau Metro Solid & Tegas)
+              SizedBox(
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _mode = 'TEST';
+                      _currentIndex = 0;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Mulai Test',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Tombol Lewati / Nanti Saja
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    context.go(AppRoutes.basecamp);
+                  },
+                  child: const Text(
+                    'Lewati & Ke Beranda Nanti Saja',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIntroCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color cardBg,
+    required Color badgeBg,
+    required Color iconColor,
+    required Color textColor,
+    required Color labelColor,
+  }) {
+    return Container(
+      height: 128,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0E000000),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Icon badge
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: badgeBg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.6,
+                  color: labelColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

@@ -177,7 +177,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      context.go(AppRoutes.basecamp);
+      final user = await authRepo.getSavedUser();
+      if (user != null && !user.skillTestDone) {
+        context.go(AppRoutes.skillTest);
+      } else {
+        context.go(AppRoutes.basecamp);
+      }
     } catch (e) {
       if (!mounted) return;
       final errText = e.toString().replaceAll('Exception: ', '');
@@ -352,7 +357,12 @@ class _LoginScreenState extends State<LoginScreen> {
             duration: Duration(seconds: 2),
           ),
         );
+        final user = await authRepo.getSavedUser();
+      if (user != null && !user.skillTestDone) {
+        context.go(AppRoutes.skillTest);
+      } else {
         context.go(AppRoutes.basecamp);
+      }
       }
     } catch (e) {
       if (!mounted) return;
@@ -707,7 +717,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         );
 
-                                        context.go(AppRoutes.basecamp);
+                                        final user = await authRepo.getSavedUser();
+      if (user != null && !user.skillTestDone) {
+        context.go(AppRoutes.skillTest);
+      } else {
+        context.go(AppRoutes.basecamp);
+      }
                                       } catch (e) {
                                         setSheetState(() {
                                           isSubmitting = false;
