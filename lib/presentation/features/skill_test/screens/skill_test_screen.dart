@@ -935,6 +935,7 @@ class _MetroAnimatedCtaButton extends StatefulWidget {
   final Color backgroundColor;
   final bool isLoading;
   final bool isDisabled;
+  final bool showArrow;
 
   const _MetroAnimatedCtaButton({
     required this.onTap,
@@ -945,6 +946,7 @@ class _MetroAnimatedCtaButton extends StatefulWidget {
     this.backgroundColor = AppColors.primary,
     this.isLoading = false,
     this.isDisabled = false,
+    this.showArrow = false,
   });
 
   @override
@@ -1057,54 +1059,59 @@ class _MetroAnimatedCtaButtonState extends State<_MetroAnimatedCtaButton>
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
                     ),
                   )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.text,
-                        style: TextStyle(
-                          fontSize: widget.fontSize,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.2,
+                : Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.text,
+                          style: TextStyle(
+                            fontSize: widget.fontSize,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      AnimatedBuilder(
-                        animation: _pulseController,
-                        builder: (context, _) {
-                          final t = _pulseController.value;
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 12.5,
-                                color: Colors.white.withValues(
-                                  alpha: _getChevronOpacity(t, 0),
-                                ),
-                              ),
-                              const SizedBox(width: 2.5),
-                              Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 12.5,
-                                color: Colors.white.withValues(
-                                  alpha: _getChevronOpacity(t, 1),
-                                ),
-                              ),
-                              const SizedBox(width: 2.5),
-                              Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 12.5,
-                                color: Colors.white.withValues(
-                                  alpha: _getChevronOpacity(t, 2),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+                        if (widget.showArrow) ...[
+                          const SizedBox(width: 10),
+                          AnimatedBuilder(
+                            animation: _pulseController,
+                            builder: (context, _) {
+                              final t = _pulseController.value;
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 12.5,
+                                    color: Colors.white.withValues(
+                                      alpha: _getChevronOpacity(t, 0),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2.5),
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 12.5,
+                                    color: Colors.white.withValues(
+                                      alpha: _getChevronOpacity(t, 1),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2.5),
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 12.5,
+                                    color: Colors.white.withValues(
+                                      alpha: _getChevronOpacity(t, 2),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
           ),
         ),
