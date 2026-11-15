@@ -224,7 +224,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFF0F172A),
+            color: Color(0xFF018556),
             size: 18,
           ),
           onPressed: () => Navigator.of(context).pop(),
@@ -234,7 +234,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
+            color: const Color(0xFF0D1117),
             letterSpacing: -0.2,
           ),
         ),
@@ -397,15 +397,19 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
+                                  color: const Color(0xFFE6F4EF),
                                   borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFF018556).withValues(alpha: 0.15),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Text(
                                   _credentialId,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF0F172A),
+                                    color: const Color(0xFF018556),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -475,20 +479,20 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       side: const BorderSide(
-                        color: Color(0xFFE2E8F0),
+                        color: Color(0xFF018556),
                         width: 1.2,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      backgroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFE6F4EF),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
                           Icons.open_in_new_rounded,
-                          color: Color(0xFF334155),
+                          color: Color(0xFF018556),
                           size: 16,
                         ),
                         const SizedBox(width: 6),
@@ -497,7 +501,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF334155),
+                            color: const Color(0xFF018556),
                           ),
                         ),
                       ],
@@ -537,7 +541,7 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0D1117),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
