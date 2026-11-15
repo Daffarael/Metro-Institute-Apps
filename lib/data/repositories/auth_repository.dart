@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
@@ -146,6 +147,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
     AppCacheManager.clearAll();
+    try {
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+    } catch (_) {}
     await secureStorage.delete(key: AppConstants.keyAccessToken);
     await secureStorage.delete(key: AppConstants.keyRefreshToken);
     await secureStorage.delete(key: AppConstants.keyUserId);

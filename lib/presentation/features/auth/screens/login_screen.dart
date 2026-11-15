@@ -301,6 +301,11 @@ class _LoginScreenState extends State<LoginScreen> {
             '295180634067-ol2hcifrsefnuv7luhhbb5fflp7hj1lq.apps.googleusercontent.com',
       );
 
+      // Reset cache login Google sebelumnya agar selalu menampilkan dialog "Pilih Akun"
+      try {
+        await googleSignIn.signOut();
+      } catch (_) {}
+
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         // User aborted Google sign-in
