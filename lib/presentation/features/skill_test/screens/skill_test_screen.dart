@@ -277,29 +277,15 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
             const Spacer(flex: 2),
 
-            // Title
-            const Text(
-              'Skill Test Awal',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                letterSpacing: -0.4,
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
             // Subtitle
             const Text(
               'Sebelum mulai, kami ingin mengetahui kemampuanmu saat ini. Hasil tes ini membantu kami menentukan jalur belajar yang paling sesuai untukmu.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF64748B),
-                height: 1.4,
+                height: 1.45,
               ),
             ),
 
