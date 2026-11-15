@@ -202,6 +202,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
+        automaticallyImplyLeading: false,
         title: Text(
           _mode == 'RESULT'
               ? 'Hasil Tes Bakat & Minat'
@@ -214,41 +215,24 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
             color: AppColors.textPrimary,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: AppColors.textPrimary,
-          ),
-          onPressed: () {
-            if (_mode == 'TEST') {
-              setState(() {
-                _mode = 'INTRO';
-              });
-            } else if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRoutes.basecamp);
-            }
-          },
-        ),
-        actions: [
-          if (_mode == 'INTRO')
-            TextButton(
-              onPressed: () {
-                HapticFeedback.selectionClick();
-                context.go(AppRoutes.basecamp);
-              },
-              child: const Text(
-                'Lewati',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+        leading: context.canPop()
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                  color: AppColors.textPrimary,
                 ),
-              ),
-            ),
-        ],
+                onPressed: () {
+                  if (_mode == 'TEST') {
+                    setState(() {
+                      _mode = 'INTRO';
+                    });
+                  } else {
+                    context.pop();
+                  }
+                },
+              )
+            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -277,32 +261,22 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
             children: [
               const SizedBox(height: 8),
 
-              // Metro Institute logo badge
+              // Metro Institute Logo Resmi (Jelas & Kontras Tinggi)
               Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo_clean.png',
-                      height: 24,
+                child: Image.asset(
+                  'assets/images/metro_logo.png',
+                  height: 38,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.asset(
+                    'assets/images/logo_metro_color.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Image.asset(
+                      'assets/images/logo.png',
+                      height: 32,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.school_rounded,
-                        size: 22,
-                        color: AppColors.primary,
-                      ),
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Metro Institute',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
 
@@ -517,27 +491,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
                 ),
               ),
 
-              const SizedBox(height: 12),
-
-              // Tombol Lewati / Nanti Saja
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    HapticFeedback.selectionClick();
-                    context.go(AppRoutes.basecamp);
-                  },
-                  child: const Text(
-                    'Lewati & Ke Beranda Nanti Saja',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -556,7 +510,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
     required Color labelColor,
   }) {
     return Container(
-      height: 128,
+      height: 132,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardBg,
@@ -598,12 +552,13 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               const SizedBox(height: 4),
               Text(
                 value,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: textColor,
+                  height: 1.25,
                   letterSpacing: -0.2,
                 ),
               ),
