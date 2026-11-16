@@ -851,57 +851,16 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFD6EEFF), // Soft Sky Blue (Clean solid, no grid lines)
+        color: const Color(0xFFD6EEFF), // Soft Sky Blue (Clean solid)
         borderRadius: BorderRadius.circular(28),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          // Watermark: "02" + Rotated "NOV" (Persis Referensi Gambar media_1794808466350_ab3f8637.png)
-          Positioned(
-            right: 2,
-            bottom: -6,
-            child: IgnorePointer(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    dayNumStr,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 104,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFFBAE6FD).withValues(alpha: 0.65),
-                      height: 0.88,
-                      letterSpacing: -4.0,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  RotatedBox(
-                    quarterTurns: 1, // N di atas, O di tengah, V di bawah, menghadap kiri
-                    child: Text(
-                      monthStr,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.65),
-                        letterSpacing: 4.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Row: Time Pill & Mini Calendar Card
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Row: Time Pill & Mini Calendar Card
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1161,8 +1120,6 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
               ],
             ),
           ),
-        ],
-      ),
     );
   }
 
