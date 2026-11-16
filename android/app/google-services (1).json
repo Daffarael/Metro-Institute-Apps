@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "295180634067",
+    "project_id": "metro-institute-7cd00",
+    "storage_bucket": "metro-institute-7cd00.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295180634067:android:071aec46f6b1391343d126",
+        "android_client_info": {
+          "package_name": "com.metroinstitute.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7tVccZRUrFEN3K3Al8RqaNYYW84gfTwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
