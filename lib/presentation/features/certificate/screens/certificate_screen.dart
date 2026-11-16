@@ -906,7 +906,7 @@ class CertificateCanvasWidget extends StatelessWidget {
                   child: imageUrl.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: imageUrl,
-                          fit: BoxFit.fill,
+                          fit: BoxFit.cover,
                           placeholder: (context, url) => _buildCanvasPlaceholder(),
                           errorWidget: (context, url, error) => _buildCanvasPlaceholder(),
                         )
@@ -935,7 +935,7 @@ class CertificateCanvasWidget extends StatelessWidget {
 
     final x = rawX * scale;
     final y = rawY * scale;
-    final fontSize = (rawFontSize * scale).clamp(6.0, 48.0);
+    final fontSize = (rawFontSize * scale).clamp(4.0, 48.0);
 
     // Text content mapping
     String text = '';
@@ -980,14 +980,14 @@ class CertificateCanvasWidget extends StatelessWidget {
       );
     }
 
-    // Typography selection based on item ID
+    // Typography matching admin Plus Jakarta Sans
     TextStyle textStyle;
     if (id == 'MenteeName') {
-      textStyle = GoogleFonts.playfairDisplay(
+      textStyle = GoogleFonts.plusJakartaSans(
         fontSize: fontSize,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         color: color,
-        letterSpacing: 0.3,
+        letterSpacing: -0.3,
       );
     } else if (id == 'CourseName') {
       textStyle = GoogleFonts.plusJakartaSans(
@@ -1013,7 +1013,9 @@ class CertificateCanvasWidget extends StatelessWidget {
 
     final itemWidth = item['width'] != null
         ? (double.tryParse('${item['width']}') ?? 400.0) * scale
-        : (id == 'MenteeName' || id == 'CourseName' ? containerWidth * 0.85 : containerWidth * 0.4);
+        : (id == 'MenteeName' || id == 'CourseName'
+            ? containerWidth * 0.85
+            : containerWidth * 0.55);
 
     return Positioned(
       left: x,
@@ -1355,8 +1357,11 @@ class _CertCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Minimal category & issue date line
-                  Row(
+                  // Minimal category & issue date line (Clean Wrap, no truncate)
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1374,7 +1379,6 @@ class _CertCard extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
                         width: 3.5,
                         height: 3.5,
                         decoration: const BoxDecoration(
@@ -1382,16 +1386,12 @@ class _CertCard extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      Expanded(
-                        child: Text(
-                          'Diterbitkan $_dateStr',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF64748B),
-                          ),
+                      Text(
+                        'Diterbitkan $_dateStr',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF64748B),
                         ),
                       ),
                     ],
