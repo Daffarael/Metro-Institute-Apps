@@ -5,11 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_routes.dart';
 
 /// BasecampTodaysActivityCard — Widget Ringkasan 'Today's Activity' di Basecamp.
-/// Mengadopsi visual persis kartu referensi:
-/// • Background Warm Yellow Pastel Polos (#FDF0A6) — Bersih tanpa polkadot / waffle
-/// • Progres harian dengan slider progress bar & knob lingkaran
-/// • 3D Tilted Calendar Block 'NOV 02 SENIN' dengan bayangan keemasan + floating trophy badge
-/// • Responsif dan bebas dari overflow di berbagai ukuran layar.
+/// Mengadopsi visual brand murni Metro Institute:
+/// • Background Kuning Metro (#FAE653) — Bukan kuning pudar, tanpa polkadot/waffle
+/// • Aksen Hijau Metro (#018556) & Deep Emerald (#063D2A) — Tanpa warna navy/biru
+/// • 3D Tilted Calendar Block 'NOV 02 SENIN' dengan header hijau & trophy badge hijau
+/// • Responsif dan bebas dari overflow.
 class BasecampTodaysActivityCard extends StatelessWidget {
   static const List<String> _monthNamesShort = [
     'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN',
@@ -56,12 +56,12 @@ class BasecampTodaysActivityCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF0A6), // Soft warm pastel yellow (Clean solid)
+        color: const Color(0xFFFAE653), // Metro Accent Yellow (Bukan kuning pudar)
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFFDE047).withValues(alpha: 0.6), width: 1.0),
+        border: Border.all(color: const Color(0xFFE5CE2D), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFACC15).withValues(alpha: 0.15),
+            color: const Color(0xFFCA8A04).withValues(alpha: 0.22),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -95,7 +95,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                           const Icon(
                             Icons.menu_book_outlined,
                             size: 19,
-                            color: Color(0xFF1E242B),
+                            color: Color(0xFF063D2A), // Metro Deep Emerald
                           ),
                           const SizedBox(width: 7),
                           Flexible(
@@ -106,7 +106,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1E242B),
+                                color: const Color(0xFF063D2A), // Metro Deep Emerald
                               ),
                             ),
                           ),
@@ -121,7 +121,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 46,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF1E242B),
+                          color: const Color(0xFF063D2A), // Metro Deep Emerald
                           letterSpacing: -1.2,
                           height: 1.0,
                         ),
@@ -151,13 +151,13 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                 ),
-                                // Active progress fill
+                                // Metro Green active progress fill
                                 FractionallySizedBox(
                                   widthFactor: progressFraction,
                                   child: Container(
                                     height: 6.5,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1E242B),
+                                      color: const Color(0xFF018556), // Metro Green
                                       borderRadius: BorderRadius.circular(999),
                                     ),
                                   ),
@@ -169,7 +169,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                     width: knobSize,
                                     height: knobSize,
                                     decoration: const BoxDecoration(
-                                      color: Color(0xFF1E242B),
+                                      color: Color(0xFF018556), // Metro Green
                                       shape: BoxShape.circle,
                                     ),
                                     child: Center(
@@ -177,7 +177,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                         width: 5,
                                         height: 5,
                                         decoration: const BoxDecoration(
-                                          color: Color(0xFFFCE788),
+                                          color: Color(0xFFFAE653), // Metro Yellow
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -199,8 +199,8 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                             : '$percent% aktivitas hari ini selesai',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF786227),
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF063D2A).withValues(alpha: 0.85),
                         ),
                       ),
                     ],
@@ -225,11 +225,11 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                           bottom: -7,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE2B93B).withValues(alpha: 0.65),
+                              color: const Color(0xFF063D2A).withValues(alpha: 0.20),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFCA8A04).withValues(alpha: 0.45),
+                                  color: const Color(0xFFCA8A04).withValues(alpha: 0.50),
                                   blurRadius: 14,
                                   offset: const Offset(3, 7),
                                 ),
@@ -255,11 +255,11 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                           ),
                           child: Column(
                             children: [
-                              // Top Dark Navy Banner
+                              // Top Metro Green Banner (Bukan Navy)
                               Container(
                                 height: 28,
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF1E242B),
+                                  color: Color(0xFF018556), // Metro Green
                                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                                 ),
                                 alignment: Alignment.center,
@@ -282,7 +282,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 30,
                                       fontWeight: FontWeight.w900,
-                                      color: const Color(0xFF1E242B),
+                                      color: const Color(0xFF063D2A), // Metro Deep Emerald
                                       height: 1.0,
                                     ),
                                   ),
@@ -297,7 +297,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF94A3B8),
+                                    color: const Color(0xFF018556), // Metro Green
                                     letterSpacing: 1.1,
                                   ),
                                 ),
@@ -317,12 +317,12 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                               color: Colors.white,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0xFFFEF08A), // Thick soft yellow ring
-                                width: 3.2,
+                                color: const Color(0xFF018556), // Metro Green border
+                                width: 2.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFCA8A04).withValues(alpha: 0.35),
+                                  color: const Color(0xFF063D2A).withValues(alpha: 0.25),
                                   blurRadius: 7,
                                   offset: const Offset(1, 3),
                                 ),
@@ -332,7 +332,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                               child: Icon(
                                 Icons.emoji_events_outlined,
                                 size: 18,
-                                color: Color(0xFF1E242B),
+                                color: Color(0xFF018556), // Metro Green
                               ),
                             ),
                           ),

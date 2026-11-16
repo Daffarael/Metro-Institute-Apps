@@ -199,7 +199,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         child: Icon(
                           Icons.arrow_back_ios_new_rounded,
                           size: 16,
-                          color: Color(0xFF1E242B),
+                          color: Color(0xFF063D2A), // Metro Deep Emerald
                         ),
                       ),
                     ),
@@ -211,7 +211,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18.5,
                       fontWeight: FontWeight.w800,
-                      color: const Color(0xFF1E242B),
+                      color: const Color(0xFF063D2A), // Metro Deep Emerald
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -231,7 +231,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         child: Icon(
                           Icons.refresh_rounded,
                           size: 20,
-                          color: Color(0xFF1E242B),
+                          color: Color(0xFF063D2A), // Metro Deep Emerald
                         ),
                       ),
                     ),
@@ -243,7 +243,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
             // ── 2. Scrollable Content ──────────────────────────────────────
             Expanded(
               child: RefreshIndicator(
-                color: const Color(0xFF1E242B),
+                color: const Color(0xFF018556), // Metro Green
                 onRefresh: _fetchTimeline,
                 child: _isLoading
                     ? const Center(
@@ -280,7 +280,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF1E242B),
+                                    color: const Color(0xFF063D2A), // Metro Deep Emerald
                                     letterSpacing: -0.4,
                                   ),
                                 ),
@@ -291,7 +291,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF64748B),
+                                        color: const Color(0xFF018556), // Metro Green
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -308,7 +308,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                         child: Icon(
                                           Icons.calendar_month_outlined,
                                           size: 18,
-                                          color: Color(0xFF1E242B),
+                                          color: Color(0xFF018556), // Metro Green
                                         ),
                                       ),
                                     ),
@@ -337,7 +337,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF1E242B),
+                                    color: const Color(0xFF063D2A), // Metro Deep Emerald
                                     letterSpacing: -0.2,
                                   ),
                                 ),
@@ -362,7 +362,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. TOP CARD: TODAY'S ACTIVITY (Kuning Pastel Polos, Tilted 3D Calendar, No Overflow)
+  // 1. TOP CARD: TODAY'S ACTIVITY (Kuning Hijau Metro — Tanpa Pudar, Tanpa Navy/Biru)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildTodaysActivityCard() {
     final progressFraction = (_todayPercent / 100).clamp(0.02, 1.0);
@@ -374,12 +374,12 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF0A6), // Soft warm pastel yellow (Clean solid, no polka dot, no waffle)
+        color: const Color(0xFFFAE653), // Metro Accent Yellow (Bukan kuning pudar)
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFFDE047).withValues(alpha: 0.6), width: 1.0),
+        border: Border.all(color: const Color(0xFFE5CE2D), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFACC15).withValues(alpha: 0.15),
+            color: const Color(0xFFCA8A04).withValues(alpha: 0.22),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -402,7 +402,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       const Icon(
                         Icons.menu_book_outlined,
                         size: 19,
-                        color: Color(0xFF1E242B),
+                        color: Color(0xFF063D2A), // Metro Deep Emerald
                       ),
                       const SizedBox(width: 7),
                       Flexible(
@@ -413,7 +413,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1E242B),
+                            color: const Color(0xFF063D2A), // Metro Deep Emerald
                           ),
                         ),
                       ),
@@ -428,7 +428,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 48,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF1E242B),
+                      color: const Color(0xFF063D2A), // Metro Deep Emerald
                       letterSpacing: -1.2,
                       height: 1.0,
                     ),
@@ -458,13 +458,13 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                 borderRadius: BorderRadius.circular(999),
                               ),
                             ),
-                            // Dark active progress bar
+                            // Metro Green active progress bar
                             FractionallySizedBox(
                               widthFactor: progressFraction,
                               child: Container(
                                 height: 6.5,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E242B),
+                                  color: const Color(0xFF018556), // Metro Green
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                               ),
@@ -476,7 +476,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                 width: knobSize,
                                 height: knobSize,
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF1E242B),
+                                  color: Color(0xFF018556), // Metro Green
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
@@ -484,7 +484,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                     width: 5,
                                     height: 5,
                                     decoration: const BoxDecoration(
-                                      color: Color(0xFFFCE788),
+                                      color: Color(0xFFFAE653), // Metro Yellow
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -506,8 +506,8 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         : '$_todayPercent% aktivitas hari ini selesai',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF786227),
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF063D2A).withValues(alpha: 0.85),
                     ),
                   ),
                 ],
@@ -532,11 +532,11 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       bottom: -7,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2B93B).withValues(alpha: 0.65),
+                          color: const Color(0xFF063D2A).withValues(alpha: 0.20),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFCA8A04).withValues(alpha: 0.45),
+                              color: const Color(0xFFCA8A04).withValues(alpha: 0.50),
                               blurRadius: 14,
                               offset: const Offset(3, 7),
                             ),
@@ -562,11 +562,11 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       ),
                       child: Column(
                         children: [
-                          // Top Dark Navy Banner
+                          // Top Metro Green Banner (Bukan Navy)
                           Container(
                             height: 30,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF1E242B),
+                              color: Color(0xFF018556), // Metro Green
                               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                             ),
                             alignment: Alignment.center,
@@ -589,7 +589,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 32,
                                   fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF1E242B),
+                                  color: const Color(0xFF063D2A), // Metro Deep Emerald
                                   height: 1.0,
                                 ),
                               ),
@@ -604,7 +604,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFF94A3B8),
+                                color: const Color(0xFF018556), // Metro Green
                                 letterSpacing: 1.1,
                               ),
                             ),
@@ -624,12 +624,12 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           color: Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFFEF08A), // Thick soft yellow ring
-                            width: 3.2,
+                            color: const Color(0xFF018556), // Metro Green border
+                            width: 2.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFCA8A04).withValues(alpha: 0.35),
+                              color: const Color(0xFF063D2A).withValues(alpha: 0.25),
                               blurRadius: 7,
                               offset: const Offset(1, 3),
                             ),
@@ -639,7 +639,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           child: Icon(
                             Icons.emoji_events_outlined,
                             size: 18,
-                            color: Color(0xFF1E242B),
+                            color: Color(0xFF018556), // Metro Green
                           ),
                         ),
                       ),
@@ -676,7 +676,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF64748B),
+                    color: const Color(0xFF018556), // Metro Green
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -686,7 +686,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF1E242B),
+                    color: const Color(0xFF063D2A), // Metro Deep Emerald
                     letterSpacing: -0.4,
                   ),
                 ),
@@ -705,7 +705,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                     ),
                     child: const Center(
-                      child: Icon(Icons.chevron_left_rounded, size: 20, color: Color(0xFF1E242B)),
+                      child: Icon(Icons.chevron_left_rounded, size: 20, color: Color(0xFF063D2A)),
                     ),
                   ),
                 ),
@@ -721,7 +721,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                     ),
                     child: const Center(
-                      child: Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF1E242B)),
+                      child: Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF063D2A)),
                     ),
                   ),
                 ),
@@ -753,16 +753,16 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                 width: 44,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF1E242B) : Colors.white,
+                  color: isSelected ? const Color(0xFF018556) : Colors.white, // Metro Green saat dipilih
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: isSelected ? const Color(0xFF1E242B) : const Color(0xFFE2E8F0),
+                    color: isSelected ? const Color(0xFF018556) : const Color(0xFFE2E8F0),
                     width: 1.2,
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF1E242B).withValues(alpha: 0.22),
+                            color: const Color(0xFF018556).withValues(alpha: 0.30),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -777,7 +777,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: isSelected ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isSelected ? const Color(0xFFE6F4EF) : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -786,7 +786,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        color: isSelected ? Colors.white : const Color(0xFF1E242B),
+                        color: isSelected ? Colors.white : const Color(0xFF063D2A),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -795,7 +795,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       height: 5,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFFFAE653)
+                            ? const Color(0xFFFAE653) // Metro Yellow dot indicator
                             : (hasSession ? const Color(0xFF018556) : Colors.transparent),
                         shape: BoxShape.circle,
                       ),
@@ -851,8 +851,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFD6EEFF), // Soft Sky Blue (Clean solid)
+        color: const Color(0xFFE6F4EF), // Metro Primary Light / Mint (Bukan Biru / Navy)
         borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFBFE5D6), width: 1.2),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -861,265 +862,266 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Top Row: Time Pill & Mini Calendar Card
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Time pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E242B),
-                        borderRadius: BorderRadius.circular(999),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Time pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF018556), // Metro Green (Bukan Navy)
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isCompleted ? Icons.check_rounded : Icons.check_rounded,
+                        size: 13,
+                        color: const Color(0xFFFAE653), // Metro Yellow
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isCompleted ? Icons.check_rounded : Icons.check_rounded,
-                            size: 13,
-                            color: const Color(0xFFFAE653),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            timeRange,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(width: 6),
+                      Text(
+                        timeRange,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.2,
+                        ),
                       ),
-                    ),
-
-                    // Mini Calendar Card on Top-Right
-                    Container(
-                      width: 54,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          // Yellow top header bar
-                          Container(
-                            height: 12,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFEAB308),
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
-                            ),
-                          ),
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                dayNumStr,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF1E242B),
-                                  height: 1.1,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 5),
-                            child: Text(
-                              monthStr,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF64748B),
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 14),
-
-                // Program Title (Green uppercase)
-                Text(
-                  programTitle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF018556),
-                    letterSpacing: 0.6,
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 5),
-
-                // Session Title
-                Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF1E242B),
-                    letterSpacing: -0.4,
+                // Mini Calendar Card on Top-Right
+                Container(
+                  width: 54,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFBFE5D6), width: 1.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF018556).withValues(alpha: 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                ),
-
-                const SizedBox(height: 6),
-
-                // Description
-                Text(
-                  description,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF475569),
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                const SizedBox(height: 18),
-
-                // Badges Row
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    // Duration Tag
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
+                  child: Column(
+                    children: [
+                      // Metro Yellow top header bar
+                      Container(
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFAE653), // Metro Yellow
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            durationFormatted,
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            dayNumStr,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E242B),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF063D2A), // Metro Deep Emerald
+                              height: 1.1,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.access_time_rounded,
-                            size: 13,
-                            color: Color(0xFF1E242B),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-
-                    // Category Tag
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 5),
+                        child: Text(
+                          monthStr,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF018556), // Metro Green
+                            letterSpacing: 0.8,
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            category,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E242B),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.bolt_rounded,
-                            size: 14,
-                            color: Color(0xFF1E242B),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Join Button: "🎥 Masuk kelas" (Di sisi kiri, tidak menutupi watermark 02 NOV di kanan)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      if (liveUrl.isNotEmpty) {
-                        _openLiveUrl(liveUrl);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Tautan kelas live akan dibuka menjelang sesi dimulai.',
-                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
-                            ),
-                            backgroundColor: const Color(0xFF1E242B),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E242B),
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x18000000),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.videocam_rounded,
-                            size: 16,
-                            color: Color(0xFFFAE653), // Yellow video icon
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Masuk kelas',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
+
+            const SizedBox(height: 14),
+
+            // Program Title (Green uppercase)
+            Text(
+              programTitle,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF018556), // Metro Green
+                letterSpacing: 0.6,
+              ),
+            ),
+
+            const SizedBox(height: 5),
+
+            // Session Title
+            Text(
+              title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF063D2A), // Metro Deep Emerald
+                letterSpacing: -0.4,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            // Description
+            Text(
+              description,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF285441), // Metro Dark Muted Green
+                height: 1.4,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 18),
+
+            // Badges Row (Metro Palette — Bukan Biru)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                // Duration Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1EBE1), // Metro Soft Mint Green
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFA7D7C5), width: 1.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        durationFormatted,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF063D2A), // Metro Deep Emerald
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 13,
+                        color: Color(0xFF018556), // Metro Green
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Category Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1EBE1), // Metro Soft Mint Green
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFA7D7C5), width: 1.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        category,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF063D2A), // Metro Deep Emerald
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.bolt_rounded,
+                        size: 14,
+                        color: Color(0xFF018556), // Metro Green
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Join Button: "🎥 Masuk kelas" (Metro Green & Yellow — Bukan Navy)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  if (liveUrl.isNotEmpty) {
+                    _openLiveUrl(liveUrl);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Tautan kelas live akan dibuka menjelang sesi dimulai.',
+                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                        ),
+                        backgroundColor: const Color(0xFF063D2A), // Metro Deep Emerald
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF018556), // Metro Green (Bukan Navy)
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF018556).withValues(alpha: 0.28),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.videocam_rounded,
+                        size: 16,
+                        color: Color(0xFFFAE653), // Metro Accent Yellow
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Masuk kelas',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1158,7 +1160,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E242B),
+              color: const Color(0xFF063D2A), // Metro Deep Emerald
             ),
           ),
           const SizedBox(height: 6),
