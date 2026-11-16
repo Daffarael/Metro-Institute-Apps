@@ -541,53 +541,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       clipBehavior: Clip.none,
                       alignment: Alignment.topCenter,
                       children: [
-                        // Cover Image with Real Gaussian Blur & Multi-stop Seamless Fade
+                        // Cover Image with Clear HD View & Seamless Alpha Dissolve at bottom
                         SizedBox(
-                          height: 250,
+                          height: 260,
                           width: double.infinity,
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              // Blurred Cover Image / Gradient
-                              ClipRect(
-                                child: ImageFiltered(
-                                  imageFilter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                                  child: Transform.scale(
-                                    scale: 1.18,
-                                    child: _renderRawCover(),
-                                  ),
-                                ),
+                              // 1. Crisp, clear, sharp cover image (no full blur)
+                              // Softly dissolved into canvas at bottom using ShaderMask
+                              ShaderMask(
+                                shaderCallback: (Rect bounds) {
+                                  return const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.white,
+                                      Colors.white,
+                                      Color(0xCCFFFFFF),
+                                      Color(0x73FFFFFF),
+                                      Color(0x26FFFFFF),
+                                      Colors.transparent,
+                                    ],
+                                    stops: [0.0, 0.40, 0.65, 0.78, 0.88, 1.0],
+                                  ).createShader(bounds);
+                                },
+                                blendMode: BlendMode.dstIn,
+                                child: _renderRawCover(),
                               ),
 
-                              // Translucent dark tint for top contrast
-                              Container(
-                                color: Colors.black.withValues(alpha: 0.18),
-                              ),
-
-                              // Multi-stop seamless gradient fade into #FAF9F5 canvas
-                              // Solid #FAF9F5 takes over completely before the bottom edge
-                              Positioned.fill(
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.black.withValues(alpha: 0.35),
-                                        Colors.transparent,
-                                        const Color(0xFFFAF9F5).withValues(alpha: 0.20),
-                                        const Color(0xFFFAF9F5).withValues(alpha: 0.60),
-                                        const Color(0xFFFAF9F5).withValues(alpha: 0.90),
-                                        const Color(0xFFFAF9F5),
-                                        const Color(0xFFFAF9F5),
-                                      ],
-                                      stops: const [0.0, 0.28, 0.52, 0.70, 0.84, 0.93, 1.0],
+                              // 2. Subtle top vignette for white header icons contrast
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: 110,
+                                child: IgnorePointer(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.black.withValues(alpha: 0.45),
+                                          Colors.black.withValues(alpha: 0.15),
+                                          Colors.transparent,
+                                        ],
+                                        stops: const [0.0, 0.55, 1.0],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
 
-                              // Tap anywhere on cover to trigger customize sheet
+                              // 3. Smooth fade into #FAF9F5 canvas at the bottom (No harsh line/section)
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: 130,
+                                child: IgnorePointer(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          const Color(0xFFFAF9F5).withValues(alpha: 0.25),
+                                          const Color(0xFFFAF9F5).withValues(alpha: 0.65),
+                                          const Color(0xFFFAF9F5).withValues(alpha: 0.95),
+                                          const Color(0xFFFAF9F5),
+                                        ],
+                                        stops: const [0.0, 0.45, 0.70, 0.90, 1.0],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // 4. Tap anywhere on cover to trigger customize sheet
                               Positioned.fill(
                                 child: Material(
                                   color: Colors.transparent,
@@ -599,7 +632,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
 
-                              // "Ubah Cover" pill button
+                              // 5. "Ubah Cover" pill button
                               Positioned(
                                 top: topPadding + 46,
                                 right: 16,
@@ -608,10 +641,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.45),
+                                      color: Colors.black.withValues(alpha: 0.40),
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.30),
+                                        color: Colors.white.withValues(alpha: 0.25),
                                         width: 1.0,
                                       ),
                                     ),
