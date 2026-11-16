@@ -61,7 +61,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
   bool _isTorn = false;
   int _lastVibratedHole = -1;
 
-  static const double _ticketHeight = 76.0;
+  static const double _ticketHeight = 74.0;
   static const double _notchRadius = 8.0;
 
   @override
@@ -69,7 +69,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650),
+      duration: const Duration(milliseconds: 550),
     );
 
     _tearAnimation = CurvedAnimation(
@@ -79,19 +79,21 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
 
     _fallAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.35, 1.0, curve: Curves.easeInCubic),
+      curve: const Interval(0.30, 1.0, curve: Curves.easeInCubic),
     );
 
     _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+        curve: const Interval(0.55, 1.0, curve: Curves.easeOut),
       ),
     );
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
-        widget.onConfirm();
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) widget.onConfirm();
+        });
       }
     });
   }
@@ -103,7 +105,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
   }
 
   void _triggerHapticStep(double progress) {
-    const int totalHoles = 6;
+    const int totalHoles = 5;
     final int currentHole = (progress * totalHoles).floor();
     if (currentHole != _lastVibratedHole && currentHole >= 0 && currentHole < totalHoles) {
       _lastVibratedHole = currentHole;
@@ -118,23 +120,27 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
     _controller.forward();
   }
 
-  void _onVerticalDragUpdate(DragUpdateDetails details) {
+  void _onPanUpdate(DragUpdateDetails details) {
     if (_isTorn) return;
-    final dy = details.primaryDelta ?? 0;
-    if (dy > 0) {
+    final dy = details.delta.dy;
+    final dx = details.delta.dx;
+    // Allow tearing by dragging down or slightly sideways
+    final delta = (dy > 0 ? dy : 0) + (dx > 0 ? dx * 0.4 : 0);
+    if (delta > 0) {
       setState(() {
-        _dragProgress = math.min(1.0, _dragProgress + (dy / 80.0));
+        _dragProgress = math.min(1.0, _dragProgress + (delta / 35.0));
       });
       _triggerHapticStep(_dragProgress);
-      if (_dragProgress >= 0.85) {
+      if (_dragProgress >= 0.60) {
         _finishTear();
       }
     }
   }
 
-  void _onVerticalDragEnd(DragEndDetails details) {
+  void _onPanEnd(DragEndDetails details) {
     if (_isTorn) return;
-    if (_dragProgress >= 0.45) {
+    final velocity = details.velocity.pixelsPerSecond;
+    if (_dragProgress >= 0.20 || velocity.dy > 100 || velocity.dx > 100) {
       _finishTear();
     } else {
       setState(() {
@@ -148,10 +154,10 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 380),
-        padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
+        constraints: const BoxConstraints(maxWidth: 360),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -160,17 +166,17 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon Pill & Header (Solid Red - No Pale Pink, No Shadow)
+            // Icon Pill & Header
             Container(
-              width: 52,
-              height: 52,
+              width: 50,
+              height: 50,
               decoration: const BoxDecoration(
                 color: Color(0xFFDC2626), // Solid Red Metro
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.logout_rounded, color: Colors.white, size: 24),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Text(
               widget.title,
               textAlign: TextAlign.center,
@@ -187,77 +193,78 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 color: const Color(0xFF64748B),
-                height: 1.5,
+                height: 1.45,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // THE TIKET SOBEK COMPONENT
+            // THE TIKET SOBEK COMPONENT (100% Responsive, Zero Overflow)
             SizedBox(
-              height: _ticketHeight + 40,
+              height: _ticketHeight + 24,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // LEFT TICKET BODY
-                      ClipPath(
-                        clipper: _TicketBodyClipper(notchRadius: _notchRadius),
-                        child: Container(
-                          width: 200,
-                          height: _ticketHeight,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFDC2626), // Solid Metro Red
-                          ),
-                          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.22),
-                                  borderRadius: BorderRadius.circular(10),
+                      // LEFT TICKET BODY (Expanded to fill available dialog width)
+                      Expanded(
+                        child: ClipPath(
+                          clipper: _TicketBodyClipper(notchRadius: _notchRadius),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            height: _ticketHeight,
+                            decoration: BoxDecoration(
+                              color: _isTorn ? const Color(0xFF018556) : const Color(0xFFDC2626),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.22),
+                                    borderRadius: BorderRadius.circular(9),
+                                  ),
+                                  child: Icon(
+                                    _isTorn ? Icons.check_rounded : Icons.logout_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
                                 ),
-                                child: Icon(
-                                  _isTorn ? Icons.check_rounded : Icons.logout_rounded,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _isTorn ? 'Keluar...' : widget.ticketLabel,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _isTorn ? 'Keluar Berhasil' : widget.ticketLabel,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      _isTorn ? 'Sampai jumpa!' : widget.ticketSubtitle,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white.withValues(alpha: 0.85),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _isTorn ? 'Mengakhiri sesi...' : widget.ticketSubtitle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -273,10 +280,10 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                         animation: _controller,
                         builder: (context, child) {
                           final double tearAngle = _isTorn
-                              ? (_tearAnimation.value * (35 * math.pi / 180))
+                              ? (_tearAnimation.value * (45 * math.pi / 180))
                               : (_dragProgress * (20 * math.pi / 180));
                           final double fallDy = _isTorn ? (_fallAnimation.value * 70.0) : (_dragProgress * 10.0);
-                          final double fallDx = _isTorn ? (_fallAnimation.value * 15.0) : 0.0;
+                          final double fallDx = _isTorn ? (_fallAnimation.value * 20.0) : 0.0;
                           final double opacity = _isTorn ? _opacityAnimation.value : 1.0;
 
                           return Transform.translate(
@@ -287,16 +294,16 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                               child: Opacity(
                                 opacity: opacity,
                                 child: GestureDetector(
-                                  onVerticalDragUpdate: _onVerticalDragUpdate,
-                                  onVerticalDragEnd: _onVerticalDragEnd,
+                                  onPanUpdate: _onPanUpdate,
+                                  onPanEnd: _onPanEnd,
                                   onTap: () {
-                                    HapticFeedback.mediumImpact();
+                                    HapticFeedback.heavyImpact();
                                     _finishTear();
                                   },
                                   child: ClipPath(
                                     clipper: _TicketStubClipper(notchRadius: _notchRadius),
                                     child: Container(
-                                      width: 80,
+                                      width: 72,
                                       height: _ticketHeight,
                                       decoration: const BoxDecoration(
                                         color: Color(0xFFB91C1C), // Solid darker red for tear stub
@@ -331,11 +338,11 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             // Hint text
             Text(
-              'Tarik atau sentuh "SOBEK" untuk mengonfirmasi',
+              'Tarik atau sentuh "SOBEK" untuk konfirmasi',
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
@@ -344,13 +351,13 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
               ),
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
             // Cancel Button
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: Text(
@@ -376,31 +383,24 @@ class _TicketBodyClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    const double radius = 16.0;
+    const double radius = 14.0;
     final path = Path();
 
-    // Start at top-left
     path.moveTo(radius, 0);
-    // Top edge to top-right notch
     path.lineTo(size.width - notchRadius, 0);
-    // Top-right notch (inward arc)
     path.arcToPoint(
       Offset(size.width, notchRadius),
       radius: Radius.circular(notchRadius),
       clockwise: false,
     );
-    // Right seam edge
     path.lineTo(size.width, size.height - notchRadius);
-    // Bottom-right notch (inward arc)
     path.arcToPoint(
       Offset(size.width - notchRadius, size.height),
       radius: Radius.circular(notchRadius),
       clockwise: false,
     );
-    // Bottom edge to bottom-left
     path.lineTo(radius, size.height);
     path.arcToPoint(Offset(0, size.height - radius), radius: const Radius.circular(radius));
-    // Left edge
     path.lineTo(0, radius);
     path.arcToPoint(const Offset(radius, 0), radius: const Radius.circular(radius));
 
@@ -419,32 +419,25 @@ class _TicketStubClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    const double radius = 16.0;
+    const double radius = 14.0;
     final path = Path();
 
-    // Start at top-left notch
     path.moveTo(0, notchRadius);
-    // Top-left notch (inward arc)
     path.arcToPoint(
       Offset(notchRadius, 0),
       radius: Radius.circular(notchRadius),
       clockwise: false,
     );
-    // Top edge to top-right
     path.lineTo(size.width - radius, 0);
     path.arcToPoint(Offset(size.width, radius), radius: const Radius.circular(radius));
-    // Right edge to bottom-right
     path.lineTo(size.width, size.height - radius);
     path.arcToPoint(Offset(size.width - radius, size.height), radius: const Radius.circular(radius));
-    // Bottom edge to bottom-left notch
     path.lineTo(notchRadius, size.height);
-    // Bottom-left notch (inward arc)
     path.arcToPoint(
       Offset(0, size.height - notchRadius),
       radius: Radius.circular(notchRadius),
       clockwise: false,
     );
-    // Left seam edge back to start
     path.lineTo(0, notchRadius);
 
     path.close();
@@ -466,8 +459,8 @@ class _PerforationPainter extends CustomPainter {
 
     const double dashHeight = 4.0;
     const double dashSpace = 4.0;
-    double startY = 10.0;
-    final double endY = size.height - 10.0;
+    double startY = 8.0;
+    final double endY = size.height - 8.0;
 
     while (startY < endY) {
       canvas.drawLine(Offset(0, startY), Offset(0, startY + dashHeight), paint);

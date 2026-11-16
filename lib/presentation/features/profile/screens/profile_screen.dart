@@ -779,7 +779,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // Spacer for the overlapping avatar
                     const SizedBox(height: 22),
 
-                    // ── 2. User Name & Subtitle ───────────────────────────────
+                    // ── 2. User Name & Role Badge ──────────────────────────────
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Column(
@@ -794,14 +794,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               letterSpacing: -0.4,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${badge.replaceAll('_', ' ')} • $email',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF64748B),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF018556).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              badge.replaceAll('_', ' '),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF018556),
+                                letterSpacing: 0.3,
+                              ),
                             ),
                           ),
                         ],
@@ -960,14 +968,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ── 6. Distinct Destructive Logout Action (Different from standard menu cards) ─
+                    // ── 6. Simple & Clean Logout Card (No Description, No Sobek Tiket Tag) ─
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+                          border: Border.all(color: const Color(0xFFFECACA), width: 1.0),
                         ),
                         child: Material(
                           color: Colors.transparent,
@@ -979,69 +987,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 42,
-                                    height: 42,
+                                    width: 40,
+                                    height: 40,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFDC2626),
+                                      color: const Color(0xFFFEF2F2),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(
                                       Icons.logout_rounded,
-                                      color: Colors.white,
+                                      color: Color(0xFFDC2626),
                                       size: 20,
                                     ),
                                   ),
                                   const SizedBox(width: 14),
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Keluar dari Akun',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w800,
-                                            color: const Color(0xFFDC2626),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          'Akhiri sesi dan amankan akun Anda',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color: const Color(0xFF991B1B),
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      'Keluar dari Akun',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFFDC2626),
+                                      ),
                                     ),
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: const Color(0xFFFECACA), width: 1),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.confirmation_number_outlined,
-                                          size: 13,
-                                          color: Color(0xFFDC2626),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'Sobek Tiket',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700,
-                                            color: const Color(0xFFDC2626),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: Color(0xFFDC2626),
+                                    size: 22,
                                   ),
                                 ],
                               ),
