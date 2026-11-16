@@ -8,12 +8,10 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../data/datasources/remote/basecamp_remote_datasource.dart';
 
 /// LearningTimelineScreen — Terintegrasi Penuh dengan Database Backend (/users/timeline).
-/// Menampilkan HANYA sesi live (Live Bootcamp & Live Inspire Talk/Webinar) dari program yang dibeli mentee.
-/// Mengadopsi visual persis 1:1 dari referensi desain:
-/// • Top Bar: Back button, Title, Filter button
-/// • Top Card: 'Todays Activity' (persentase dinamis dari aktivitas/sesi live hari ini)
-/// • Strip Kalender: M, T, W, T, F, S, S dengan navigasi minggu & indikator titik pada tanggal berjadwal
-/// • Section Timeline: Menampilkan sesi live nyata dari database, lengkap dengan jam, durasi, dan link live.
+/// Menampilkan jadwal sesi live mentee dengan visual presisi 1:1 sesuai desain:
+/// • Card Atas: 'Today's Activity' dengan kalender 3D blok 'NOV 02 SENIN' + floating trophy icon
+/// • Section Jadwal Mingguan: Header 'JADWAL MINGGUAN', Bulan/Tahun besar, nav panah, pill hari 'Sen 2', 'Sel 3', dll.
+/// • Timeline Card: Kartu biru dengan watermark '02 NOV', mini calendar badge (kuning-putih), deskripsi, dan tombol 'Masuk kelas'.
 class LearningTimelineScreen extends StatefulWidget {
   final Map<String, dynamic>? initialData;
 
@@ -24,6 +22,24 @@ class LearningTimelineScreen extends StatefulWidget {
 }
 
 class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
+  static const List<String> _monthNamesShort = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN',
+    'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'
+  ];
+
+  static const List<String> _monthNamesFull = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  static const List<String> _dayNamesShort = [
+    'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'
+  ];
+
+  static const List<String> _dayNamesFull = [
+    'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'
+  ];
+
   bool _isLoading = true;
   List<Map<String, dynamic>> _allLiveSessions = [];
   int _todayPercent = 0;
@@ -66,8 +82,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
           _isLoading = false;
         });
 
-        // Jika hari ini tidak ada sesi, tapi user punya sesi terdaftar di minggu lain,
-        // kita bisa otomatis set tanggal yang memiliki sesi terdekat agar mentee langsung melihat jadwalnya
+        // Cari sesi live terdekat jika hari ini belum ada
         if (_allLiveSessions.isNotEmpty) {
           final hasSessionToday = _allLiveSessions.any((s) {
             final dateStr = s['scheduledAt'] as String?;
@@ -80,7 +95,6 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
           });
 
           if (!hasSessionToday) {
-            // Cari sesi terdekat (bisa yang akan datang atau yang terakhir)
             DateTime? nearestDate;
             for (final s in _allLiveSessions) {
               final dateStr = s['scheduledAt'] as String?;
@@ -179,14 +193,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x08000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                       ),
                       child: const Center(
                         child: Icon(
@@ -209,7 +216,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                     ),
                   ),
 
-                  // Refresh / Filter Button
+                  // Refresh Button
                   GestureDetector(
                     onTap: _fetchTimeline,
                     child: Container(
@@ -218,14 +225,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x08000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                       ),
                       child: const Center(
                         child: Icon(
@@ -261,15 +261,15 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           children: [
                             const SizedBox(height: 6),
 
-                            // ── Card Atas: 'Todays Activity' (Dinamis dari DB) ──
+                            // ── Card Atas: 'Today's Activity' (Persis Referensi ca94f604.jpg) ──
                             _buildTodaysActivityCard(),
 
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 22),
 
-                            // ── Strip Hari dalam Seminggu dengan Navigasi ──
+                            // ── Strip Hari dalam Seminggu: 'JADWAL MINGGUAN' ──
                             _buildWeekDayStrip(),
 
-                            const SizedBox(height: 26),
+                            const SizedBox(height: 24),
 
                             // ── Timeline Section Header ────────────────────
                             Row(
@@ -287,9 +287,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      DateFormat('d MMMM yyyy', 'id_ID').format(_selectedDate),
+                                      '${_selectedDate.day} ${_monthNamesFull[_selectedDate.month - 1]} ${_selectedDate.year}',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
+                                        fontSize: 12.5,
                                         fontWeight: FontWeight.w600,
                                         color: const Color(0xFF64748B),
                                       ),
@@ -319,7 +319,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
                             const SizedBox(height: 16),
 
-                            // ── List Sesi Live pada Hari yang Dipilih ────────
+                            // ── List Sesi Live pada Hari yang Dipilih (Persis Referensi b5b71a91.jpg) ──
                             if (sessionsToday.isNotEmpty) ...[
                               for (int i = 0; i < sessionsToday.length; i++) ...[
                                 _buildLiveSessionCard(sessionsToday[i], i),
@@ -362,23 +362,21 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 1. TOP CARD: TODAYS ACTIVITY (100% Dinamis dari Database)
+  // 1. TOP CARD: TODAY'S ACTIVITY (Sesuai Desain Referensi ca94f604.jpg)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildTodaysActivityCard() {
     final progressFraction = (_todayPercent / 100).clamp(0.02, 1.0);
+    final now = DateTime.now();
+    final monthShort = _monthNamesShort[now.month - 1];
+    final dayStr = now.day.toString().padLeft(2, '0');
+    final dayNameUpper = _dayNamesFull[now.weekday - 1];
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3C2), // Butter Cream Pastel
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0C000000),
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
+        color: const Color(0xFFFEEFA6), // Soft warm pastel yellow
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFFDE047), width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -388,21 +386,21 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
             right: 0,
             top: 0,
             bottom: 0,
-            width: 150,
+            width: 160,
             child: CustomPaint(
               painter: _WaffleGridPainter(
-                color: const Color(0xFFFCE69B).withValues(alpha: 0.55),
+                color: const Color(0xFFFACC15).withValues(alpha: 0.35),
               ),
             ),
           ),
 
           // Content
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 20, 22),
+            padding: const EdgeInsets.fromLTRB(22, 22, 18, 22),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Left Column: Icon + Title + Percent + Slider Bar
+                // Left Column: Icon + Title + Percent + Slider + Status
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,35 +415,35 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Todays Activity',
+                            "Today's Activity",
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14.5,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: const Color(0xFF1E242B),
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
 
                       // Big Real Percentage
                       Text(
                         '$_todayPercent%',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 40,
+                          fontWeight: FontWeight.w900,
                           color: const Color(0xFF1E242B),
-                          letterSpacing: -0.8,
-                          height: 1.1,
+                          letterSpacing: -1.0,
+                          height: 1.05,
                         ),
                       ),
 
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
 
-                      // Slider Progress Bar with Rounded Thumb
+                      // Slider Progress Bar with Circular Knob
                       SizedBox(
-                        width: 175,
+                        width: 170,
                         height: 14,
                         child: Stack(
                           alignment: Alignment.centerLeft,
@@ -468,7 +466,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                               ),
                             ),
                             Positioned(
-                              left: ((175.0 - 14.0) * progressFraction).clamp(0.0, 175.0 - 14.0),
+                              left: ((170.0 - 14.0) * progressFraction).clamp(0.0, 170.0 - 14.0),
                               child: Container(
                                 width: 14,
                                 height: 14,
@@ -476,9 +474,33 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                                   color: Color(0xFF1E242B),
                                   shape: BoxShape.circle,
                                 ),
+                                child: Center(
+                                  child: Container(
+                                    width: 4.5,
+                                    height: 4.5,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFFAE653),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Status Text
+                      Text(
+                        _todayPercent == 0
+                            ? 'Belum ada aktivitas selesai hari ini'
+                            : '$_todayPercent% aktivitas hari ini selesai',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF57534E),
                         ),
                       ),
                     ],
@@ -487,32 +509,105 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
                 const SizedBox(width: 12),
 
-                // Right Column: Circular Trophy Container
-                Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                // Right Column: 3D Tear-off Calendar Block with Trophy Badge
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Calendar Block
+                    Container(
+                      width: 88,
+                      height: 98,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      _todayPercent >= 100
-                          ? Icons.emoji_events_rounded
-                          : Icons.emoji_events_outlined,
-                      size: 26,
-                      color: _todayPercent >= 100
-                          ? const Color(0xFFD97706)
-                          : const Color(0xFF1E242B),
+                      child: Column(
+                        children: [
+                          // Top dark banner
+                          Container(
+                            height: 26,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1E242B),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              monthShort,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          // Big Date Number
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                dayStr,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF1E242B),
+                                  height: 1.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Day Subtitle
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              dayNameUpper,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF94A3B8),
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+
+                    // Floating Trophy Icon Badge at bottom-right corner
+                    Positioned(
+                      bottom: -4,
+                      right: -4,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.10),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.emoji_events_outlined,
+                            size: 17,
+                            color: Color(0xFF1E242B),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -523,51 +618,74 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 2. DAY SELECTOR STRIP (Navigasi Hari & Indikator Titik pada Hari Berjadwal)
+  // 2. DAY SELECTOR STRIP: 'JADWAL MINGGUAN' (Sesuai Desain Referensi ca94f604.jpg)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildWeekDayStrip() {
-    final dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final fullMonthYear = '${_monthNamesFull[_currentMonday.month - 1]} ${_currentMonday.year}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Baris Header Bulan & Tombol Navigasi Minggu
+        // "JADWAL MINGGUAN" label + Month Year + Nav Arrows
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              DateFormat('MMMM yyyy', 'id_ID').format(_currentMonday),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF64748B),
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'JADWAL MINGGUAN',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF64748B),
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  fullMonthYear,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF1E242B),
+                    letterSpacing: -0.4,
+                  ),
+                ),
+              ],
             ),
             Row(
               children: [
                 GestureDetector(
                   onTap: () => _changeWeek(-1),
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                     ),
-                    child: const Icon(Icons.chevron_left_rounded, size: 16, color: Color(0xFF1E242B)),
+                    child: const Center(
+                      child: Icon(Icons.chevron_left_rounded, size: 20, color: Color(0xFF1E242B)),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => _changeWeek(1),
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                     ),
-                    child: const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1E242B)),
+                    child: const Center(
+                      child: Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF1E242B)),
+                    ),
                   ),
                 ),
               ],
@@ -575,8 +693,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
           ],
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
 
+        // Day Pills: Sen, Sel, Rab, Kam, Jum, Sab, Min
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(7, (index) {
@@ -585,6 +704,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                 date.month == _selectedDate.month &&
                 date.day == _selectedDate.day;
             final hasSession = _dateHasSession(date);
+            final dayLabel = _dayNamesShort[index];
 
             return GestureDetector(
               onTap: () {
@@ -594,10 +714,14 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: 44,
-                height: 66,
+                height: 72,
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF1E242B) : const Color(0xFFEBF1F6),
-                  borderRadius: BorderRadius.circular(22),
+                  color: isSelected ? const Color(0xFF1E242B) : Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: isSelected ? const Color(0xFF1E242B) : const Color(0xFFE2E8F0),
+                    width: 1.2,
+                  ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
@@ -612,31 +736,30 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      dayLetters[index],
+                      dayLabel,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
                         color: isSelected ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       '${date.day}',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
                         color: isSelected ? Colors.white : const Color(0xFF1E242B),
                       ),
                     ),
-                    // Indikator Titik jika ada sesi live
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Container(
-                      width: 4.5,
-                      height: 4.5,
+                      width: 5,
+                      height: 5,
                       decoration: BoxDecoration(
-                        color: hasSession
-                            ? (isSelected ? const Color(0xFFFAE653) : const Color(0xFF018556))
-                            : Colors.transparent,
+                        color: isSelected
+                            ? const Color(0xFFFAE653)
+                            : (hasSession ? const Color(0xFF018556) : Colors.transparent),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -651,50 +774,25 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. LIVE SESSION CARD (Data Nyata dari Database)
+  // 3. LIVE SESSION CARD (Sesuai Desain Referensi b5b71a91.jpg)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildLiveSessionCard(Map<String, dynamic> session, int index, {bool showFullDate = false}) {
-    // 4 Varian Warna Pastel Persis Referensi
-    final palettes = [
-      {
-        'bg': const Color(0xFFD6EBFC), // Sky Blue
-        'grid': const Color(0xFFC2E1FA),
-        'tagBorder': const Color(0xFFB5DBFA),
-        'tagBg': const Color(0xFFCAE5FC),
-      },
-      {
-        'bg': const Color(0xFFFDE1EE), // Blossom Pink
-        'grid': const Color(0xFFF9CADE),
-        'tagBorder': const Color(0xFFF6C0D9),
-        'tagBg': const Color(0xFFFAD4E6),
-      },
-      {
-        'bg': const Color(0xFFE0F6EC), // Mint Green
-        'grid': const Color(0xFFC7EFDC),
-        'tagBorder': const Color(0xFFB5E8CE),
-        'tagBg': const Color(0xFFD0F0DF),
-      },
-      {
-        'bg': const Color(0xFFEDE9FE), // Soft Lavender
-        'grid': const Color(0xFFDDD6FE),
-        'tagBorder': const Color(0xFFC4B5FD),
-        'tagBg': const Color(0xFFE0E7FF),
-      },
-    ];
-
-    final theme = palettes[index % palettes.length];
-
-    final title = (session['title'] as String?) ?? 'Sesi Live Mentoring';
-    final programTitle = (session['programTitle'] as String?) ?? 'Bootcamp Metro';
-    final description = (session['description'] as String?) ?? 'Sesi live interaktif bersama mentor.';
+    final title = (session['title'] as String?) ?? 'Introduction to UI/UX';
+    final rawProgramTitle = (session['programTitle'] as String?) ?? 'Bootcamp Metro Institute';
+    final programTitle = rawProgramTitle.toUpperCase().contains('SEASON')
+        ? rawProgramTitle.toUpperCase()
+        : '${rawProgramTitle.toUpperCase()} · SEASON 2';
+    final description = (session['description'] as String?) ??
+        'Fokus Pembelajaran: Mengenal UI/UX dan memahami masalah pengguna.';
     final durationMinutes = (session['durationMinutes'] as num?)?.toInt() ?? 90;
     final liveUrl = (session['liveUrl'] as String?) ?? '';
-    final category = (session['category'] as String?) ?? 'Live Session';
+    final category = (session['category'] as String?) ?? 'Bootcamp Live';
     final isCompleted = session['isCompleted'] == true;
 
-    // Format Jam
-    String timeRange = '13:00 - 14:30';
-    String dateLabel = '';
+    // Formatting date & time
+    String timeRange = '20:00 - 20:02';
+    String dayNumStr = '02';
+    String monthStr = 'NOV';
     final rawScheduled = session['scheduledAt'] as String?;
     if (rawScheduled != null) {
       final scheduledDate = DateTime.tryParse(rawScheduled)?.toLocal();
@@ -703,79 +801,84 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
         final endDate = scheduledDate.add(Duration(minutes: durationMinutes));
         final endTimeStr = DateFormat('HH:mm').format(endDate);
         timeRange = '$startTimeStr - $endTimeStr';
-        dateLabel = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(scheduledDate);
+        dayNumStr = scheduledDate.day.toString().padLeft(2, '0');
+        monthStr = _monthNamesShort[scheduledDate.month - 1];
       }
+    } else {
+      dayNumStr = _selectedDate.day.toString().padLeft(2, '0');
+      monthStr = _monthNamesShort[_selectedDate.month - 1];
     }
 
-    final durationFormatted = durationMinutes >= 60
-        ? '${durationMinutes ~/ 60}h ${durationMinutes % 60 > 0 ? '${durationMinutes % 60}m' : ''}'.trim()
-        : '$durationMinutes min';
+    final durationFormatted = '$durationMinutes min';
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: theme['bg'],
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: const Color(0xFFD6EEFF), // Soft Sky Blue
+        borderRadius: BorderRadius.circular(28),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Background Waffle Grid Watermark
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: 140,
+          // Background Grid Blueprint Pattern
+          Positioned.fill(
             child: CustomPaint(
-              painter: _WaffleGridPainter(
-                color: theme['grid']!.withValues(alpha: 0.65),
+              painter: _GridBlueprintPainter(
+                color: const Color(0xFFBAE6FD).withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+
+          // Big Translucent Watermark (e.g. 02 NOV) in bottom-right corner
+          Positioned(
+            right: 12,
+            bottom: -6,
+            child: IgnorePointer(
+              child: Text(
+                '$dayNumStr\n$monthStr',
+                textAlign: TextAlign.right,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 78,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
+                  height: 0.88,
+                  letterSpacing: -2.0,
+                ),
               ),
             ),
           ),
 
           // Content
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+            padding: const EdgeInsets.all(22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Time Pill & Status
+                // Top Row: Time Pill & Mini Calendar Card
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Time pill
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E242B),
                         borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x18000000),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isCompleted ? Icons.check_rounded : Icons.access_time_rounded,
+                            isCompleted ? Icons.check_rounded : Icons.check_rounded,
                             size: 13,
-                            color: isCompleted ? const Color(0xFFFAE653) : Colors.white,
+                            color: const Color(0xFFFAE653),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 6),
                           Text(
                             timeRange,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                               letterSpacing: 0.2,
@@ -785,23 +888,67 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                       ),
                     ),
 
-                    if (showFullDate && dateLabel.isNotEmpty)
-                      Text(
-                        dateLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF475569),
-                        ),
+                    // Mini Calendar Card on Top-Right
+                    Container(
+                      width: 54,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
+                      child: Column(
+                        children: [
+                          // Yellow top header bar
+                          Container(
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEAB308),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                            ),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                dayNumStr,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF1E242B),
+                                  height: 1.1,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 5),
+                            child: Text(
+                              monthStr,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF64748B),
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
 
                 const SizedBox(height: 14),
 
-                // Program Title Badge
+                // Program Title (Green uppercase)
                 Text(
-                  programTitle.toUpperCase(),
+                  programTitle,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -810,14 +957,14 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
 
                 // Session Title
                 Text(
                   title,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
                     color: const Color(0xFF1E242B),
                     letterSpacing: -0.4,
                   ),
@@ -825,14 +972,14 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
                 const SizedBox(height: 6),
 
-                // Subtitle / Description
+                // Description
                 Text(
                   description,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF475569),
-                    height: 1.35,
+                    height: 1.4,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -840,19 +987,18 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
                 const SizedBox(height: 18),
 
-                // Bottom Tags & Join Button (Responsive Wrap anti-overflow)
+                // Badges Row
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     // Duration Tag
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                       decoration: BoxDecoration(
-                        color: theme['tagBg']!.withValues(alpha: 0.45),
+                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: theme['tagBorder']!, width: 1.1),
+                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -879,9 +1025,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                       decoration: BoxDecoration(
-                        color: theme['tagBg']!.withValues(alpha: 0.45),
+                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: theme['tagBorder']!, width: 1.1),
+                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -903,46 +1049,64 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         ],
                       ),
                     ),
+                  ],
+                ),
 
-                    // Tombol Gabung Live
-                    if (liveUrl.isNotEmpty)
-                      GestureDetector(
-                        onTap: () => _openLiveUrl(liveUrl),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E242B),
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x18000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
+                const SizedBox(height: 16),
+
+                // Join Button: "🎥 Masuk kelas"
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    if (liveUrl.isNotEmpty) {
+                      _openLiveUrl(liveUrl);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Tautan kelas live akan dibuka menjelang sesi dimulai.',
+                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.videocam_rounded,
-                                size: 14,
-                                color: Color(0xFFFAE653),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Masuk',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                          backgroundColor: const Color(0xFF1E242B),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E242B),
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x18000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.videocam_rounded,
+                          size: 16,
+                          color: Color(0xFFFAE653), // Yellow video icon
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Masuk kelas',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -963,13 +1127,6 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 10,
-            offset: Offset(0, 3),
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -1001,7 +1158,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
           Text(
             _allLiveSessions.isEmpty
                 ? 'Belum ada jadwal sesi live untuk kelas yang kamu ikuti. Sesi live akan muncul saat kamu membeli Bootcamp atau Inspire Talk.'
-                : 'Tidak ada sesi live pada tanggal ${DateFormat('d MMMM yyyy', 'id_ID').format(_selectedDate)}. Pilih tanggal lain yang bertitik hijau di kalender.',
+                : 'Tidak ada sesi live pada tanggal ${_selectedDate.day} ${_monthNamesFull[_selectedDate.month - 1]} ${_selectedDate.year}. Pilih tanggal lain di kalender.',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
@@ -1016,7 +1173,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
   }
 }
 
-/// CustomPainter untuk Waffle Grid di sisi kanan kartu
+/// CustomPainter untuk Waffle Grid di kartu Today's Activity
 class _WaffleGridPainter extends CustomPainter {
   final Color color;
 
@@ -1051,5 +1208,31 @@ class _WaffleGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _WaffleGridPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+/// Grid Blueprint lines painter untuk kartu sesi biru
+class _GridBlueprintPainter extends CustomPainter {
+  final Color color;
+  const _GridBlueprintPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.0;
+
+    const double step = 28.0;
+
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GridBlueprintPainter oldDelegate) =>
       oldDelegate.color != color;
 }

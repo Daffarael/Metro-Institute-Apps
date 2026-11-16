@@ -4,13 +4,22 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_routes.dart';
 
-/// BasecampTodaysActivityCard — Widget Ringkasan 'Aktivitas Hari Ini' di Basecamp.
-/// Mengadopsi visual persis kartu atas referensi Learning Timeline:
-/// • Background Butter Cream Pastel (#FFF3C2)
-/// • Progres harian 73% dengan slider progress bar & thumb
-/// • Trophy container bulat putih di sisi kanan
+/// BasecampTodaysActivityCard — Widget Ringkasan 'Today's Activity' di Basecamp.
+/// Mengadopsi visual persis kartu referensi:
+/// • Background Warm Yellow Pastel (#FEEFA6)
+/// • Progres harian dengan slider progress bar & knob kuning
+/// • 3D Tear-off Calendar Block 'NOV 02 SENIN' + floating trophy circle
 /// • Klik langsung membuka halaman penuh LearningTimelineScreen.
 class BasecampTodaysActivityCard extends StatelessWidget {
+  static const List<String> _monthNamesShort = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN',
+    'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'
+  ];
+
+  static const List<String> _dayNamesFull = [
+    'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'
+  ];
+
   final Map<String, dynamic>? dailyMissions;
   final Map<String, dynamic>? basecampData;
 
@@ -39,13 +48,17 @@ class BasecampTodaysActivityCard extends StatelessWidget {
     }
 
     final progressFraction = (percent / 100).clamp(0.02, 1.0);
+    final now = DateTime.now();
+    final monthShort = _monthNamesShort[now.month - 1];
+    final dayStr = now.day.toString().padLeft(2, '0');
+    final dayNameUpper = _dayNamesFull[now.weekday - 1];
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3C2), // Butter Cream Pastel
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
+        color: const Color(0xFFFEEFA6), // Soft warm pastel yellow
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFFDE047), width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: Material(
@@ -58,7 +71,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
               extra: basecampData,
             );
           },
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(28),
           child: Stack(
             children: [
               // Background Waffle Grid Watermark on Right
@@ -66,21 +79,21 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                 right: 0,
                 top: 0,
                 bottom: 0,
-                width: 140,
+                width: 150,
                 child: CustomPaint(
                   painter: _CardWafflePainter(
-                    color: const Color(0xFFFCE69B).withValues(alpha: 0.55),
+                    color: const Color(0xFFFACC15).withValues(alpha: 0.35),
                   ),
                 ),
               ),
 
               // Content
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 18, 18),
+                padding: const EdgeInsets.fromLTRB(20, 20, 18, 20),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Left Column: Icon + Title + Percent + Slider + Hint Link
+                    // Left Column: Icon + Title + Percent + Slider + Status
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,46 +103,46 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                             children: [
                               const Icon(
                                 Icons.menu_book_rounded,
-                                size: 16,
+                                size: 17,
                                 color: Color(0xFF1E242B),
                               ),
                               const SizedBox(width: 7),
                               Text(
-                                'Todays Activity',
+                                "Today's Activity",
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
                                   color: const Color(0xFF1E242B),
                                 ),
                               ),
                             ],
                           ),
 
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 7),
 
-                          // Big Percentage 73%
+                          // Big Percentage
                           Text(
                             '$percent%',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 36,
+                              fontWeight: FontWeight.w900,
                               color: const Color(0xFF1E242B),
-                              letterSpacing: -0.6,
-                              height: 1.1,
+                              letterSpacing: -0.8,
+                              height: 1.05,
                             ),
                           ),
 
                           const SizedBox(height: 10),
 
-                          // Slider Progress Bar
+                          // Slider Progress Bar with Knob
                           SizedBox(
-                            width: 160,
+                            width: 155,
                             height: 14,
                             child: Stack(
                               alignment: Alignment.centerLeft,
                               children: [
                                 Container(
-                                  height: 5.5,
+                                  height: 6,
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.95),
                                     borderRadius: BorderRadius.circular(999),
@@ -138,7 +151,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                 FractionallySizedBox(
                                   widthFactor: progressFraction,
                                   child: Container(
-                                    height: 5.5,
+                                    height: 6,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF1E242B),
                                       borderRadius: BorderRadius.circular(999),
@@ -146,13 +159,23 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                                   ),
                                 ),
                                 Positioned(
-                                  left: ((160.0 - 12.0) * progressFraction).clamp(0.0, 160.0 - 12.0),
+                                  left: ((155.0 - 13.0) * progressFraction).clamp(0.0, 155.0 - 13.0),
                                   child: Container(
-                                    width: 12,
-                                    height: 12,
+                                    width: 13,
+                                    height: 13,
                                     decoration: const BoxDecoration(
                                       color: Color(0xFF1E242B),
                                       shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Container(
+                                        width: 4,
+                                        height: 4,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFFAE653),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -160,27 +183,18 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                             ),
                           ),
 
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
 
-                          // Small hint row: 'Buka Learning Timeline' + Arrow
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Buka Learning Timeline',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF475569),
-                                ),
-                              ),
-                              const SizedBox(width: 3),
-                              const Icon(
-                                Icons.arrow_forward_rounded,
-                                size: 12,
-                                color: Color(0xFF475569),
-                              ),
-                            ],
+                          // Status text
+                          Text(
+                            percent == 0
+                                ? 'Belum ada aktivitas selesai hari ini'
+                                : '$percent% aktivitas hari ini selesai',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF57534E),
+                            ),
                           ),
                         ],
                       ),
@@ -188,22 +202,105 @@ class BasecampTodaysActivityCard extends StatelessWidget {
 
                     const SizedBox(width: 10),
 
-                    // Right Column: White Circular Trophy Container
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.emoji_events_outlined,
-                          size: 25,
-                          color: Color(0xFF1E242B),
+                    // Right Column: 3D Tear-off Calendar Block with Trophy Badge
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Calendar Block
+                        Container(
+                          width: 82,
+                          height: 92,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // Top dark banner
+                              Container(
+                                height: 24,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF1E242B),
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  monthShort,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                              // Big Date Number
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    dayStr,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFF1E242B),
+                                      height: 1.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Day Subtitle
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 7),
+                                child: Text(
+                                  dayNameUpper,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF94A3B8),
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+
+                        // Floating Trophy Icon Badge at bottom-right corner
+                        Positioned(
+                          bottom: -4,
+                          right: -4,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.10),
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.emoji_events_outlined,
+                                size: 16,
+                                color: Color(0xFF1E242B),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -252,4 +349,3 @@ class _CardWafflePainter extends CustomPainter {
   bool shouldRepaint(covariant _CardWafflePainter oldDelegate) =>
       oldDelegate.color != color;
 }
-
