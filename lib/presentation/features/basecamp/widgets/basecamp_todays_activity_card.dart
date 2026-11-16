@@ -46,13 +46,6 @@ class BasecampTodaysActivityCard extends StatelessWidget {
         color: const Color(0xFFFFF3C2), // Butter Cream Pastel
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0C000000),
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Material(
@@ -202,13 +195,7 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                       ),
                       child: const Center(
                         child: Icon(

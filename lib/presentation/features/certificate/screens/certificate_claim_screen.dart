@@ -258,21 +258,8 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF018556), Color(0xFF015F3D)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(
-                            0xFF018556,
-                          ).withValues(alpha: 0.22),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+                      color: const Color(0xFF018556), // Solid Hijau Metro
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     child: Row(
                       children: [
@@ -280,12 +267,12 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFDD00),
+                            color: const Color(0xFFFAE653), // Solid Kuning Metro
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Icon(
                             Icons.workspace_premium_rounded,
-                            color: Color(0xFF015F3D),
+                            color: Color(0xFF018556),
                             size: 28,
                           ),
                         ),
@@ -325,16 +312,10 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x14000000),
-                          blurRadius: 20,
-                          offset: Offset(0, 6),
-                        ),
-                      ],
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(15),
                       child: CertificateCanvasWidget(
                         imageUrl: _imageUrl,
                         config: _config,
@@ -357,13 +338,6 @@ class _CertificateClaimScreenState extends State<CertificateClaimScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x06000000),
-                          blurRadius: 10,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Column(
                       children: [

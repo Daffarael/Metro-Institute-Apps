@@ -444,13 +444,10 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0E000000),
-            blurRadius: 10,
-            offset: Offset(0, 3),
-          ),
-        ],
+        border: Border.all(
+          color: cardBg == AppColors.primary ? Colors.transparent : const Color(0xFFE2E8F0),
+          width: 1.2,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,19 +574,13 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Question Card (Squircle)
+                // Question Card (Squircle Clean - No Shadow)
                 Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0A000000),
-                        blurRadius: 18,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
                   ),
                   child: Text(
                     questionText,
@@ -605,7 +596,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
                 const SizedBox(height: 20),
 
-                // Options List
+                // Options List (Clean - No Shadow)
                 ...options.map((opt) {
                   final optMap = opt as Map<String, dynamic>;
                   final optId = optMap['id']?.toString() ?? '';
@@ -620,24 +611,17 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
                           _answers[qId] = optId;
                         });
                       },
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primaryLight : AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
+                          color: isSelected ? const Color(0xFFF0FDF4) : AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
                             width: isSelected ? 1.6 : 1.2,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : const Color(0x05000000),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
                         ),
                         child: Row(
                           children: [
@@ -679,7 +663,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
           ),
         ),
 
-        // Navigation Footer (Wrapped in SafeArea to prevent navigation bar insets & RenderFlex overflows)
+        // Navigation Footer (Clean Flat Buttons - No Shadow, No Overflow)
         SafeArea(
           top: false,
           child: Container(
@@ -692,26 +676,37 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
               children: [
                 if (_currentIndex > 0) ...[
                   Expanded(
-                    flex: _currentIndex < _questions.length - 1 ? 1 : 2,
-                    child: TactileMetroButton.secondary(
+                    flex: 1,
+                    child: OutlinedButton(
                       onPressed: () {
                         setState(() {
                           _currentIndex--;
                         });
                       },
-                      height: 48,
-                      fontSize: 13.5,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      borderRadius: BorderRadius.circular(14),
-                      text: 'Sebelumnya',
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF334155),
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Sebelumnya',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF334155),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                 ],
                 Expanded(
-                  flex: _currentIndex > 0 && _currentIndex == _questions.length - 1 ? 3 : 1,
-                  child: _MetroAnimatedCtaButton(
-                    onTap: selectedOption == null
+                  flex: _currentIndex > 0 ? 1 : 2,
+                  child: ElevatedButton(
+                    onPressed: (selectedOption == null || _isSubmitting)
                         ? null
                         : () {
                             if (_currentIndex < _questions.length - 1) {
@@ -722,12 +717,30 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
                               _handleSubmit();
                             }
                           },
-                    isDisabled: selectedOption == null,
-                    isLoading: _isSubmitting,
-                    height: 48,
-                    fontSize: 14,
-                    borderRadius: BorderRadius.circular(14),
-                    text: _currentIndex < _questions.length - 1 ? 'Selanjutnya' : 'Selesaikan & Kirim',
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF018556),
+                      disabledBackgroundColor: const Color(0xFFCBD5E1),
+                      foregroundColor: Colors.white,
+                      disabledForegroundColor: const Color(0xFF64748B),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                          )
+                        : Text(
+                            _currentIndex < _questions.length - 1 ? 'Selanjutnya' : 'Selesaikan & Kirim',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: selectedOption == null ? const Color(0xFF64748B) : Colors.white,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -771,19 +784,8 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF018556), Color(0xFF015F3D)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(26),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF018556).withValues(alpha: 0.28),
-                  blurRadius: 22,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              color: const Color(0xFF018556), // Solid Hijau Metro (No Gradient, No Shadow)
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               children: [
@@ -833,8 +835,8 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
                 Text(
                   _getFieldDescription(topField.toString()),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.92),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
                     height: 1.5,
@@ -846,20 +848,13 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
           const SizedBox(height: 20),
 
-          // ── Score Breakdown per Field (Kesesuaian Minat & Bakat) ──
+          // ── Score Breakdown per Field (Kesesuaian Minat & Bakat - Clean Flat) ──
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF018556).withValues(alpha: 0.05),
-                  blurRadius: 18,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -897,14 +892,19 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
 
           const SizedBox(height: 24),
 
-          // ── Action Button: Eksplorasi Sekarang (Hijau Metro Primary - matching Web) ──
-          TactileMetroButton.primary(
+          // ── Action Button: Eksplorasi Sekarang (Solid Hijau Metro - Clean Flat) ──
+          ElevatedButton(
             onPressed: () {
               HapticFeedback.lightImpact();
               context.go(AppRoutes.learn);
             },
-            height: 50,
-            borderRadius: BorderRadius.circular(16),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF018556),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -922,37 +922,48 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
             ),
           ),
 
-          // XP Earned note below button (matching Web: "+XP diperoleh dari test ini")
+          // XP Earned note below button
           Padding(
-            padding: const EdgeInsets.only(top: 10, bottom: 4),
+            padding: const EdgeInsets.only(top: 10, bottom: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.stars_rounded, size: 16, color: Color(0xFFF59E0B)),
+                const Icon(Icons.stars_rounded, size: 16, color: Color(0xFF018556)),
                 const SizedBox(width: 5),
                 Text(
                   '+$xpEarned XP diperoleh dari test ini',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
+                    color: Color(0xFF475569),
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 8),
-
-          // Secondary Action: Kembali ke Basecamp
-          TactileMetroButton.secondary(
+          // Secondary Action: Kembali ke Basecamp (Clean Outline Button)
+          OutlinedButton(
             onPressed: () {
               HapticFeedback.lightImpact();
               context.go(AppRoutes.basecamp);
             },
-            height: 48,
-            borderRadius: BorderRadius.circular(16),
-            text: 'Kembali ke Basecamp',
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF334155),
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            child: Text(
+              'Kembali ke Basecamp',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF334155),
+              ),
+            ),
           ),
         ],
       ),
@@ -983,7 +994,7 @@ class _SkillTestScreenState extends State<SkillTestScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: isTop ? const Color(0xFF018556) : const Color(0xFFD97706),
+                  color: isTop ? const Color(0xFF018556) : const Color(0xFF063D2A),
                 ),
               ),
             ],
@@ -1119,20 +1130,6 @@ class _MetroAnimatedCtaButtonState extends State<_MetroAnimatedCtaButton>
             decoration: BoxDecoration(
               color: widget.backgroundColor,
               borderRadius: radius,
-              boxShadow: widget.isDisabled
-                  ? null
-                  : [
-                      BoxShadow(
-                        color: const Color(0xFF015F3D).withValues(alpha: 0.7),
-                        offset: const Offset(0, 3.5),
-                        blurRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: widget.backgroundColor.withValues(alpha: 0.25),
-                        offset: const Offset(0, 4),
-                        blurRadius: 10,
-                      ),
-                    ],
             ),
             child: widget.isLoading
                 ? const Center(

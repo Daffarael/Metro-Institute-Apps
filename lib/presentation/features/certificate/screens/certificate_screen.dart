@@ -238,7 +238,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // ── Search Bar ────────────────────────────────────────
+                      // ── Search Bar (Clean Flat - No Shadow) ─────────────────
                       Container(
                         height: 46,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -251,13 +251,6 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                 : const Color(0xFFE2E8F0),
                             width: 1.2,
                           ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x06018556),
-                              blurRadius: 10,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
                         ),
                         child: Row(
                           children: [
@@ -476,16 +469,11 @@ class _CertificateScreenState extends State<CertificateScreen> {
         height: 156,
         decoration: BoxDecoration(
           color: cardBgColor,
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: [
-            BoxShadow(
-              color: isDarkBg
-                  ? const Color(0xFF018556).withValues(alpha: 0.28)
-                  : const Color(0xFFFAE653).withValues(alpha: 0.35),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: isDarkBg ? Colors.transparent : const Color(0xFFE2E8F0),
+            width: 1.2,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: Padding(
@@ -562,31 +550,16 @@ class _CertificateScreenState extends State<CertificateScreen> {
           color: isSelected ? const Color(0xFF018556) : Colors.white,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? const Color(0xFF018556) : const Color(0xFFE2E8F0),
+            color: isSelected ? const Color(0xFF018556) : const Color(0xFFCBD5E1),
             width: 1.2,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF018556).withValues(alpha: 0.28),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : const [
-                  BoxShadow(
-                    color: Color(0x04000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
         ),
         child: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12.5,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF64748B),
+            color: isSelected ? Colors.white : const Color(0xFF475569),
           ),
         ),
       ),
@@ -602,15 +575,8 @@ class _CertificateScreenState extends State<CertificateScreen> {
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF018556).withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -1257,11 +1223,12 @@ class _CertCard extends StatelessWidget {
   }
 
   String _resolveImageUrl() {
-    final raw = (cert['imageUrl'] ??
-            cert['certificateTemplate']?['bgImage'] ??
+    // Prioritize the live Admin Certificate Template background image first!
+    final raw = (cert['certificateTemplate']?['bgImage'] ??
             cert['course']?['certificateTemplate']?['bgImage'] ??
             cert['bootcamp']?['certificateTemplate']?['bgImage'] ??
             cert['webinar']?['certificateTemplate']?['bgImage'] ??
+            cert['imageUrl'] ??
             cert['course']?['thumbnailUrl'] ??
             cert['bootcamp']?['thumbnailUrl'] ??
             cert['webinar']?['bannerUrl'] ??
@@ -1306,15 +1273,8 @@ class _CertCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06018556),
-            blurRadius: 14,
-            offset: Offset(0, 3),
-          ),
-        ],
       ),
       child: InkWell(
         onTap: () => _showDetail(ctx),

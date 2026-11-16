@@ -154,29 +154,21 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
         padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 36,
-              spreadRadius: 2,
-              offset: const Offset(0, 12),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon Pill & Header
+            // Icon Pill & Header (Solid Red - No Pale Pink, No Shadow)
             Container(
               width: 52,
               height: 52,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
+              decoration: const BoxDecoration(
+                color: Color(0xFFDC2626), // Solid Red Metro
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
               ),
-              child: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626), size: 26),
+              child: const Icon(Icons.logout_rounded, color: Colors.white, size: 24),
             ),
             const SizedBox(height: 16),
             Text(
@@ -218,13 +210,6 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                           height: _ticketHeight,
                           decoration: const BoxDecoration(
                             color: Color(0xFFDC2626), // Solid Metro Red
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x33DC2626),
-                                blurRadius: 12,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
                           ),
                           padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
                           child: Row(
@@ -314,14 +299,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                                       width: 80,
                                       height: _ticketHeight,
                                       decoration: const BoxDecoration(
-                                        color: Color(0xFFB91C1C), // Slightly darker red for tear stub
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Color(0x28000000),
-                                            blurRadius: 8,
-                                            offset: Offset(2, 4),
-                                          ),
-                                        ],
+                                        color: Color(0xFFB91C1C), // Solid darker red for tear stub
                                       ),
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,

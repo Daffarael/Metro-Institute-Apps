@@ -195,13 +195,6 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
         color: const Color(0xFF062316),
         borderRadius: BorderRadius.circular(44),
         border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x35000000),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -321,13 +314,6 @@ class _BasecampHeroCardState extends State<BasecampHeroCard> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFFAE653), // Kuning Metro (#FAE653)
                             borderRadius: BorderRadius.circular(999),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x1F000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

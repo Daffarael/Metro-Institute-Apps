@@ -63,16 +63,9 @@ class BasecampHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white,
+                      color: const Color(0xFF018556),
                       width: 2.0,
                     ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0A0F172A),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: CircleAvatar(
                     radius: 22,
@@ -140,16 +133,9 @@ class BasecampHeader extends StatelessWidget {
                     color: Colors.white,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white,
-                      width: 1.5,
+                      color: const Color(0xFFE2E8F0),
+                      width: 1.2,
                     ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0A0F172A),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -185,14 +171,7 @@ class BasecampHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFFEE2E2), width: 1.0),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x06000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -222,14 +201,7 @@ class BasecampHeader extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white, width: 1.5),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x080F172A),
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

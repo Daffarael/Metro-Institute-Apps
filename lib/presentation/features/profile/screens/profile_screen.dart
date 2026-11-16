@@ -107,21 +107,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Profile Header Card (Clean Metro White Squircle)
+                    // Profile Header Card (Clean Solid White - No Shadow)
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0C063D2A),
-                            blurRadius: 18,
-                            spreadRadius: 1,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
                       ),
                       child: Row(
                         children: [
@@ -129,16 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 66,
                             height: 66,
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: AppColors.primary, // Solid Hijau Metro
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.accent, width: 2.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.25),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                              border: Border.all(color: const Color(0xFFFAE653), width: 2.5), // Solid Kuning Metro
                             ),
                             alignment: Alignment.center,
                             child: Text(
@@ -180,19 +165,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFFEF9C3),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFFFDE047), width: 1),
+                                    color: const Color(0xFFFAE653), // Solid Kuning Metro
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.shield_rounded, size: 13, color: Color(0xFFB45309)),
+                                      const Icon(Icons.shield_rounded, size: 13, color: Color(0xFF063D2A)),
                                       const SizedBox(width: 5),
                                       Text(
                                         badge.replaceAll('_', ' '),
                                         style: GoogleFonts.plusJakartaSans(
-                                          color: const Color(0xFF92400E),
+                                          color: const Color(0xFF063D2A),
                                           fontSize: 11,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: 0.3,
@@ -206,12 +190,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           IconButton(
                             icon: Container(
-                              padding: const EdgeInsets.all(7),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE6F4EF),
+                                color: const Color(0xFF018556), // Solid Hijau Metro
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+                              child: const Icon(Icons.edit_outlined, size: 16, color: Colors.white),
                             ),
                             tooltip: 'Edit Profil',
                             onPressed: () async {
@@ -223,33 +207,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
-                    // Gamification Highlights (Metro Green & Metro Yellow Cards)
+                    // Gamification Highlights (Solid Flat Colors - No Gradient, No Shadow)
                     Row(
                       children: [
-                        // TOTAL XP CARD (KUNING METRO)
+                        // TOTAL XP CARD (SOLID KUNING METRO)
                         Expanded(
                           child: InkWell(
                             onTap: () => context.push(AppRoutes.xpActivity),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(18),
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFFFAE653), Color(0xFFFDE047)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white, width: 1.5),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x22FACC15),
-                                    blurRadius: 14,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
+                                color: const Color(0xFFFAE653), // Solid Kuning Metro
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: const Color(0xFFEAB308), width: 1.0),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,10 +230,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(6),
+                                        padding: const EdgeInsets.all(5),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF063D2A),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: const Icon(Icons.stars_rounded, color: Color(0xFFFAE653), size: 16),
                                       ),
@@ -270,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
                                           color: const Color(0xFF063D2A),
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w800,
                                         ),
                                       ),
                                     ],
@@ -279,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Text(
                                     '$totalXp XP',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 20,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.w900,
                                       color: const Color(0xFF063D2A),
                                     ),
@@ -291,25 +264,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(width: 12),
 
-                        // STREAK CARD (HIJAU METRO)
+                        // STREAK CARD (SOLID HIJAU METRO)
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF018556), Color(0xFF016B44)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white, width: 1.5),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x24018556),
-                                  blurRadius: 14,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
+                              color: const Color(0xFF018556), // Solid Hijau Metro
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: const Color(0xFF016B44), width: 1.0),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,10 +279,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.all(6),
+                                      padding: const EdgeInsets.all(5),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFFAE653),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFF063D2A), size: 16),
                                     ),
@@ -329,8 +291,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       'Streak',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12,
-                                        color: Colors.white.withValues(alpha: 0.9),
-                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
                                       ),
                                     ),
                                   ],
@@ -339,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Text(
                                   '$streak Hari',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 20,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white,
                                   ),
@@ -351,7 +313,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     Text(
                       'Aktivitas & Pembelajaran',
@@ -363,25 +325,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Section 1: Learning & Gamification
+                    // Section 1: Learning & Gamification (Clean Flat Card - No Shadow)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0A063D2A),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: Column(
                         children: [
                           _menuTile(
                             icon: Icons.bolt_rounded,
-                            iconColor: AppColors.primary,
+                            iconColor: const Color(0xFF018556), // Solid Hijau Metro
                             title: 'Riwayat Aktivitas XP',
                             subtitle: 'Periksa catatan perolehan poin XP Anda',
                             onTap: () => context.push(AppRoutes.xpActivity),
@@ -389,7 +344,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.receipt_long_rounded,
-                            iconColor: AppColors.primary,
+                            iconColor: const Color(0xFF018556), // Solid Hijau Metro
                             title: 'Riwayat Transaksi',
                             subtitle: 'Status pembayaran kelas, webinar, dan bootcamp',
                             onTap: () => context.push(AppRoutes.transactions),
@@ -397,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.psychology_outlined,
-                            iconColor: const Color(0xFF059669),
+                            iconColor: const Color(0xFF018556), // Solid Hijau Metro
                             title: 'Tes Bakat & Minat (Skill Test)',
                             subtitle: 'Petakan jalur karir digital yang sesuai',
                             onTap: () => context.push(AppRoutes.skillTest),
@@ -405,7 +360,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.workspace_premium_rounded,
-                            iconColor: const Color(0xFFD97706),
+                            iconColor: const Color(0xFF018556), // Solid Hijau Metro
                             title: 'Sertifikat Saya',
                             subtitle: 'Periksa dan unduh kredensial sertifikat Anda',
                             onTap: () => context.go(AppRoutes.certificate),
@@ -414,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     Text(
                       'Pengaturan & Akun',
@@ -426,25 +381,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Section 2: Account Settings
+                    // Section 2: Account Settings (Clean Flat Card - No Shadow)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0A063D2A),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: Column(
                         children: [
                           _menuTile(
                             icon: Icons.person_outline_rounded,
-                            iconColor: const Color(0xFF64748B),
+                            iconColor: const Color(0xFF475569),
                             title: 'Edit Informasi Profil',
                             subtitle: 'Perbarui nama, nomor WhatsApp, dan bio',
                             onTap: () async {
@@ -455,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.lock_outline_rounded,
-                            iconColor: const Color(0xFF64748B),
+                            iconColor: const Color(0xFF475569),
                             title: 'Keamanan & Ganti Sandi',
                             subtitle: 'Atur ulang kata sandi akun Anda',
                             onTap: () => context.push(AppRoutes.changePassword),
@@ -463,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.notifications_none_rounded,
-                            iconColor: const Color(0xFF64748B),
+                            iconColor: const Color(0xFF475569),
                             title: 'Pemberitahuan & Notifikasi',
                             subtitle: 'Lihat pesan sistem dan pengingat kelas',
                             onTap: () => context.push(AppRoutes.notifications),
@@ -471,7 +419,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, indent: 56, color: Color(0xFFF1F5F9)),
                           _menuTile(
                             icon: Icons.help_outline_rounded,
-                            iconColor: const Color(0xFF64748B),
+                            iconColor: const Color(0xFF475569),
                             title: 'Bantuan & FAQ',
                             subtitle: 'Panduan platform Metro Institute',
                             onTap: () {
@@ -505,7 +453,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ElevatedButton(
                                         onPressed: () => Navigator.pop(ctx),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.primary,
+                                          backgroundColor: const Color(0xFF018556),
                                           foregroundColor: Colors.white,
                                           elevation: 0,
                                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -529,30 +477,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
-                    // Destructive Logout Card (Triggers Tiket Sobek)
+                    // Destructive Logout Card (Solid Red - No Pale Pink, No Shadow)
                     InkWell(
                       onTap: _handleLogout,
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
+                          color: const Color(0xFFDC2626), // Solid Merah Tegas
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.logout_rounded, size: 20, color: Color(0xFFDC2626)),
+                            const Icon(Icons.logout_rounded, size: 20, color: Colors.white),
                             const SizedBox(width: 10),
                             Text(
                               'Keluar dari Akun',
                               style: GoogleFonts.plusJakartaSans(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 14,
-                                color: const Color(0xFFDC2626),
+                                color: Colors.white,
                               ),
                             ),
                           ],
@@ -595,8 +542,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
               ),
               child: Icon(icon, size: 20, color: iconColor),
             ),
