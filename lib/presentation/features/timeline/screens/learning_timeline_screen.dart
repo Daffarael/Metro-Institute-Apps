@@ -855,305 +855,313 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
         borderRadius: BorderRadius.circular(28),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Row: Time Pill & Mini Calendar Card
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        children: [
+          // Watermark: "02" + Rotated "NOV" (Persis Referensi Gambar media_1794808466350_ab3f8637.png)
+          Positioned(
+            right: 2,
+            bottom: -6,
+            child: IgnorePointer(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    dayNumStr,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 104,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFBAE6FD).withValues(alpha: 0.65),
+                      height: 0.88,
+                      letterSpacing: -4.0,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  RotatedBox(
+                    quarterTurns: 1, // N di atas, O di tengah, V di bawah, menghadap kiri
+                    child: Text(
+                      monthStr,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.65),
+                        letterSpacing: 4.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Time pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E242B),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isCompleted ? Icons.check_rounded : Icons.check_rounded,
-                        size: 13,
-                        color: const Color(0xFFFAE653),
+                // Top Row: Time Pill & Mini Calendar Card
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Time pill
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E242B),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        timeRange,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Mini Calendar Card on Top-Right
-                Container(
-                  width: 54,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Yellow top header bar
-                      Container(
-                        height: 12,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEAB308),
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
-                        ),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            dayNumStr,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isCompleted ? Icons.check_rounded : Icons.check_rounded,
+                            size: 13,
+                            color: const Color(0xFFFAE653),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            timeRange,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF1E242B),
-                              height: 1.1,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 5),
-                        child: Text(
-                          monthStr,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF64748B),
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            // Program Title (Green uppercase)
-            Text(
-              programTitle,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF018556),
-                letterSpacing: 0.6,
-              ),
-            ),
-
-            const SizedBox(height: 5),
-
-            // Session Title
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF1E242B),
-                letterSpacing: -0.4,
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            // Description
-            Text(
-              description,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF475569),
-                height: 1.4,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-            const SizedBox(height: 18),
-
-            // Badges Row
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                // Duration Tag
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        durationFormatted,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E242B),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 13,
-                        color: Color(0xFF1E242B),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Category Tag
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        category,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E242B),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.bolt_rounded,
-                        size: 14,
-                        color: Color(0xFF1E242B),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Bottom Row: Join Button ("🎥 Masuk kelas") & "02 NOV" Design side-by-side (NEVER covered!)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Join Button: "🎥 Masuk kelas"
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    if (liveUrl.isNotEmpty) {
-                      _openLiveUrl(liveUrl);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Tautan kelas live akan dibuka menjelang sesi dimulai.',
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
-                          ),
-                          backgroundColor: const Color(0xFF1E242B),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E242B),
-                      borderRadius: BorderRadius.circular(999),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x18000000),
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.videocam_rounded,
-                          size: 16,
-                          color: Color(0xFFFAE653), // Yellow video icon
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Masuk kelas',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+
+                    // Mini Calendar Card on Top-Right
+                    Container(
+                      width: 54,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // Yellow top header bar
+                          Container(
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEAB308),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                            ),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                dayNumStr,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF1E242B),
+                                  height: 1.1,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 5),
+                            child: Text(
+                              monthStr,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF64748B),
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // Program Title (Green uppercase)
+                Text(
+                  programTitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF018556),
+                    letterSpacing: 0.6,
                   ),
                 ),
 
-                // "02 NOV" design at Bottom-Right (Clear, crisp, NEVER overlapped by button!)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4, bottom: 2),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        dayNumStr,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF93C5FD).withValues(alpha: 0.75),
-                          height: 0.95,
-                          letterSpacing: -1.0,
-                        ),
+                const SizedBox(height: 5),
+
+                // Session Title
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF1E242B),
+                    letterSpacing: -0.4,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // Description
+                Text(
+                  description,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF475569),
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                const SizedBox(height: 18),
+
+                // Badges Row
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    // Duration Tag
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
                       ),
-                      Text(
-                        monthStr,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF93C5FD).withValues(alpha: 0.75),
-                          height: 0.95,
-                          letterSpacing: 1.2,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            durationFormatted,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1E242B),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.access_time_rounded,
+                            size: 13,
+                            color: Color(0xFF1E242B),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+
+                    // Category Tag
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFBAE6FD).withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.0),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            category,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1E242B),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.bolt_rounded,
+                            size: 14,
+                            color: Color(0xFF1E242B),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Join Button: "🎥 Masuk kelas" (Di sisi kiri, tidak menutupi watermark 02 NOV di kanan)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      if (liveUrl.isNotEmpty) {
+                        _openLiveUrl(liveUrl);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Tautan kelas live akan dibuka menjelang sesi dimulai.',
+                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                            ),
+                            backgroundColor: const Color(0xFF1E242B),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E242B),
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x18000000),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.videocam_rounded,
+                            size: 16,
+                            color: Color(0xFFFAE653), // Yellow video icon
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Masuk kelas',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
