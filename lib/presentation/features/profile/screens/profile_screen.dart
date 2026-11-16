@@ -793,7 +793,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildStatColumn(
                               value: '$totalXp',
                               label: 'Total XP',
-                              onTap: () => context.push(AppRoutes.activityHistory),
+                              onTap: () => context.push(AppRoutes.xpActivity),
                             ),
                             Container(
                               height: 32,
@@ -815,7 +815,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildStatColumn(
                               value: '$streak',
                               label: 'Day Streak',
-                              onTap: () => context.push(AppRoutes.activityHistory),
+                              onTap: () => context.push(AppRoutes.xpActivity),
                             ),
                           ],
                         ),
@@ -845,7 +845,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFF018556),
                             title: 'Riwayat Aktivitas XP',
                             subtitle: 'Periksa catatan perolehan poin XP Anda',
-                            onTap: () => context.push(AppRoutes.activityHistory),
+                            onTap: () => context.push(AppRoutes.xpActivity),
                           ),
                           _buildMenuCard(
                             icon: Icons.receipt_long_rounded,
@@ -905,7 +905,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFF475569),
                             title: 'Keamanan & Ganti Sandi',
                             subtitle: 'Atur ulang kata sandi akun Anda',
-                            onTap: () => context.push(AppRoutes.securityPassword),
+                            onTap: () => context.push(AppRoutes.changePassword),
                           ),
                           _buildMenuCard(
                             icon: Icons.notifications_none_rounded,
