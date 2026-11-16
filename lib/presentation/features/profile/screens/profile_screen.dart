@@ -408,7 +408,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFFD97706),
                             title: 'Sertifikat Saya',
                             subtitle: 'Periksa dan unduh kredensial sertifikat Anda',
-                            onTap: () => context.go(AppRoutes.certificates),
+                            onTap: () => context.go(AppRoutes.certificate),
                           ),
                         ],
                       ),
