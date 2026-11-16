@@ -612,38 +612,6 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         ],
                       ),
                     ),
-
-                    // Overlapping Floating Trophy Badge at bottom-right corner
-                    Positioned(
-                      bottom: -5,
-                      right: -7,
-                      child: Container(
-                        width: 35,
-                        height: 35,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF018556), // Metro Green border
-                            width: 2.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF063D2A).withValues(alpha: 0.25),
-                              blurRadius: 7,
-                              offset: const Offset(1, 3),
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.emoji_events_outlined,
-                            size: 18,
-                            color: Color(0xFF018556), // Metro Green
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -821,8 +789,12 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
         : '${rawProgramTitle.toUpperCase()} · SEASON 2';
     final description = (session['description'] as String?) ??
         'Fokus Pembelajaran: Mengenal UI/UX dan memahami masalah pengguna.';
+    final now = DateTime.now();
     final durationMinutes = (session['durationMinutes'] as num?)?.toInt() ?? 90;
     final liveUrl = (session['liveUrl'] as String?) ?? '';
+    final recordingUrl = (session['recordingUrl'] as String?) ??
+        (session['replayUrl'] as String?) ??
+        (session['recording'] as String?) ?? '';
     final category = (session['category'] as String?) ?? 'Bootcamp Live';
     final isCompleted = session['isCompleted'] == true;
 
@@ -831,12 +803,15 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     String dayNumStr = '02';
     String monthStr = 'NOV';
     final rawScheduled = session['scheduledAt'] as String?;
+    DateTime? scheduledDate;
+    DateTime? sessionEndDate;
+
     if (rawScheduled != null) {
-      final scheduledDate = DateTime.tryParse(rawScheduled)?.toLocal();
+      scheduledDate = DateTime.tryParse(rawScheduled)?.toLocal();
       if (scheduledDate != null) {
+        sessionEndDate = scheduledDate.add(Duration(minutes: durationMinutes));
         final startTimeStr = DateFormat('HH:mm').format(scheduledDate);
-        final endDate = scheduledDate.add(Duration(minutes: durationMinutes));
-        final endTimeStr = DateFormat('HH:mm').format(endDate);
+        final endTimeStr = DateFormat('HH:mm').format(sessionEndDate);
         timeRange = '$startTimeStr - $endTimeStr';
         dayNumStr = scheduledDate.day.toString().padLeft(2, '0');
         monthStr = _monthNamesShort[scheduledDate.month - 1];
@@ -844,7 +819,28 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     } else {
       dayNumStr = _selectedDate.day.toString().padLeft(2, '0');
       monthStr = _monthNamesShort[_selectedDate.month - 1];
+      final todayMidnight = DateTime(now.year, now.month, now.day);
+      final selMidnight = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+      if (selMidnight.isBefore(todayMidnight)) {
+        sessionEndDate = DateTime(selMidnight.year, selMidnight.month, selMidnight.day, 23, 59);
+      }
     }
+
+    // Integrasi Jadwal Nyata:
+    // 1. isPast: Waktu sesi sudah berakhir atau tanggalnya sudah lewat
+    final bool isPast = isCompleted ||
+        (sessionEndDate != null && now.isAfter(sessionEndDate)) ||
+        (scheduledDate != null && now.isAfter(scheduledDate.add(Duration(minutes: durationMinutes)))) ||
+        (scheduledDate != null && scheduledDate.isBefore(DateTime(now.year, now.month, now.day)));
+
+    // 2. isLiveNow: Sesi sedang berlangsung sekarang (atau dibuka 15 menit sebelum mulai)
+    final bool isLiveNow = !isPast &&
+        scheduledDate != null &&
+        now.isAfter(scheduledDate.subtract(const Duration(minutes: 15))) &&
+        (sessionEndDate == null || now.isBefore(sessionEndDate));
+
+    // 3. isUpcoming: Sesi masih di masa mendatang (belum dimulai)
+    final bool isUpcoming = !isPast && !isLiveNow;
 
     final durationFormatted = '$durationMinutes min';
 
@@ -872,7 +868,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Time pill (White pill with Emerald text & Metro Green checkmark)
+                // Time pill (White pill with status indicator)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
                   decoration: BoxDecoration(
@@ -889,21 +885,58 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.check_rounded,
-                        size: 14,
-                        color: Color(0xFF018556), // Metro Green
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        timeRange,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF063D2A), // Deep Emerald text
-                          letterSpacing: 0.2,
+                      if (isLiveNow) ...[
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFEF4444), // Live red indicator
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$timeRange · LIVE',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFFEF4444),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ] else if (isPast) ...[
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          size: 14,
+                          color: Color(0xFF018556), // Metro Green
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$timeRange · Selesai',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF063D2A), // Deep Emerald text
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ] else ...[
+                        const Icon(
+                          Icons.schedule_rounded,
+                          size: 14,
+                          color: Color(0xFF018556), // Metro Green
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          timeRange,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF063D2A), // Deep Emerald text
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1074,62 +1107,181 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
             const SizedBox(height: 18),
 
-            // Join Button: "🎥 Masuk kelas" (Bold Metro Yellow Button that pops!)
+            // ── ACTION BUTTON / STATUS INTEGRASI JADWAL ──
             Align(
               alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  if (liveUrl.isNotEmpty) {
-                    _openLiveUrl(liveUrl);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Tautan kelas live akan dibuka menjelang sesi dimulai.',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
-                        ),
-                        backgroundColor: const Color(0xFF063D2A), // Metro Deep Emerald
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAE653), // Bold Metro Yellow
-                    borderRadius: BorderRadius.circular(999),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.videocam_rounded,
-                        size: 17,
-                        color: Color(0xFF063D2A), // Deep Emerald camera icon
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Masuk kelas',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF063D2A), // Deep Emerald text
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              child: isPast
+                  ? (recordingUrl.isNotEmpty
+                      // Jika sudah lewat & ada rekaman: Sediakan tombol Tonton Rekaman
+                      ? GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            _openLiveUrl(recordingUrl);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAE653), // Metro Yellow
+                              borderRadius: BorderRadius.circular(999),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.16),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.play_circle_fill_rounded,
+                                  size: 18,
+                                  color: Color(0xFF063D2A),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Tonton Rekaman',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF063D2A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      // Jika sudah lewat & belum/tidak ada rekaman: Tampilkan status 'Sesi Telah Berakhir' (TIDAK ADA TOMBOL MASUK)
+                      : Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.28), width: 1.0),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                size: 15,
+                                color: Color(0xFFFAE653), // Metro Yellow
+                              ),
+                              const SizedBox(width: 7),
+                              Text(
+                                'Sesi Telah Berakhir',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ))
+                  : (isLiveNow
+                      // Sesi sedang berlangsung: Tombol 'Masuk kelas' aktif
+                      ? GestureDetector(
+                          onTap: () {
+                            HapticFeedback.mediumImpact();
+                            if (liveUrl.isNotEmpty) {
+                              _openLiveUrl(liveUrl);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Tautan kelas live sedang disiapkan mentor.',
+                                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                                  ),
+                                  backgroundColor: const Color(0xFF063D2A),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAE653), // Bold Metro Yellow
+                              borderRadius: BorderRadius.circular(999),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.18),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.videocam_rounded,
+                                  size: 18,
+                                  color: Color(0xFF063D2A),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Masuk kelas',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF063D2A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      // Sesi di masa mendatang (Belum Dimulai): Indikator belum dibuka
+                      : GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            final timeInfo = scheduledDate != null
+                                ? 'pukul ${DateFormat('HH:mm').format(scheduledDate)} WIB'
+                                : 'jadwal yang ditentukan';
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Sesi live belum dimulai. Tautan akan dibuka 15 menit sebelum $timeInfo.',
+                                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                                ),
+                                backgroundColor: const Color(0xFF063D2A),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9.5),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.20),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.lock_clock_rounded,
+                                  size: 15,
+                                  color: Color(0xFFFAE653),
+                                ),
+                                const SizedBox(width: 7),
+                                Text(
+                                  'Belum Dimulai',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )),
             ),
           ],
         ),

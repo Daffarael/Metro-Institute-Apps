@@ -305,38 +305,6 @@ class BasecampTodaysActivityCard extends StatelessWidget {
                             ],
                           ),
                         ),
-
-                        // Overlapping Floating Trophy Badge at bottom-right corner
-                        Positioned(
-                          bottom: -5,
-                          right: -7,
-                          child: Container(
-                            width: 35,
-                            height: 35,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: const Color(0xFF018556), // Metro Green border
-                                width: 2.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF063D2A).withValues(alpha: 0.25),
-                                  blurRadius: 7,
-                                  offset: const Offset(1, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.emoji_events_outlined,
-                                size: 18,
-                                color: Color(0xFF018556), // Metro Green
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),

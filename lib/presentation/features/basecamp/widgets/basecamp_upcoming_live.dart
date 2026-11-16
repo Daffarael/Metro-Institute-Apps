@@ -30,6 +30,20 @@ class BasecampUpcomingLive extends StatelessWidget {
   Widget build(BuildContext context) {
     if (upcomingLive.isEmpty) return const SizedBox.shrink();
 
+    final now = DateTime.now();
+    // Hanya tampilkan sesi yang jadwalnya belum berakhir (integrasi jadwal nyata)
+    final validUpcoming = upcomingLive.where((live) {
+      if (live is! Map<String, dynamic>) return false;
+      final scheduledAt = live['scheduledAt']?.toString() ?? '';
+      if (scheduledAt.isEmpty) return true;
+      final dt = DateTime.tryParse(scheduledAt)?.toLocal();
+      if (dt == null) return true;
+      final duration = (live['durationMinutes'] as num?)?.toInt() ?? 90;
+      return now.isBefore(dt.add(Duration(minutes: duration)));
+    }).toList();
+
+    if (validUpcoming.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,11 +65,22 @@ class BasecampUpcomingLive extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
-            children: upcomingLive.map((live) {
+            children: validUpcoming.map((live) {
               final raw = live as Map<String, dynamic>;
               final title = raw['title'] as String? ?? 'Sesi Live Mentoring';
               final scheduledAt = raw['scheduledAt']?.toString() ?? '';
               final liveUrl = raw['liveUrl']?.toString() ?? '';
+
+              DateTime? dt;
+              int duration = 90;
+              bool isPast = false;
+              if (scheduledAt.isNotEmpty) {
+                dt = DateTime.tryParse(scheduledAt)?.toLocal();
+                duration = (raw['durationMinutes'] as num?)?.toInt() ?? 90;
+                if (dt != null) {
+                  isPast = now.isAfter(dt.add(Duration(minutes: duration)));
+                }
+              }
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -119,7 +144,7 @@ class BasecampUpcomingLive extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    if (liveUrl.isNotEmpty)
+                    if (!isPast && liveUrl.isNotEmpty)
                       Material(
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(12),
