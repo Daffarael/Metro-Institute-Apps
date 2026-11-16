@@ -851,9 +851,15 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFE6F4EF), // Metro Primary Light / Mint (Bukan Biru / Navy)
+        color: const Color(0xFF018556), // Solid Bold Hijau Metro (Bukan hijau pudar)
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFBFE5D6), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF018556).withValues(alpha: 0.28),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -866,28 +872,35 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Time pill
+                // Time pill (White pill with Emerald text & Metro Green checkmark)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF018556), // Metro Green (Bukan Navy)
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(999),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        isCompleted ? Icons.check_rounded : Icons.check_rounded,
-                        size: 13,
-                        color: const Color(0xFFFAE653), // Metro Yellow
+                      const Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: Color(0xFF018556), // Metro Green
                       ),
                       const SizedBox(width: 6),
                       Text(
                         timeRange,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF063D2A), // Deep Emerald text
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -902,10 +915,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFBFE5D6), width: 1.0),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF018556).withValues(alpha: 0.08),
+                        color: Colors.black.withValues(alpha: 0.12),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -928,7 +940,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
-                              color: const Color(0xFF063D2A), // Metro Deep Emerald
+                              color: const Color(0xFF063D2A),
                               height: 1.1,
                             ),
                           ),
@@ -941,7 +953,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF018556), // Metro Green
+                            color: const Color(0xFF018556),
                             letterSpacing: 0.8,
                           ),
                         ),
@@ -954,39 +966,39 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
             const SizedBox(height: 14),
 
-            // Program Title (Green uppercase)
+            // Program Title (Metro Yellow on Green)
             Text(
               programTitle,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF018556), // Metro Green
-                letterSpacing: 0.6,
-              ),
-            ),
-
-            const SizedBox(height: 5),
-
-            // Session Title
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFF063D2A), // Metro Deep Emerald
-                letterSpacing: -0.4,
+                color: const Color(0xFFFAE653), // Metro Yellow
+                letterSpacing: 0.8,
               ),
             ),
 
             const SizedBox(height: 6),
 
-            // Description
+            // Session Title (Crisp Pure White on Green)
+            Text(
+              title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -0.4,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Description (Soft Mint White on Green)
             Text(
               description,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF285441), // Metro Dark Muted Green
+                color: const Color(0xFFE6F4EF),
                 height: 1.4,
               ),
               maxLines: 2,
@@ -995,7 +1007,7 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
 
             const SizedBox(height: 18),
 
-            // Badges Row (Metro Palette — Bukan Biru)
+            // Badges Row (Translucent White Chips on Green)
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -1004,9 +1016,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1EBE1), // Metro Soft Mint Green
+                    color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFFA7D7C5), width: 1.0),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.30), width: 1.0),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1016,14 +1028,14 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF063D2A), // Metro Deep Emerald
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 4),
                       const Icon(
                         Icons.access_time_rounded,
                         size: 13,
-                        color: Color(0xFF018556), // Metro Green
+                        color: Color(0xFFFAE653), // Metro Yellow
                       ),
                     ],
                   ),
@@ -1033,9 +1045,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1EBE1), // Metro Soft Mint Green
+                    color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFFA7D7C5), width: 1.0),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.30), width: 1.0),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1045,14 +1057,14 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF063D2A), // Metro Deep Emerald
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 4),
                       const Icon(
                         Icons.bolt_rounded,
                         size: 14,
-                        color: Color(0xFF018556), // Metro Green
+                        color: Color(0xFFFAE653), // Metro Yellow
                       ),
                     ],
                   ),
@@ -1060,9 +1072,9 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Join Button: "🎥 Masuk kelas" (Metro Green & Yellow — Bukan Navy)
+            // Join Button: "🎥 Masuk kelas" (Bold Metro Yellow Button that pops!)
             Align(
               alignment: Alignment.centerLeft,
               child: GestureDetector(
@@ -1085,13 +1097,13 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF018556), // Metro Green (Bukan Navy)
+                    color: const Color(0xFFFAE653), // Bold Metro Yellow
                     borderRadius: BorderRadius.circular(999),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF018556).withValues(alpha: 0.28),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -1102,16 +1114,16 @@ class _LearningTimelineScreenState extends State<LearningTimelineScreen> {
                     children: [
                       const Icon(
                         Icons.videocam_rounded,
-                        size: 16,
-                        color: Color(0xFFFAE653), // Metro Accent Yellow
+                        size: 17,
+                        color: Color(0xFF063D2A), // Deep Emerald camera icon
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'Masuk kelas',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF063D2A), // Deep Emerald text
                         ),
                       ),
                     ],
