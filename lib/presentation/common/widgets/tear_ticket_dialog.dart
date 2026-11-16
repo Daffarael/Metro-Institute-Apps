@@ -69,7 +69,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 550),
+      duration: const Duration(milliseconds: 850),
     );
 
     _tearAnimation = CurvedAnimation(
@@ -79,19 +79,19 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
 
     _fallAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.30, 1.0, curve: Curves.easeInCubic),
+      curve: const Interval(0.35, 1.0, curve: Curves.easeInCubic),
     );
 
     _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.55, 1.0, curve: Curves.easeOut),
+        curve: const Interval(0.60, 1.0, curve: Curves.easeOut),
       ),
     );
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
-        Future.delayed(const Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 650), () {
           if (mounted) widget.onConfirm();
         });
       }
@@ -207,15 +207,14 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                 children: [
                   Row(
                     children: [
-                      // LEFT TICKET BODY (Expanded to fill available dialog width)
+                      // LEFT TICKET BODY (Expanded to fill available dialog width, remains authentic red)
                       Expanded(
                         child: ClipPath(
                           clipper: _TicketBodyClipper(notchRadius: _notchRadius),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
+                          child: Container(
                             height: _ticketHeight,
-                            decoration: BoxDecoration(
-                              color: _isTorn ? const Color(0xFF018556) : const Color(0xFFDC2626),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFDC2626), // Tetap merah solid, tidak berubah
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             child: Row(
@@ -227,8 +226,8 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                                     color: Colors.white.withValues(alpha: 0.22),
                                     borderRadius: BorderRadius.circular(9),
                                   ),
-                                  child: Icon(
-                                    _isTorn ? Icons.check_rounded : Icons.logout_rounded,
+                                  child: const Icon(
+                                    Icons.logout_rounded,
                                     color: Colors.white,
                                     size: 18,
                                   ),
@@ -240,7 +239,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _isTorn ? 'Keluar Berhasil' : widget.ticketLabel,
+                                        widget.ticketLabel,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: GoogleFonts.plusJakartaSans(
@@ -251,7 +250,7 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        _isTorn ? 'Mengakhiri sesi...' : widget.ticketSubtitle,
+                                        widget.ticketSubtitle,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: GoogleFonts.plusJakartaSans(
@@ -282,8 +281,8 @@ class _TearTicketDialogState extends State<TearTicketDialog> with SingleTickerPr
                           final double tearAngle = _isTorn
                               ? (_tearAnimation.value * (45 * math.pi / 180))
                               : (_dragProgress * (20 * math.pi / 180));
-                          final double fallDy = _isTorn ? (_fallAnimation.value * 70.0) : (_dragProgress * 10.0);
-                          final double fallDx = _isTorn ? (_fallAnimation.value * 20.0) : 0.0;
+                          final double fallDy = _isTorn ? (_fallAnimation.value * 110.0) : (_dragProgress * 12.0);
+                          final double fallDx = _isTorn ? (_fallAnimation.value * 28.0) : 0.0;
                           final double opacity = _isTorn ? _opacityAnimation.value : 1.0;
 
                           return Transform.translate(
