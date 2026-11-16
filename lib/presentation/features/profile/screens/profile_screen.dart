@@ -1,29 +1,40 @@
+import 'dart:io';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/certificate_remote_datasource.dart';
+import '../../../../data/models/user_model.dart';
 import '../../../../data/repositories/auth_repository.dart';
-import '../../../../domain/entities/user.dart';
 import '../../../common/widgets/tear_ticket_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  static void clearCache() {
+    _ProfileScreenState._cachedUser = null;
+  }
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const String _keyCustomCover = 'key_mentee_profile_cover';
+
   final AuthRepository _authRepo = sl<AuthRepository>();
   final CertificateRemoteDataSource _certDs = sl<CertificateRemoteDataSource>();
 
-  User? _user;
-  static User? _cachedUser;
+  UserModel? _user;
+  static UserModel? _cachedUser;
   bool _isLoading = true;
   int _certCount = 0;
+  String? _customCover;
 
   @override
   void initState() {
@@ -32,7 +43,432 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _user = _cachedUser;
       _isLoading = false;
     }
+    _loadCustomCover();
     _loadUser();
+  }
+
+  Future<void> _loadCustomCover() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cover = prefs.getString(_keyCustomCover);
+      if (mounted) {
+        setState(() {
+          _customCover = cover;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveCustomCover(String cover) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyCustomCover, cover);
+      if (mounted) {
+        setState(() {
+          _customCover = cover;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _pickCoverFromGallery() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1920,
+      );
+      if (picked != null) {
+        await _saveCustomCover('file:${picked.path}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Foto sampul berhasil diperbarui!',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: const Color(0xFF018556),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal memilih gambar: $e',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _renderRawCover() {
+    final cover = _customCover ?? 'asset:team';
+    if (cover.startsWith('file:')) {
+      final path = cover.replaceFirst('file:', '');
+      final f = File(path);
+      if (f.existsSync()) {
+        return Image.file(
+          f,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Image.asset(
+            'assets/images/onboarding_team.jpg',
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    } else if (cover == 'asset:intro') {
+      return Image.asset('assets/images/onboarding_intro.jpg', fit: BoxFit.cover);
+    } else if (cover == 'asset:design') {
+      return Image.asset('assets/images/challenge_graphic_design.png', fit: BoxFit.cover);
+    } else if (cover == 'asset:workshop1') {
+      return Image.asset('assets/images/challenge_workshop_1.png', fit: BoxFit.cover);
+    } else if (cover == 'asset:workshop2') {
+      return Image.asset('assets/images/challenge_workshop_2.png', fit: BoxFit.cover);
+    } else if (cover == 'gradient:emerald') {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF018556), Color(0xFF063D2A)],
+          ),
+        ),
+      );
+    } else if (cover == 'gradient:sunset') {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF018556), Color(0xFFFAE653)],
+          ),
+        ),
+      );
+    } else if (cover == 'gradient:midnight') {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0F172A), Color(0xFF334155)],
+          ),
+        ),
+      );
+    }
+
+    // Default 'asset:team'
+    return Image.asset(
+      'assets/images/onboarding_team.jpg',
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF018556)),
+    );
+  }
+
+  void _showCoverPickerSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Ubah Foto Sampul',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  if (_customCover != null && _customCover != 'asset:team')
+                    TextButton(
+                      onPressed: () {
+                        _saveCustomCover('asset:team');
+                        Navigator.pop(ctx);
+                      },
+                      child: Text(
+                        'Reset Default',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFDC2626),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Sesuaikan tampilan background profil Anda sesuka hati.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Button: Upload from Gallery
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _pickCoverFromGallery();
+                },
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF018556),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pilih dari Galeri',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              'Gunakan foto atau wallpaper favorit Anda',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 18),
+              Text(
+                'Pilihan Tema Eksklusif Metro',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF475569),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Preset options
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildPresetCoverTile(
+                      label: 'Team Collab',
+                      presetKey: 'asset:team',
+                      previewWidget: Image.asset('assets/images/onboarding_team.jpg', fit: BoxFit.cover),
+                      onSelect: () {
+                        _saveCustomCover('asset:team');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Metro Intro',
+                      presetKey: 'asset:intro',
+                      previewWidget: Image.asset('assets/images/onboarding_intro.jpg', fit: BoxFit.cover),
+                      onSelect: () {
+                        _saveCustomCover('asset:intro');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Design Lab',
+                      presetKey: 'asset:design',
+                      previewWidget: Image.asset('assets/images/challenge_graphic_design.png', fit: BoxFit.cover),
+                      onSelect: () {
+                        _saveCustomCover('asset:design');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Workshop 1',
+                      presetKey: 'asset:workshop1',
+                      previewWidget: Image.asset('assets/images/challenge_workshop_1.png', fit: BoxFit.cover),
+                      onSelect: () {
+                        _saveCustomCover('asset:workshop1');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Workshop 2',
+                      presetKey: 'asset:workshop2',
+                      previewWidget: Image.asset('assets/images/challenge_workshop_2.png', fit: BoxFit.cover),
+                      onSelect: () {
+                        _saveCustomCover('asset:workshop2');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Emerald Metro',
+                      presetKey: 'gradient:emerald',
+                      previewWidget: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF018556), Color(0xFF063D2A)],
+                          ),
+                        ),
+                      ),
+                      onSelect: () {
+                        _saveCustomCover('gradient:emerald');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Sunset Gold',
+                      presetKey: 'gradient:sunset',
+                      previewWidget: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF018556), Color(0xFFFAE653)],
+                          ),
+                        ),
+                      ),
+                      onSelect: () {
+                        _saveCustomCover('gradient:sunset');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPresetCoverTile(
+                      label: 'Midnight Slate',
+                      presetKey: 'gradient:midnight',
+                      previewWidget: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF0F172A), Color(0xFF334155)],
+                          ),
+                        ),
+                      ),
+                      onSelect: () {
+                        _saveCustomCover('gradient:midnight');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetCoverTile({
+    required String label,
+    required String presetKey,
+    required Widget previewWidget,
+    required VoidCallback onSelect,
+  }) {
+    final isSelected = (_customCover ?? 'asset:team') == presetKey;
+    return GestureDetector(
+      onTap: onSelect,
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? const Color(0xFF018556) : const Color(0xFFE2E8F0),
+                width: isSelected ? 2.5 : 1.0,
+              ),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                previewWidget,
+                if (isSelected)
+                  Container(
+                    color: const Color(0xFF018556).withValues(alpha: 0.35),
+                    child: const Center(
+                      child: Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? const Color(0xFF018556) : const Color(0xFF64748B),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadUser() async {
@@ -50,7 +486,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _authRepo.refreshProfile(),
         _certDs.getCertificates().catchError((_) => <Map<String, dynamic>>[]),
       ]);
-      final refreshed = results[0] as User?;
+      final refreshed = results[0] as UserModel?;
       final certs = results[1] as List;
       _cachedUser = refreshed;
       if (!mounted) return;
@@ -100,30 +536,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    // ── 1. Hero Header with Image & Fade Mask (Matching Reference) ──
+                    // ── 1. Hero Header with Blur & Seamless Fade (Zero Visible Cut/Line) ──
                     Stack(
                       clipBehavior: Clip.none,
                       alignment: Alignment.topCenter,
                       children: [
-                        // Cover Image with Gradient Fade into #FAF9F5
+                        // Cover Image with Real Gaussian Blur & Multi-stop Seamless Fade
                         SizedBox(
-                          height: 220,
+                          height: 250,
                           width: double.infinity,
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.asset(
-                                'assets/images/onboarding_team.jpg',
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: const Color(0xFF018556),
+                              // Blurred Cover Image / Gradient
+                              ClipRect(
+                                child: ImageFiltered(
+                                  imageFilter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                                  child: Transform.scale(
+                                    scale: 1.18,
+                                    child: _renderRawCover(),
+                                  ),
                                 ),
                               ),
-                              // Dark translucent tint
+
+                              // Translucent dark tint for top contrast
                               Container(
-                                color: Colors.black.withValues(alpha: 0.35),
+                                color: Colors.black.withValues(alpha: 0.18),
                               ),
-                              // Vertical Fade into background canvas
+
+                              // Multi-stop seamless gradient fade into #FAF9F5 canvas
+                              // Solid #FAF9F5 takes over completely before the bottom edge
                               Positioned.fill(
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
@@ -131,12 +573,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        Colors.black.withValues(alpha: 0.2),
+                                        Colors.black.withValues(alpha: 0.35),
                                         Colors.transparent,
-                                        const Color(0xFFFAF9F5).withValues(alpha: 0.85),
+                                        const Color(0xFFFAF9F5).withValues(alpha: 0.20),
+                                        const Color(0xFFFAF9F5).withValues(alpha: 0.60),
+                                        const Color(0xFFFAF9F5).withValues(alpha: 0.90),
+                                        const Color(0xFFFAF9F5),
                                         const Color(0xFFFAF9F5),
                                       ],
-                                      stops: const [0.0, 0.45, 0.85, 1.0],
+                                      stops: const [0.0, 0.28, 0.52, 0.70, 0.84, 0.93, 1.0],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Tap anywhere on cover to trigger customize sheet
+                              Positioned.fill(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _showCoverPickerSheet,
+                                    splashColor: Colors.white.withValues(alpha: 0.1),
+                                    highlightColor: Colors.transparent,
+                                  ),
+                                ),
+                              ),
+
+                              // "Ubah Cover" pill button
+                              Positioned(
+                                top: topPadding + 46,
+                                right: 16,
+                                child: GestureDetector(
+                                  onTap: _showCoverPickerSheet,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.45),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.30),
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.camera_alt_outlined,
+                                          size: 13,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          'Ubah Cover',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -145,7 +641,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
 
-                        // Top Navigation Icons (Back & Notifications) + Title
+                        // Top Navigation Icons (Back/Home & Notifications) + Title
                         Positioned(
                           top: topPadding + 6,
                           left: 16,
@@ -153,7 +649,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // Back button in frosted circle (or empty placeholder if cannot pop)
                               context.canPop()
                                   ? _circleIconButton(
                                       icon: Icons.arrow_back_ios_new_rounded,
@@ -166,7 +661,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       onTap: () => context.go(AppRoutes.basecamp),
                                     ),
 
-                              // Header Title "Profile" in white
                               Text(
                                 'Profile',
                                 style: GoogleFonts.plusJakartaSans(
@@ -177,7 +671,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
 
-                              // Notification Bell in frosted circle
                               _circleIconButton(
                                 icon: Icons.notifications_none_rounded,
                                 iconSize: 20,
@@ -190,7 +683,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         // Centered Avatar overlapping the bottom of the hero
                         Positioned(
-                          top: 145,
+                          top: 175,
                           child: GestureDetector(
                             onTap: () async {
                               final updated = await context.push<bool>(AppRoutes.editProfile);
@@ -251,7 +744,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
                     // Spacer for the overlapping avatar
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 22),
 
                     // ── 2. User Name & Subtitle ───────────────────────────────
                     Padding(
@@ -262,7 +755,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             name,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF0F172A),
                               letterSpacing: -0.4,
@@ -284,41 +777,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 20),
 
-                    // ── 3. Integrated 3-Column Stats Row (Matching Reference) ─
+                    // ── 3. Integrated 3-Column Stats Row (Total XP | Sertifikat | Day Streak) ──
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          _buildStatColumn(
-                            value: '$totalXp',
-                            label: 'Total XP',
-                            onTap: () => context.push(AppRoutes.xpActivity),
-                          ),
-                          Container(
-                            height: 32,
-                            width: 1,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          _buildStatColumn(
-                            value: '$_certCount',
-                            label: 'Sertifikat',
-                            onTap: () => context.go(AppRoutes.certificate),
-                          ),
-                          Container(
-                            height: 32,
-                            width: 1,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          _buildStatColumn(
-                            value: '$streak',
-                            label: 'Day Streak',
-                            onTap: () {},
-                          ),
-                        ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                        ),
+                        child: Row(
+                          children: [
+                            // 1. Total XP
+                            _buildStatColumn(
+                              value: '$totalXp',
+                              label: 'Total XP',
+                              onTap: () => context.push(AppRoutes.activityHistory),
+                            ),
+                            Container(
+                              height: 32,
+                              width: 1,
+                              color: const Color(0xFFE2E8F0),
+                            ),
+                            // 2. Sertifikat
+                            _buildStatColumn(
+                              value: '$_certCount',
+                              label: 'Sertifikat',
+                              onTap: () => context.push(AppRoutes.certificate),
+                            ),
+                            Container(
+                              height: 32,
+                              width: 1,
+                              color: const Color(0xFFE2E8F0),
+                            ),
+                            // 3. Day Streak
+                            _buildStatColumn(
+                              value: '$streak',
+                              label: 'Day Streak',
+                              onTap: () => context.push(AppRoutes.activityHistory),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     // ── 4. Section 1: Aktivitas & Pembelajaran ────────────────
                     Padding(
@@ -329,7 +833,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text(
                             'Aktivitas & Pembelajaran',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 15.5,
+                              fontSize: 15,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF0F172A),
                               letterSpacing: -0.2,
@@ -341,7 +845,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFF018556),
                             title: 'Riwayat Aktivitas XP',
                             subtitle: 'Periksa catatan perolehan poin XP Anda',
-                            onTap: () => context.push(AppRoutes.xpActivity),
+                            onTap: () => context.push(AppRoutes.activityHistory),
                           ),
                           _buildMenuCard(
                             icon: Icons.receipt_long_rounded,
@@ -358,17 +862,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () => context.push(AppRoutes.skillTest),
                           ),
                           _buildMenuCard(
-                            icon: Icons.workspace_premium_rounded,
+                            icon: Icons.military_tech_rounded,
                             iconColor: const Color(0xFF018556),
                             title: 'Sertifikat Saya',
                             subtitle: 'Periksa dan unduh kredensial sertifikat Anda',
-                            onTap: () => context.go(AppRoutes.certificate),
+                            onTap: () => context.push(AppRoutes.certificate),
                           ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
                     // ── 5. Section 2: Pengaturan & Akun ───────────────────────
                     Padding(
@@ -379,7 +883,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text(
                             'Pengaturan & Akun',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 15.5,
+                              fontSize: 15,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF0F172A),
                               letterSpacing: -0.2,
@@ -401,7 +905,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: const Color(0xFF475569),
                             title: 'Keamanan & Ganti Sandi',
                             subtitle: 'Atur ulang kata sandi akun Anda',
-                            onTap: () => context.push(AppRoutes.changePassword),
+                            onTap: () => context.push(AppRoutes.securityPassword),
                           ),
                           _buildMenuCard(
                             icon: Icons.notifications_none_rounded,
@@ -423,36 +927,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ── 6. Logout Card (Matching Card Style, triggers Tiket Sobek) ─
+                    // ── 6. Distinct Destructive Logout Action (Different from standard menu cards) ─
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildMenuCard(
-                        icon: Icons.logout_rounded,
-                        iconColor: const Color(0xFFDC2626),
-                        iconBgColor: const Color(0xFFFEE2E2),
-                        title: 'Keluar dari Akun',
-                        titleColor: const Color(0xFFDC2626),
-                        subtitle: 'Keluar dan akhiri sesi login Anda',
-                        chevronColor: const Color(0xFFDC2626),
-                        onTap: _handleLogout,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Version Tag
-                    Center(
-                      child: Text(
-                        'Metro Institute Mobile • v1.0.0',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF94A3B8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _handleLogout,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFDC2626),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.logout_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Keluar dari Akun',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFFDC2626),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Akhiri sesi dan amankan akun Anda',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0xFF991B1B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: const Color(0xFFFECACA), width: 1),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.confirmation_number_outlined,
+                                          size: 13,
+                                          color: Color(0xFFDC2626),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Sobek Tiket',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFFDC2626),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 110), // Padding for bottom navbar
+                    const SizedBox(height: 110), // Padding for floating bottom navbar
                   ],
                 ),
               ),
