@@ -13,6 +13,7 @@ import '../widgets/basecamp_hero_card.dart';
 import '../widgets/basecamp_todays_activity_card.dart';
 import '../widgets/basecamp_recommendations.dart';
 import '../widgets/basecamp_upcoming_live.dart';
+import '../../../common/widgets/metro_liquid_refresh.dart';
 
 /// BasecampScreen — Mentee Dashboard Home.
 /// Synchronized 1:1 with web mentee basecamp (page.tsx) without hardcoded/fake data.
@@ -143,8 +144,8 @@ class _BasecampScreenState extends State<BasecampScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F5), // Light warm pastel canvas (Reference Image)
-      body: RefreshIndicator(
-        color: const Color(0xFF0F172A),
+      body: MetroLiquidRefresh(
+        color: const Color(0xFF018556),
         onRefresh: _loadData,
         child: _isLoading && _data == null
             ? _buildShimmerLoading(context)

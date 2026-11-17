@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../common/widgets/metro_liquid_refresh.dart';
 
 /// MetroLeaderboardView — Papan Peringkat Metro Institute.
 /// Direproduksi persis dari referensi desain dengan adaptasi warna resmi Metro:
@@ -228,9 +229,9 @@ class MetroLeaderboardView extends StatelessWidget {
       );
     }
 
-    return RefreshIndicator(
-      color: const Color(0xFF0F172A),
-      backgroundColor: AppColors.accent,
+    return MetroLiquidRefresh(
+      color: const Color(0xFF018556),
+      spinnerColor: Colors.white,
       onRefresh: onRefresh ?? () async {},
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
