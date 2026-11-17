@@ -230,8 +230,6 @@ class MetroLeaderboardView extends StatelessWidget {
     }
 
     return MetroLiquidRefresh(
-      color: const Color(0xFF018556),
-      spinnerColor: Colors.white,
       onRefresh: onRefresh ?? () async {},
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

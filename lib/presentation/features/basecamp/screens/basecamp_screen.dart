@@ -145,7 +145,6 @@ class _BasecampScreenState extends State<BasecampScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F5), // Light warm pastel canvas (Reference Image)
       body: MetroLiquidRefresh(
-        color: const Color(0xFF018556),
         onRefresh: _loadData,
         child: _isLoading && _data == null
             ? _buildShimmerLoading(context)

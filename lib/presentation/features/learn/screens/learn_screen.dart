@@ -1381,7 +1381,6 @@ class _LearnScreenState extends State<LearnScreen> {
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           behavior: HitTestBehavior.translucent,
           child: MetroLiquidRefresh(
-            color: const Color(0xFF018556),
             onRefresh: _loadAllData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),

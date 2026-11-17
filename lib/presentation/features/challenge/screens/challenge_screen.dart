@@ -341,7 +341,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         top: true,
         bottom: false,
         child: MetroLiquidRefresh(
-          color: const Color(0xFF018556),
           onRefresh: () async {
             await _loadChallenges();
             await _loadLeaderboard(forceRefresh: true);
