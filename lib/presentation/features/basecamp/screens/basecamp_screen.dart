@@ -34,6 +34,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
     _cachedData = null;
     _cachedCertCount = 0;
   }
+
   late bool _isLoading = _cachedData == null;
   String? _error;
   Map<String, dynamic>? _data = _cachedData;
@@ -82,10 +83,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
       setState(() {
         _isLoading = false;
         if (savedUser != null) {
-          final fallback = {
-            'user': savedUser.toJson(),
-            'unreadCount': 0,
-          };
+          final fallback = {'user': savedUser.toJson(), 'unreadCount': 0};
           _cachedData ??= fallback;
           _data = _cachedData;
         } else if (_cachedData == null) {
@@ -106,15 +104,18 @@ class _BasecampScreenState extends State<BasecampScreen> {
     );
 
     final user = _data?['user'] as Map<String, dynamic>?;
-    final unreadCount = (_data?['unreadNotifications'] as num?)?.toInt() ??
+    final unreadCount =
+        (_data?['unreadNotifications'] as num?)?.toInt() ??
         (_data?['unreadCount'] as num?)?.toInt() ??
         0;
-    final continueLearning = _data?['continueLearning'] as Map<String, dynamic>?;
+    final continueLearning =
+        _data?['continueLearning'] as Map<String, dynamic>?;
     final activeCourses = (_data?['activeCourses'] as List?) ?? [];
     final upcomingLive = (_data?['upcomingLive'] as List?) ?? [];
     final recommendations = (_data?['recommendations'] as List?) ?? [];
     final dailyMissions = _data?['dailyMissions'] as Map<String, dynamic>?;
-    final hasPhoto = user?['photoUrl'] != null && (user!['photoUrl'] as String).isNotEmpty;
+    final hasPhoto =
+        user?['photoUrl'] != null && (user!['photoUrl'] as String).isNotEmpty;
 
     // Gabungkan continueLearning & activeCourses tanpa duplikasi
     final List<Map<String, dynamic>> enrolledCourses = [];
@@ -143,7 +144,9 @@ class _BasecampScreenState extends State<BasecampScreen> {
     final hasPurchasedCourse = enrolledCourses.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9F5), // Light warm pastel canvas (Reference Image)
+      backgroundColor: const Color(
+        0xFFFAF9F5,
+      ), // Light warm pastel canvas (Reference Image)
       body: MetroLiquidRefresh(
         onRefresh: _loadData,
         child: _isLoading && _data == null
@@ -166,22 +169,34 @@ class _BasecampScreenState extends State<BasecampScreen> {
 
                     if (_error != null)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 4,
+                        ),
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.error.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+                            border: Border.all(
+                              color: AppColors.error.withValues(alpha: 0.2),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.info_outline_rounded, color: AppColors.error, size: 18),
+                              const Icon(
+                                Icons.info_outline_rounded,
+                                color: AppColors.error,
+                                size: 18,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   _error!,
-                                  style: const TextStyle(color: AppColors.error, fontSize: 12.5),
+                                  style: const TextStyle(
+                                    color: AppColors.error,
+                                    fontSize: 12.5,
+                                  ),
                                 ),
                               ),
                             ],
@@ -191,9 +206,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
 
                     // ── 2. Lanjutkan Belajar (HANYA tampil jika mentee sudah beli / memiliki kelas aktif) ─
                     if (hasPurchasedCourse) ...[
-                      BasecampHeroCard(
-                        courses: enrolledCourses,
-                      ),
+                      BasecampHeroCard(courses: enrolledCourses),
                       const SizedBox(height: 20),
                     ],
 
@@ -206,9 +219,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
                     // ── 4. Jadwal Live Terdekat (Only if upcomingLive is not empty) ──
                     if (upcomingLive.isNotEmpty) ...[
                       const SizedBox(height: 22),
-                      BasecampUpcomingLive(
-                        upcomingLive: upcomingLive,
-                      ),
+                      BasecampUpcomingLive(upcomingLive: upcomingLive),
                     ],
 
                     // ── 5. Misi Hari Ini (Daily Missions Checklist) ──────────
@@ -221,9 +232,7 @@ class _BasecampScreenState extends State<BasecampScreen> {
                     // ── 6. Rekomendasi (Only if recommendations is not empty) ─
                     if (recommendations.isNotEmpty) ...[
                       const SizedBox(height: 22),
-                      BasecampRecommendations(
-                        recommendations: recommendations,
-                      ),
+                      BasecampRecommendations(recommendations: recommendations),
                     ],
 
                     // ── 7. Komunitas Discord ────────────────────────────────
