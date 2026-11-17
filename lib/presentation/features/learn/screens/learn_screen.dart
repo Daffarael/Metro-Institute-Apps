@@ -1375,13 +1375,13 @@ class _LearnScreenState extends State<LearnScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF7F2), // Warm Cream Palette matching design
-      body: SafeArea(
-        bottom: false,
-        child: GestureDetector(
-          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          behavior: HitTestBehavior.translucent,
-          child: MetroLiquidRefresh(
-            onRefresh: _loadAllData,
+      body: MetroLiquidRefresh(
+        onRefresh: _loadAllData,
+        child: SafeArea(
+          bottom: false,
+          child: GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            behavior: HitTestBehavior.translucent,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               padding: const EdgeInsets.only(bottom: 120),

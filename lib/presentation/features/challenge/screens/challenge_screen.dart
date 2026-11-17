@@ -337,14 +337,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Latar belakang putih bersih
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: MetroLiquidRefresh(
-          onRefresh: () async {
-            await _loadChallenges();
-            await _loadLeaderboard(forceRefresh: true);
-          },
+      body: MetroLiquidRefresh(
+        onRefresh: () async {
+          await _loadChallenges();
+          await _loadLeaderboard(forceRefresh: true);
+        },
+        child: SafeArea(
+          top: true,
+          bottom: false,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(bottom: 110),
