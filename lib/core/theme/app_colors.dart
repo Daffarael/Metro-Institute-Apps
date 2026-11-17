@@ -31,13 +31,13 @@ class AppColors {
   static const Color textInverse   = Color(0xFFFFFFFF); // --color-text-inverse
 
   // ── Semantic ───────────────────────────────────────────────────────────────
-  static const Color success   = Color(0xFF0F172A); // --color-success (Dark Navy / Dongker)
-  static const Color successBg = Color(0xFFF1F5F9); // --color-success-bg
+  static const Color success   = Color(0xFF018556); // --color-success (Metro Green)
+  static const Color successBg = Color(0xFFE6F4EF); // --color-success-bg
   static const Color warning   = Color(0xFFD97706); // --color-warning
   static const Color warningBg = Color(0xFFFEF3C7); // --color-warning-bg
   static const Color error     = Color(0xFFDC2626); // --color-error
   static const Color errorBg   = Color(0xFFFEF2F2); // --color-error-bg
-  static const Color info      = Color(0xFF0F172A); // --color-info (Dark Navy / Dongker)
+  static const Color info      = Color(0xFF063D2A); // --color-info (Metro Deep Emerald)
   static const Color infoBg    = Color(0xFFF1F5F9); // --color-info-bg
 
   // ── Gamification / XP ──────────────────────────────────────────────────────
@@ -48,10 +48,10 @@ class AppColors {
 
   // ── Badge Levels ───────────────────────────────────────────────────────────
   static const Color badgeRookie   = Color(0xFF64748B); // Slate / Abu-abu rapi
-  static const Color badgeExplorer = Color(0xFF475569); // Slate Dongker
+  static const Color badgeExplorer = Color(0xFF475569); // Slate
   static const Color badgeAchiever = Color(0xFF8B5CF6); // Ungu
   static const Color badgeExpert   = Color(0xFFF59E0B); // Emas
-  static const Color badgeMaster   = Color(0xFF0F172A); // Dark Navy Master
+  static const Color badgeMaster   = Color(0xFF063D2A); // Metro Deep Emerald Master
 
   // ── Overlay ────────────────────────────────────────────────────────────────
   static const Color overlay = Color(0x80000000); // 50% black

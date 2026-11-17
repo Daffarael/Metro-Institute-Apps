@@ -601,7 +601,7 @@ class _LearnScreenState extends State<LearnScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFF063D2A),
                             ),
                           ),
                           GestureDetector(
@@ -638,7 +638,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF0F172A),
+                                  color: const Color(0xFF063D2A),
                                 ),
                               ),
                             ],
@@ -657,7 +657,7 @@ class _LearnScreenState extends State<LearnScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                                color: const Color(0xFF063D2A),
                               ),
                             ),
                           ),
@@ -666,10 +666,10 @@ class _LearnScreenState extends State<LearnScreen> {
                       const SizedBox(height: 8),
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: const Color(0xFF0F172A),
+                          activeTrackColor: const Color(0xFF018556),
                           inactiveTrackColor: const Color(0xFFE2E8F0),
-                          thumbColor: const Color(0xFF0F172A),
-                          overlayColor: const Color(0x1F0F172A),
+                          thumbColor: const Color(0xFF018556),
+                          overlayColor: const Color(0x1F018556),
                           trackHeight: 4,
                         ),
                         child: Slider(
@@ -706,14 +706,14 @@ class _LearnScreenState extends State<LearnScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.payments_outlined, size: 18, color: Color(0xFF0F172A)),
+                              const Icon(Icons.payments_outlined, size: 18, color: Color(0xFF018556)),
                               const SizedBox(width: 6),
                               Text(
                                 'Rentang Harga',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF0F172A),
+                                  color: const Color(0xFF063D2A),
                                 ),
                               ),
                             ],
@@ -730,7 +730,7 @@ class _LearnScreenState extends State<LearnScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                                color: const Color(0xFF063D2A),
                               ),
                             ),
                           ),
@@ -739,10 +739,10 @@ class _LearnScreenState extends State<LearnScreen> {
                       const SizedBox(height: 8),
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: const Color(0xFF0F172A),
+                          activeTrackColor: const Color(0xFF018556),
                           inactiveTrackColor: const Color(0xFFE2E8F0),
-                          thumbColor: const Color(0xFF0F172A),
-                          overlayColor: const Color(0x1F0F172A),
+                          thumbColor: const Color(0xFF018556),
+                          overlayColor: const Color(0x1F018556),
                           trackHeight: 4,
                         ),
                         child: RangeSlider(
@@ -782,7 +782,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: const Color(0xFF063D2A),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -813,7 +813,7 @@ class _LearnScreenState extends State<LearnScreen> {
                             Navigator.pop(ctx);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0F172A),
+                            backgroundColor: const Color(0xFF018556),
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -845,10 +845,10 @@ class _LearnScreenState extends State<LearnScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0F172A) : Colors.white,
+          color: isSelected ? const Color(0xFF018556) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+            color: isSelected ? const Color(0xFF018556) : const Color(0xFFE2E8F0),
             width: 1.2,
           ),
         ),
@@ -857,7 +857,7 @@ class _LearnScreenState extends State<LearnScreen> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12.5,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF0F172A),
+            color: isSelected ? Colors.white : const Color(0xFF063D2A),
           ),
         ),
       ),
@@ -868,7 +868,7 @@ class _LearnScreenState extends State<LearnScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: const Color(0xFF018556),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -948,7 +948,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
+                          color: const Color(0xFF063D2A),
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -964,7 +964,7 @@ class _LearnScreenState extends State<LearnScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFF063D2A),
                           ),
                         ),
                       ),
@@ -1028,7 +1028,7 @@ class _LearnScreenState extends State<LearnScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.16),
+              color: const Color(0x1A000000),
               blurRadius: 8 * scale,
               offset: Offset(0, 2.5 * scale),
             ),
@@ -1159,7 +1159,7 @@ class _LearnScreenState extends State<LearnScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF063D2A),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -1188,7 +1188,7 @@ class _LearnScreenState extends State<LearnScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFF063D2A),
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -1210,7 +1210,7 @@ class _LearnScreenState extends State<LearnScreen> {
               width: 34,
               height: 34,
               decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
+                color: Color(0xFF018556),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1380,7 +1380,7 @@ class _LearnScreenState extends State<LearnScreen> {
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           behavior: HitTestBehavior.translucent,
           child: RefreshIndicator(
-            color: const Color(0xFF0F172A),
+            color: const Color(0xFF018556),
             onRefresh: _loadAllData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
@@ -1405,7 +1405,7 @@ class _LearnScreenState extends State<LearnScreen> {
                               border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                               boxShadow: const [
                                 BoxShadow(
-                                  color: Color(0x060F172A),
+                                  color: Color(0x06000000),
                                   blurRadius: 10,
                                   offset: Offset(0, 2),
                                 ),
@@ -1413,9 +1413,9 @@ class _LearnScreenState extends State<LearnScreen> {
                             ),
                             child: Theme(
                               data: Theme.of(context).copyWith(
-                                primaryColor: const Color(0xFF0F172A),
+                                primaryColor: const Color(0xFF018556),
                                 colorScheme: Theme.of(context).colorScheme.copyWith(
-                                  primary: const Color(0xFF0F172A),
+                                  primary: const Color(0xFF018556),
                                 ),
                                 inputDecorationTheme: const InputDecorationTheme(
                                   filled: false,
@@ -1428,19 +1428,19 @@ class _LearnScreenState extends State<LearnScreen> {
                                   focusedErrorBorder: InputBorder.none,
                                 ),
                                 textSelectionTheme: const TextSelectionThemeData(
-                                  cursorColor: Color(0xFF0F172A),
-                                  selectionColor: Color(0x330F172A),
-                                  selectionHandleColor: Color(0xFF0F172A),
+                                  cursorColor: Color(0xFF018556),
+                                  selectionColor: Color(0x33018556),
+                                  selectionHandleColor: Color(0xFF018556),
                                 ),
                               ),
                               child: TextField(
                                 controller: _searchController,
-                                cursorColor: const Color(0xFF0F172A),
+                                cursorColor: const Color(0xFF018556),
                                 cursorWidth: 1.5,
                                 onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13.5,
-                                  color: const Color(0xFF0F172A),
+                                  color: const Color(0xFF063D2A),
                                   fontWeight: FontWeight.w600,
                                 ),
                                 decoration: InputDecoration(
@@ -1476,7 +1476,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         ),
                         const SizedBox(width: 12),
 
-                        // Dongker Filter Button (Dark Navy 0xFF0F172A matching buttons)
+                        // Metro Green Filter Button
                         GestureDetector(
                           onTap: _showSortFilterModal,
                           child: Stack(
@@ -1486,13 +1486,13 @@ class _LearnScreenState extends State<LearnScreen> {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
+                                  color: const Color(0xFF018556),
                                   shape: BoxShape.circle,
-                                  boxShadow: const [
+                                  boxShadow: [
                                     BoxShadow(
-                                      color: Color(0x1F0F172A),
+                                      color: const Color(0xFF018556).withValues(alpha: 0.28),
                                       blurRadius: 10,
-                                      offset: Offset(0, 3),
+                                      offset: const Offset(0, 3),
                                     ),
                                   ],
                                 ),
@@ -1506,7 +1506,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                     width: 10,
                                     height: 10,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFF59E0B),
+                                      color: const Color(0xFFFAE653),
                                       shape: BoxShape.circle,
                                       border: Border.all(color: Colors.white, width: 2),
                                     ),
@@ -1643,7 +1643,7 @@ class _LearnScreenState extends State<LearnScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFF063D2A),
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -1853,7 +1853,7 @@ class _LearnScreenState extends State<LearnScreen> {
                           ),
                           child: Icon(
                             isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                            color: isWishlisted ? const Color(0xFFF43F5E) : const Color(0xFF0F172A),
+                            color: isWishlisted ? const Color(0xFFF43F5E) : const Color(0xFF063D2A),
                             size: 18,
                           ),
                         ),
@@ -1924,7 +1924,7 @@ class _LearnScreenState extends State<LearnScreen> {
                     Text(
                       title,
                       style: GoogleFonts.plusJakartaSans(
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF063D2A),
                         fontSize: 16.5,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
@@ -1961,7 +1961,7 @@ class _LearnScreenState extends State<LearnScreen> {
                           Text(
                             rating.toStringAsFixed(1),
                             style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFF063D2A),
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
@@ -2032,7 +2032,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                 child: Text(
                                   priceStr,
                                   style: GoogleFonts.plusJakartaSans(
-                                    color: price == 0 ? const Color(0xFF16A34A) : const Color(0xFF0F172A),
+                                    color: price == 0 ? const Color(0xFF018556) : const Color(0xFF063D2A),
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: -0.4,
@@ -2044,20 +2044,20 @@ class _LearnScreenState extends State<LearnScreen> {
                         ),
                         const SizedBox(width: 12),
 
-                        // Right: Solid Dongker Pill Button (Buka Kelas / See more)
+                        // Right: Solid Metro Green Pill Button (Buka Kelas / See more)
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => _openItemDetail(item),
                           child: Container(
                             padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFF018556),
                               borderRadius: BorderRadius.circular(30),
-                              boxShadow: const [
+                              boxShadow: [
                                 BoxShadow(
-                                  color: Color(0x1F0F172A),
+                                  color: const Color(0xFF018556).withValues(alpha: 0.28),
                                   blurRadius: 10,
-                                  offset: Offset(0, 4),
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -2082,7 +2082,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                   ),
                                   child: Icon(
                                     isEnrolled ? Icons.play_arrow_rounded : Icons.arrow_forward_rounded,
-                                    color: const Color(0xFF0F172A),
+                                    color: const Color(0xFF018556),
                                     size: isEnrolled ? 18 : 14,
                                   ),
                                 ),
@@ -2132,7 +2132,7 @@ class _LearnScreenState extends State<LearnScreen> {
           border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0A0F172A),
+              color: Color(0x0A000000),
               blurRadius: 14,
               offset: Offset(0, 4),
             ),
@@ -2188,7 +2188,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x120F172A),
+                            color: Color(0x12000000),
                             blurRadius: 6,
                             offset: Offset(0, 2),
                           ),
@@ -2196,7 +2196,7 @@ class _LearnScreenState extends State<LearnScreen> {
                       ),
                       child: Icon(
                         isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                        color: isWishlisted ? const Color(0xFFF43F5E) : const Color(0xFF0F172A),
+                        color: isWishlisted ? const Color(0xFFF43F5E) : const Color(0xFF063D2A),
                         size: 16,
                       ),
                     ),
@@ -2264,7 +2264,7 @@ class _LearnScreenState extends State<LearnScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF063D2A),
                         height: 1.3,
                         letterSpacing: -0.2,
                       ),
@@ -2285,7 +2285,7 @@ class _LearnScreenState extends State<LearnScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFF063D2A),
                             ),
                           ),
                           const SizedBox(width: 3),
@@ -2344,7 +2344,7 @@ class _LearnScreenState extends State<LearnScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w800,
-                                color: price == 0 ? const Color(0xFF16A34A) : const Color(0xFF0F172A),
+                                color: price == 0 ? const Color(0xFF018556) : const Color(0xFF063D2A),
                                 letterSpacing: -0.3,
                               ),
                             ),
@@ -2355,7 +2355,7 @@ class _LearnScreenState extends State<LearnScreen> {
                           width: 30,
                           height: 30,
                           decoration: const BoxDecoration(
-                            color: Color(0xFF0F172A),
+                            color: Color(0xFF018556),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -2390,7 +2390,7 @@ class _LearnScreenState extends State<LearnScreen> {
           border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0C0F172A),
+              color: Color(0x0C000000),
               blurRadius: 14,
               offset: Offset(0, 4),
             ),
@@ -2404,7 +2404,7 @@ class _LearnScreenState extends State<LearnScreen> {
                 width: 50,
                 height: 50,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF0F172A),
+                  color: Color(0xFF018556),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -2419,7 +2419,7 @@ class _LearnScreenState extends State<LearnScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF063D2A),
                 ),
               ),
               const SizedBox(height: 4),
@@ -2447,7 +2447,7 @@ class _LearnScreenState extends State<LearnScreen> {
         borderRadius: BorderRadius.circular(30),
       ),
       child: const Center(
-        child: CircularProgressIndicator(color: Color(0xFF0F172A)),
+        child: CircularProgressIndicator(color: Color(0xFF018556)),
       ),
     );
   }
@@ -2472,7 +2472,7 @@ class _LearnScreenState extends State<LearnScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: const Color(0xFF063D2A),
               ),
             ),
             const SizedBox(height: 4),

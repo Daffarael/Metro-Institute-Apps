@@ -125,11 +125,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
 
   @override
   Widget build(BuildContext context) {
-    // --- PALET WARNA SUPER CLEAN & MINIMALIS ---
+    // --- PALET WARNA SUPER CLEAN & MINIMALIS (Harmonisasi Brand Metro Institute) ---
     const Color navBgColor = Colors.white; // Background dock putih bersih
     const Color borderColor = Color(0xFFE2E8F0); // Border garis halus abu-abu
-    const Color activePillColor = Color(0xFFE5E7EB); // Kapsul aktif: abu-abu lembut clean (#E5E7EB)
-    const Color activeContentColor = Color(0xFF0F172A); // Ikon & teks aktif: Charcoal / Slate-900 elegan
+    const Color activePillColor = Color(0xFFE6F4EF); // Kapsul aktif: Metro Primary Light (#E6F4EF)
+    const Color activeContentColor = Color(0xFF018556); // Ikon & teks aktif: Metro Green (#018556)
     const Color inactiveIconColor = Color(0xFF64748B); // Ikon tidak aktif: Slate-500 neutral
 
     return SafeArea(
@@ -147,12 +147,12 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                 border: Border.all(color: borderColor, width: 1),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x140F172A),
+                    color: Color(0x10000000),
                     blurRadius: 20,
                     offset: Offset(0, 6),
                   ),
                   BoxShadow(
-                    color: Color(0x060F172A),
+                    color: Color(0x06000000),
                     blurRadius: 6,
                     offset: Offset(0, 2),
                   ),

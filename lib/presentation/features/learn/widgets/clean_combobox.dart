@@ -10,11 +10,11 @@ class _ComboboxTokens {
   static const bgElevated = Color(0xFFFFFFFF);
   static const bgSubtle = Color(0xFFF1F5F9);
   static const borderSubtle = Color(0xFFE2E8F0);
-  static const borderFocus = Color(0xFF0F172A);
-  static const text = Color(0xFF0F172A);
+  static const borderFocus = Color(0xFF018556);
+  static const text = Color(0xFF063D2A);
   static const textSecondary = Color(0xFF64748B);
   static const textTertiary = Color(0xFF94A3B8);
-  static const shadowLg = Color(0x1F0F172A);
+  static const shadowLg = Color(0x1F018556);
 }
 
 class ComboboxOption {
@@ -294,7 +294,7 @@ class _CleanComboboxState extends State<CleanCombobox> with SingleTickerProvider
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                                 decoration: BoxDecoration(
                                                   color: isSelected
-                                                      ? _ComboboxTokens.bgSubtle
+                                                      ? const Color(0xFFE6F4EF)
                                                       : Colors.transparent,
                                                   borderRadius: BorderRadius.circular(_ComboboxTokens.radiusSm),
                                                 ),
@@ -388,7 +388,7 @@ class _CleanComboboxState extends State<CleanCombobox> with SingleTickerProvider
                       )
                     else
                       const BoxShadow(
-                        color: Color(0x050F172A),
+                        color: Color(0x06000000),
                         blurRadius: 6,
                         offset: Offset(0, 2),
                       ),
