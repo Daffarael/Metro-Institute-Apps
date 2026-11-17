@@ -11,7 +11,6 @@ import '../../../../data/datasources/remote/wishlist_remote_datasource.dart';
 import 'course_detail_screen.dart';
 import '../widgets/clean_combobox.dart';
 import '../../webinar/screens/inspire_talk_detail_screen.dart';
-import '../../../common/widgets/metro_liquid_refresh.dart';
 
 /// LearnScreen — Ruang Belajar Discovery page:
 /// • Clean Search Bar with dark charcoal cursor (NO green color)
@@ -1375,13 +1374,14 @@ class _LearnScreenState extends State<LearnScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF7F2), // Warm Cream Palette matching design
-      body: MetroLiquidRefresh(
-        onRefresh: _loadAllData,
-        child: SafeArea(
-          bottom: false,
-          child: GestureDetector(
-            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            behavior: HitTestBehavior.translucent,
+      body: SafeArea(
+        bottom: false,
+        child: GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: RefreshIndicator(
+            color: const Color(0xFF018556),
+            onRefresh: _loadAllData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               padding: const EdgeInsets.only(bottom: 120),

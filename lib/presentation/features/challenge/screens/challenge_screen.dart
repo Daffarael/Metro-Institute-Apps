@@ -9,7 +9,6 @@ import '../../../../data/repositories/auth_repository.dart';
 import '../../leaderboard/widgets/metro_leaderboard_view.dart';
 import 'challenge_arena_screen.dart';
 import '../../../common/widgets/tactile_metro_button.dart';
-import '../../../common/widgets/metro_liquid_refresh.dart';
 
 /// ChallengeScreen — Halaman Tantangan Metro Institute
 /// Mengadopsi struktur & layout referensi visual dengan estetika khas Metro:
@@ -337,14 +336,15 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Latar belakang putih bersih
-      body: MetroLiquidRefresh(
-        onRefresh: () async {
-          await _loadChallenges();
-          await _loadLeaderboard(forceRefresh: true);
-        },
-        child: SafeArea(
-          top: true,
-          bottom: false,
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: RefreshIndicator(
+          color: const Color(0xFF101010),
+          onRefresh: () async {
+            await _loadChallenges();
+            await _loadLeaderboard(forceRefresh: true);
+          },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(bottom: 110),
