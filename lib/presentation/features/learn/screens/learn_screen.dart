@@ -1476,7 +1476,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         ),
                         const SizedBox(width: 12),
 
-                        // Metro Green Filter Button
+                        // Metro Green Filter Button (Zero shadow, flat clean design)
                         GestureDetector(
                           onTap: _showSortFilterModal,
                           child: Stack(
@@ -1485,16 +1485,9 @@ class _LearnScreenState extends State<LearnScreen> {
                               Container(
                                 width: 48,
                                 height: 48,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF018556),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF018556),
                                   shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF018556).withValues(alpha: 0.28),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
                                 ),
                                 child: const Icon(Icons.tune_rounded, color: Colors.white, size: 20),
                               ),
@@ -2044,22 +2037,15 @@ class _LearnScreenState extends State<LearnScreen> {
                         ),
                         const SizedBox(width: 12),
 
-                        // Right: Solid Metro Green Pill Button (Buka Kelas / See more)
+                        // Right: Solid Metro Green Pill Button (Buka Kelas / See more) - Zero shadow, unified design
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => _openItemDetail(item),
                           child: Container(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                             decoration: BoxDecoration(
                               color: const Color(0xFF018556),
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF018556).withValues(alpha: 0.28),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                              borderRadius: BorderRadius.circular(999),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -2072,19 +2058,11 @@ class _LearnScreenState extends State<LearnScreen> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isEnrolled ? Icons.play_arrow_rounded : Icons.arrow_forward_rounded,
-                                    color: const Color(0xFF018556),
-                                    size: isEnrolled ? 18 : 14,
-                                  ),
+                                const SizedBox(width: 6),
+                                Icon(
+                                  isEnrolled ? Icons.play_arrow_rounded : Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 16,
                                 ),
                               ],
                             ),
