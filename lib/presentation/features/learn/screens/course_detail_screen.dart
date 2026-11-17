@@ -1258,7 +1258,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
                 const SizedBox(width: 14),
 
-                // 2. Title and Bold "+20 points" Subtitle
+                // 2. Title
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1274,15 +1274,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '+20 points',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E1B18),
-                        ),
                       ),
                     ],
                   ),
