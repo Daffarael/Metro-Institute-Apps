@@ -416,18 +416,71 @@
     showToast('File CSV cadangan berhasil diunduh!', true);
   }
 
-  // Intercept tombol "Tinggalkan Panggilan" (Leave Call) untuk AUTO-POST
+  // Deteksi aksi tutup meeting atau "Akhiri panggilan untuk semua orang" (Leave call for all)
+  function isEndCallAction(element) {
+    if (!element) return false;
+    const btn = element.closest('button, div[role="button"], span[role="button"], a[role="button"]');
+    if (!btn) return false;
+
+    const text = (btn.innerText || btn.textContent || '').toLowerCase().trim();
+    const aria = (btn.getAttribute('aria-label') || '').toLowerCase();
+    const tooltip = (btn.getAttribute('data-tooltip') || '').toLowerCase();
+    const callAction = (btn.getAttribute('data-call-action') || '').toLowerCase();
+    const jsname = btn.getAttribute('jsname') || '';
+
+    // Deteksi khusus opsi dialog "Akhiri panggilan untuk semua orang" / "End the call for everyone"
+    if (
+      text.includes('semua orang') ||
+      text.includes('semua') ||
+      text.includes('everyone') ||
+      text.includes('for all') ||
+      text.includes('akhiri panggilan') ||
+      text.includes('end the call') ||
+      text.includes('tinggalkan panggilan') ||
+      text.includes('leave call') ||
+      text.includes('keluar') ||
+      aria.includes('akhiri') ||
+      aria.includes('tinggalkan') ||
+      aria.includes('leave') ||
+      aria.includes('end the call') ||
+      tooltip.includes('akhiri') ||
+      tooltip.includes('tinggalkan') ||
+      tooltip.includes('leave') ||
+      callAction.includes('end_for_all') ||
+      callAction.includes('leave') ||
+      jsname === 'CQylAd'
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  // Deteksi layar "Rapat telah berakhir" / "Anda telah meninggalkan rapat"
+  function checkMeetingEndedScreen() {
+    if (hasSentFinal || participantsMap.size === 0) return;
+    const bodyText = (document.body ? document.body.innerText || '' : '').toLowerCase();
+    if (
+      bodyText.includes('anda telah meninggalkan rapat') ||
+      bodyText.includes("you've left the meeting") ||
+      bodyText.includes('you left the meeting') ||
+      bodyText.includes('rapat telah berakhir') ||
+      bodyText.includes('the meeting has ended') ||
+      bodyText.includes('panggilan telah berakhir') ||
+      bodyText.includes('panggilan telah selesai')
+    ) {
+      console.log('Metro Meet: Layar rapat selesai terdeteksi -> Auto-POSTing presensi!');
+      sendAttendanceWebhook({ isFinal: true, useKeepalive: true });
+    }
+  }
+
+  // Intercept tombol "Tinggalkan Panggilan" dan "Akhiri Panggilan untuk Semua Orang" untuk AUTO-POST
   function setupAutoPostListeners() {
-    // Tangkap klik pada tombol leave call dengan capturing phase
+    // Tangkap klik pada tombol leave call atau dialog "Akhiri panggilan untuk semua"
     document.addEventListener(
       'click',
       (e) => {
-        const target = e.target.closest(
-          'button[aria-label*="Leave"], button[aria-label*="Tinggalkan"], button[aria-label*="Keluar"], button[data-tooltip*="Leave"], button[data-tooltip*="Tinggalkan"], button[jsname="CQylAd"]'
-        );
-
-        if (target && config.autoPost && !hasSentFinal) {
-          console.log('Metro Meet: Tombol Tutup Panggilan diklik -> Mengirim presensi otomatis...');
+        if (config.autoPost && !hasSentFinal && isEndCallAction(e.target)) {
+          console.log('Metro Meet: Aksi Leave Call / Akhiri untuk semua terdeteksi -> Auto-POSTing presensi!');
           sendAttendanceWebhook({ isFinal: true, useKeepalive: true });
         }
       },
@@ -436,6 +489,12 @@
 
     // Tangkap penutupan tab / browser
     window.addEventListener('beforeunload', () => {
+      if (config.autoPost && !hasSentFinal && participantsMap.size > 0) {
+        sendAttendanceWebhook({ isFinal: true, useKeepalive: true });
+      }
+    });
+
+    window.addEventListener('pagehide', () => {
       if (config.autoPost && !hasSentFinal && participantsMap.size > 0) {
         sendAttendanceWebhook({ isFinal: true, useKeepalive: true });
       }
@@ -455,7 +514,10 @@
         setupAutoPostListeners();
 
         // Mulai scanning rutin
-        setInterval(scanParticipants, SCAN_INTERVAL_MS);
+        setInterval(() => {
+          scanParticipants();
+          checkMeetingEndedScreen();
+        }, SCAN_INTERVAL_MS);
       }
     }
   }
@@ -470,6 +532,7 @@
   // Pantau perubahan URL SPA Google Meet
   let lastUrl = location.href;
   new MutationObserver(() => {
+    checkMeetingEndedScreen();
     const url = location.href;
     if (url !== lastUrl) {
       lastUrl = url;
