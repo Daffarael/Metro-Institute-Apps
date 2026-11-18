@@ -349,8 +349,32 @@
     const targetUrl = config.apiUrl || DEFAULT_API_URL;
     const authHeader = `Bearer ${config.secret || DEFAULT_SECRET}`;
 
+    // 1. Kirim via Background Service Worker (100% Bebas dari batasan CORS halaman web)
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage(
+        {
+          type: 'SEND_MEET_WEBHOOK',
+          targetUrl,
+          authHeader,
+          payload,
+        },
+        (res) => {
+          if (chrome.runtime.lastError) {
+            console.warn('Metro background worker message notice:', chrome.runtime.lastError.message);
+          } else if (res && res.success) {
+            console.log('✅ Presensi berhasil terkirim via background worker!', res);
+            if (isFinal) hasSentFinal = true;
+            const msg = `Presensi berhasil dikirim! (${participantsArray.length} peserta tercatat di Metro Institute)`;
+            if (statusText) statusText.textContent = `✅ ${msg}`;
+            showToast(msg, true);
+          }
+        }
+      );
+    }
+
+    // 2. Kirim juga via direct keepalive fetch (menjamin pengiriman tuntas meski tab langsung tertutup)
     try {
-      if (useKeepalive && typeof fetch !== 'undefined') {
+      if (typeof fetch !== 'undefined') {
         fetch(targetUrl, {
           method: 'POST',
           headers: {
@@ -359,37 +383,25 @@
           },
           body: JSON.stringify(payload),
           keepalive: true,
-        }).catch((e) => console.warn('Keepalive POST sent with result:', e));
-        hasSentFinal = true;
-        return;
-      }
+        })
+          .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (response.ok && data.success) {
+              if (isFinal) hasSentFinal = true;
+              const msg = `Presensi berhasil dikirim! (${participantsArray.length} peserta tercatat di Metro Institute)`;
+              if (statusText) statusText.textContent = `✅ ${msg}`;
+              showToast(msg, true);
+            } else if (isManual) {
+              const errorMsg = data.message || `HTTP ${response.status}`;
+              showToast(`Gagal kirim: ${errorMsg}`, false);
+            }
+          })
+          .catch((e) => console.warn('Direct fetch note:', e));
 
-      const response = await fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authHeader,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok && data.success) {
         if (isFinal) hasSentFinal = true;
-        const msg = `Presensi berhasil dikirim! (${participantsArray.length} peserta tercatat di Metro Institute)`;
-        if (statusText) statusText.textContent = `✅ ${msg}`;
-        showToast(msg, true);
-      } else {
-        const errorMsg = data.message || `HTTP ${response.status}`;
-        if (statusText) statusText.textContent = `⚠️ Gagal kirim: ${errorMsg}`;
-        if (isManual) showToast(`Gagal kirim: ${errorMsg}`, false);
       }
     } catch (err) {
-      console.error('Metro Meet Sync error:', err);
-      const errStr = err.message || 'Koneksi gagal';
-      if (statusText) statusText.textContent = `❌ Koneksi terputus: ${errStr}`;
-      if (isManual) showToast(`Gagal menghubungi server: ${errStr}`, false);
+      console.warn('Metro Meet Sync direct fetch catch:', err);
     }
   }
 
@@ -419,7 +431,9 @@
   // Deteksi aksi tutup meeting atau "Akhiri panggilan untuk semua orang" (Leave call for all)
   function isEndCallAction(element) {
     if (!element) return false;
-    const btn = element.closest('button, div[role="button"], span[role="button"], a[role="button"]');
+    const target = element.nodeType === 3 ? element.parentElement : element;
+    if (!target || typeof target.closest !== 'function') return false;
+    const btn = target.closest('button, div[role="button"], span[role="button"], a[role="button"]');
     if (!btn) return false;
 
     const text = (btn.innerText || btn.textContent || '').toLowerCase().trim();
