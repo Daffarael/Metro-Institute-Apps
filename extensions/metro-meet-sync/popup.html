@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metro Meet Sync</title>
+  <style>
+    :root {
+      --bg: #090f0c;
+      --card-bg: #121c17;
+      --border: #1e3328;
+      --primary: #018556;
+      --accent: #0df293;
+      --yellow: #fae653;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(13, 242, 147, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(13, 242, 147, 0.3);
+      padding: 4px 8px;
+      border-radius: 9999px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #ffffff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: var(--accent);
+    }
+
+    .presets {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-btn:hover {
+      background: rgba(13, 242, 147, 0.15);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .checkbox-group input {
+      accent-color: var(--primary);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .checkbox-group span {
+      font-size: 12px;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    button.btn-primary {
+      flex: 1;
+      background: linear-gradient(135deg, #018556 0%, #0db873 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button.btn-primary:hover {
+      background: linear-gradient(135deg, #029b65 0%, #0df293 100%);
+      color: #042417;
+    }
+
+    button.btn-test {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button.btn-test:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+
+    .status-msg {
+      margin-top: 10px;
+      font-size: 11px;
+      text-align: center;
+      min-height: 18px;
+      font-weight: 600;
+    }
+
+    .info-box {
+      background: rgba(1, 133, 86, 0.12);
+      border: 1px dashed rgba(13, 242, 147, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .info-box b {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <img src="icons/icon-48.png" alt="Logo" class="logo">
+      <div>
+        <div class="title">Metro Meet Sync</div>
+        <div class="subtitle">Auto Attendance Engine</div>
+      </div>
+    </div>
+    <div class="status-badge">
+      <span class="dot"></span>
+      <span>Aktif</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-group">
+      <label for="apiUrl">Backend Webhook URL</label>
+      <input type="text" id="apiUrl" placeholder="https://api.metroinstitute.site/api/v1/webhook/google-meet">
+      <div class="presets">
+        <button class="preset-btn" id="preset-prod">Production (Live)</button>
+        <button class="preset-btn" id="preset-local">Localhost:5000</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 10px;">
+      <label for="secret">Webhook Secret Key</label>
+      <input type="password" id="secret" placeholder="metro-meet-secret-2026">
+    </div>
+
+    <label class="checkbox-group">
+      <input type="checkbox" id="autoPost" checked>
+      <span>Kirim Otomatis saat Call Selesai (Auto-POST)</span>
+    </label>
+
+    <div class="btn-group">
+      <button class="btn-primary" id="saveBtn">💾 Simpan</button>
+      <button class="btn-test" id="testBtn">⚡ Uji Koneksi</button>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+
+  <div class="info-box">
+    <b>Cara Pakai:</b> Buka link Google Meet sesi kelas. Badge <b>Metro Sync</b> akan otomatis muncul di sudut kiri bawah layar Google Meet dan mencatat kehadiran peserta secara otomatis!
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
