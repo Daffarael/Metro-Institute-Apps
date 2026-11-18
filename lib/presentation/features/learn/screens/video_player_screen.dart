@@ -1012,8 +1012,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         : const BorderRadius.vertical(top: Radius.circular(20)),
                     child: Column(
                       children: [
-                        // Modern Segmented Tab Header
-                        _buildBrowserCardTabs(),
+                        // Modern Segmented Tab Header (Hidden in Full Screen)
+                        if (!_isFullScreen) _buildBrowserCardTabs(),
 
                         // Tab Views
                         Expanded(
@@ -1050,22 +1050,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ],
           ),
         ),
-        floatingActionButton: _isFullScreen
-            ? FloatingActionButton.extended(
-                onPressed: _toggleFullScreen,
-                backgroundColor: const Color(0xFF015F3D),
-                foregroundColor: Colors.white,
-                elevation: 4,
-                icon: const Icon(Icons.fullscreen_exit_rounded, size: 20),
-                label: Text(
-                  'Keluar Fokus',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              )
-            : null,
       ),
     );
   }
@@ -1106,30 +1090,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 label: 'Tanya Jawab',
                 icon: Icons.chat_bubble_outline_rounded,
                 isActive: activeIndex == 2,
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _toggleFullScreen,
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: _isFullScreen ? const Color(0xFFE8F5E9) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: _isFullScreen ? AppColors.primary : const Color(0xFFE2E8F0),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      _isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-                      size: 20,
-                      color: _isFullScreen ? AppColors.primary : const Color(0xFF64748B),
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -1279,44 +1239,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         ),
                       ),
                     ],
-                  ),
-                ),
-                const Spacer(),
-
-                // 3. Focus / Fullscreen Mode Button
-                GestureDetector(
-                  onTap: _toggleFullScreen,
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.fullscreen_rounded,
-                          size: 15,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Layar Penuh',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: -0.1,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ],
