@@ -75,16 +75,25 @@ class BasecampDiscordCard extends StatelessWidget {
                   }
                 },
                 borderRadius: BorderRadius.circular(999),
+                splashColor: Colors.white.withOpacity(0.25),
+                highlightColor: Colors.white.withOpacity(0.12),
                 child: Container(
                   height: 38,
                   alignment: Alignment.center,
-                  child: Text(
-                    'Gabung Discord',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Gabung Discord',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
