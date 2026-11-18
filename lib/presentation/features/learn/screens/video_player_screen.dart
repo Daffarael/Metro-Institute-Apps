@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -97,6 +98,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   bool _hasScrolledToBottom = false;
   int _xpReward = 10;
 
+  // Full Screen / Focus Mode state for reading materials
+  bool _isFullScreen = false;
+
+  void _toggleFullScreen() {
+    setState(() {
+      _isFullScreen = !_isFullScreen;
+    });
+    if (_isFullScreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -143,6 +158,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   @override
   void dispose() {
+    if (_isFullScreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     _overviewScrollController.removeListener(_onOverviewScroll);
     _overviewScrollController.dispose();
     _tabController.dispose();
@@ -886,115 +904,168 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     final bool isVideo = _sessionType == 'VIDEO';
     const headerGreen = Color(0xFF015F3D); // Deep Metro Green (matching the tactile button's rich tone)
 
-    return Scaffold(
-      backgroundColor: isVideo ? Colors.black : headerGreen,
-      appBar: AppBar(
-        backgroundColor: isVideo ? const Color(0xFF0D1117) : headerGreen,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: 54,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 14),
-          child: Center(
-            child: InkWell(
-              onTap: () => Navigator.pop(context),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 15,
-                    color: Colors.white,
+    return PopScope(
+      canPop: !_isFullScreen,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_isFullScreen) {
+          _toggleFullScreen();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isVideo ? Colors.black : headerGreen,
+        appBar: AppBar(
+          backgroundColor: isVideo ? const Color(0xFF0D1117) : headerGreen,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leadingWidth: 54,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 14),
+            child: Center(
+              child: InkWell(
+                onTap: () {
+                  if (_isFullScreen) {
+                    _toggleFullScreen();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          widget.courseTitle,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: -0.2,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: const [
-          SizedBox(width: 8),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top: Video Frame or Media Banner
-            _buildTopMediaFrame(),
-
-            // Bottom: Tab Container & Tab Content
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x18000000),
-                      blurRadius: 16,
-                      offset: Offset(0, -4),
+                  child: Center(
+                    child: Icon(
+                      _isFullScreen ? Icons.fullscreen_exit_rounded : Icons.arrow_back_ios_new_rounded,
+                      size: _isFullScreen ? 20 : 15,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Column(
-                    children: [
-                      // Modern Segmented Tab Header
-                      _buildBrowserCardTabs(),
-
-                      // Tab Views
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            KeyedSubtree(
-                              key: const ValueKey('tab_overview'),
-                              child: _buildOverviewTab(),
-                            ),
-                            KeyedSubtree(
-                              key: const ValueKey('tab_notes'),
-                              child: _buildNotesTab(),
-                            ),
-                            KeyedSubtree(
-                              key: const ValueKey('tab_qna'),
-                              child: _buildQnaTab(),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Bottom Navigation Bar (3D Tactile Push-Down Buttons)
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOutCubic,
-                        child: _buildBottomActionDock(),
-                      ),
-                    ],
                   ),
                 ),
               ),
             ),
+          ),
+          title: Text(
+            _isFullScreen ? (_currentTitle ?? widget.title) : widget.courseTitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.2,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                _isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+              tooltip: _isFullScreen ? 'Keluar Mode Fokus' : 'Mode Layar Penuh (Fokus)',
+              onPressed: _toggleFullScreen,
+            ),
+            const SizedBox(width: 8),
           ],
         ),
+        body: SafeArea(
+          top: !_isFullScreen,
+          bottom: !_isFullScreen,
+          child: Column(
+            children: [
+              // Top: Video Frame or Media Banner
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 220),
+                crossFadeState: _isFullScreen ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                firstChild: _buildTopMediaFrame(),
+                secondChild: const SizedBox(width: double.infinity, height: 0),
+              ),
+
+              // Bottom: Tab Container & Tab Content
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: _isFullScreen
+                        ? BorderRadius.zero
+                        : const BorderRadius.vertical(top: Radius.circular(20)),
+                    boxShadow: _isFullScreen
+                        ? null
+                        : const [
+                            BoxShadow(
+                              color: Color(0x18000000),
+                              blurRadius: 16,
+                              offset: Offset(0, -4),
+                            ),
+                          ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: _isFullScreen
+                        ? BorderRadius.zero
+                        : const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Column(
+                      children: [
+                        // Modern Segmented Tab Header
+                        _buildBrowserCardTabs(),
+
+                        // Tab Views
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              KeyedSubtree(
+                                key: const ValueKey('tab_overview'),
+                                child: _buildOverviewTab(),
+                              ),
+                              KeyedSubtree(
+                                key: const ValueKey('tab_notes'),
+                                child: _buildNotesTab(),
+                              ),
+                              KeyedSubtree(
+                                key: const ValueKey('tab_qna'),
+                                child: _buildQnaTab(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Bottom Navigation Bar (3D Tactile Push-Down Buttons)
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOutCubic,
+                          child: _isFullScreen ? const SizedBox.shrink() : _buildBottomActionDock(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        floatingActionButton: _isFullScreen
+            ? FloatingActionButton.extended(
+                onPressed: _toggleFullScreen,
+                backgroundColor: const Color(0xFF015F3D),
+                foregroundColor: Colors.white,
+                elevation: 4,
+                icon: const Icon(Icons.fullscreen_exit_rounded, size: 20),
+                label: Text(
+                  'Keluar Fokus',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -1035,6 +1106,30 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 label: 'Tanya Jawab',
                 icon: Icons.chat_bubble_outline_rounded,
                 isActive: activeIndex == 2,
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: _toggleFullScreen,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: _isFullScreen ? const Color(0xFFE8F5E9) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _isFullScreen ? AppColors.primary : const Color(0xFFE2E8F0),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                      size: 20,
+                      color: _isFullScreen ? AppColors.primary : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1184,6 +1279,44 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const Spacer(),
+
+                // 3. Focus / Fullscreen Mode Button
+                GestureDetector(
+                  onTap: _toggleFullScreen,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.fullscreen_rounded,
+                          size: 15,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Layar Penuh',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
