@@ -91,7 +91,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // Quiz state
   String? _selectedQuizOptionId;
+  String? _submittedQuizOptionId;
   bool _quizSubmitted = false;
+  bool _isQuizCorrect = false;
+  int _quizAttemptCount = 0;
+  static const int _maxBootcampAttempts = 3;
 
   // Scroll & Completion state for MATERIAL sessions
   final ScrollController _overviewScrollController = ScrollController();
@@ -283,6 +287,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _sessionDescription = current['description'] ?? current['assignmentDescription'];
               _materials = parsedMaterials;
               _quizOptions = parsedQuiz;
+              _selectedQuizOptionId = null;
+              _submittedQuizOptionId = null;
+              _quizSubmitted = false;
+              _isQuizCorrect = false;
+              _quizAttemptCount = 0;
               _isLiveEnded = isLiveEnd;
               _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
               _prevSessionId = sessionData['prevSessionId'] as String?;
@@ -1832,6 +1841,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 
+  void _resetQuizForRetake() {
+    setState(() {
+      _quizSubmitted = false;
+      _selectedQuizOptionId = null;
+      _submittedQuizOptionId = null;
+      _isQuizCorrect = false;
+    });
+  }
+
   Widget _buildQuizContent() {
     // Detect format: whether _quizOptions has nested question objects or flat options
     final List<dynamic> sourceOptions = _quizOptions.isNotEmpty
@@ -1839,6 +1857,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         : [
             {
               'question': 'Apa perbedaan mendasar antara UI (User Interface) dan UX (User Experience)?',
+              'explanation': 'UI berfokus pada estetika visual & layout antarmuka (warna, tipografi, komponen), sedangkan UX berfokus pada kemudahan alur, navigasi, dan kenyamanan pengguna secara menyeluruh.',
               'options': [
                 {
                   'id': 'a',
@@ -1865,11 +1884,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           ];
 
     String? questionTitle;
+    String? questionExplanation;
     List<Map<String, dynamic>> optionsList = [];
 
     final firstItem = sourceOptions.first;
     if (firstItem is Map && firstItem.containsKey('options') && firstItem['options'] is List) {
       questionTitle = firstItem['question']?.toString();
+      final exp = firstItem['explanation']?.toString().trim();
+      if (exp != null && exp.isNotEmpty) {
+        questionExplanation = exp;
+      }
       final nestedList = firstItem['options'] as List;
       for (int i = 0; i < nestedList.length; i++) {
         final opt = nestedList[i];
@@ -1886,9 +1910,95 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       }
     }
 
+    // Identify correct option details
+    final correctOption = optionsList.firstWhere(
+      (o) => o['isCorrect'] == true,
+      orElse: () => {},
+    );
+    final int correctIdx = optionsList.indexWhere((o) => o['isCorrect'] == true);
+    final String correctLetter = correctIdx >= 0 ? String.fromCharCode(65 + correctIdx) : 'A';
+    final String correctText = (correctOption['text'] ?? correctOption['label'] ?? correctOption['title'] ?? '').toString();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Mode & Question Header Pill
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.help_outline_rounded, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Soal Kuis',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF334155),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!_isBootcampActual)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.all_inclusive_rounded, size: 13, color: AppColors.emeraldDark),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Mini Course • Bebas Ulang',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.emeraldDark,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFFECACA) : const Color(0xFFBFDBFE),
+                  ),
+                ),
+                child: Text(
+                  _quizAttemptCount == 0
+                      ? 'Bootcamp • Maks 3x'
+                      : 'Percobaan $_quizAttemptCount dari $_maxBootcampAttempts',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFDC2626) : const Color(0xFF1D4ED8),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Question Title Container
         if (questionTitle != null && questionTitle.trim().isNotEmpty) ...[
           Container(
             width: double.infinity,
@@ -1898,6 +2008,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x04000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               questionTitle,
@@ -1910,6 +2027,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ),
         ],
+
+        // Options List (with Answer History & Visual Badges)
         ...optionsList.asMap().entries.map((entry) {
           final idx = entry.key;
           final option = entry.value;
@@ -1918,63 +2037,477 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           final text = (rawText != null && rawText.toString().trim().isNotEmpty)
               ? rawText.toString()
               : 'Pilihan ${String.fromCharCode(65 + idx)}';
-          final isSelected = _selectedQuizOptionId == optId;
           final letter = String.fromCharCode(65 + idx);
+          final isOptionCorrect = option['isCorrect'] == true;
+
+          // State evaluation
+          final bool isSelected = _selectedQuizOptionId == optId;
+          final bool isChosenByMentee = _submittedQuizOptionId == optId;
+
+          // Visual Styling Variables
+          Color cardBg = Colors.white;
+          Color cardBorder = const Color(0xFFE2E8F0);
+          double borderWidth = 1.2;
+          Color letterBg = const Color(0xFFF1F5F9);
+          Color letterTextColor = const Color(0xFF475569);
+          Color textColor = const Color(0xFF0F172A);
+          FontWeight textWeight = FontWeight.w500;
+          Widget? trailingBadge;
+
+          if (!_quizSubmitted) {
+            // Pre-submit: interactive selection
+            if (isSelected) {
+              cardBorder = AppColors.primary;
+              borderWidth = 2.0;
+              letterBg = AppColors.primary;
+              letterTextColor = Colors.white;
+              textWeight = FontWeight.w700;
+            }
+          } else {
+            // Post-submit: Review / History mode
+            if (isChosenByMentee) {
+              if (_isQuizCorrect) {
+                // User picked this and it is CORRECT
+                cardBg = const Color(0xFFECFDF5);
+                cardBorder = AppColors.primary;
+                borderWidth = 2.0;
+                letterBg = AppColors.primary;
+                letterTextColor = Colors.white;
+                textWeight = FontWeight.w700;
+                trailingBadge = Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1FAE5),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Pilihan Kamu (Benar)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.emeraldDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                // User picked this and it is WRONG
+                cardBg = const Color(0xFFFEF2F2);
+                cardBorder = const Color(0xFFEF4444);
+                borderWidth = 2.0;
+                letterBg = const Color(0xFFEF4444);
+                letterTextColor = Colors.white;
+                textWeight = FontWeight.w700;
+                trailingBadge = Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.cancel_rounded, color: Color(0xFFEF4444), size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Pilihan Kamu (Salah)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF991B1B),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            } else if (isOptionCorrect && !_isQuizCorrect) {
+              // This is the actual correct answer that user missed
+              cardBg = const Color(0xFFF0FDF4);
+              cardBorder = AppColors.primary;
+              borderWidth = 1.6;
+              letterBg = AppColors.primary;
+              letterTextColor = Colors.white;
+              textWeight = FontWeight.w700;
+              trailingBadge = Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1FAE5),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_rounded, color: AppColors.primary, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Kunci Jawaban',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.emeraldDark,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              // Other options
+              cardBg = const Color(0xFFF8FAFC);
+              cardBorder = const Color(0xFFE2E8F0);
+              textColor = const Color(0xFF64748B);
+              letterBg = const Color(0xFFF1F5F9);
+              letterTextColor = const Color(0xFF94A3B8);
+            }
+          }
 
           return GestureDetector(
             onTap: _quizSubmitted ? null : () => setState(() => _selectedQuizOptionId = optId),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
-                  width: isSelected ? 2.0 : 1.2,
+                  color: cardBorder,
+                  width: borderWidth,
                 ),
+                boxShadow: isSelected && !_quizSubmitted
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: letterBg,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            letter,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: letterTextColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Text(
+                            text,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: textWeight,
+                              color: textColor,
+                              height: 1.45,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (trailingBadge != null) ...[
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 40),
+                      child: trailingBadge,
                     ),
-                    child: Center(
+                  ],
+                ],
+              ),
+            ),
+          );
+        }),
+
+        // 💡 Explanation Card ("Pembahasan Soal")
+        if (_quizSubmitted) ...[
+          Container(
+            margin: const EdgeInsets.only(top: 14, bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isQuizCorrect ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _isQuizCorrect ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A),
+                width: 1.2,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _isQuizCorrect ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _isQuizCorrect ? Icons.check_circle_outline_rounded : Icons.lightbulb_outline_rounded,
+                        color: _isQuizCorrect ? AppColors.primary : const Color(0xFFD97706),
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pembahasan Soal',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          Text(
+                            _isQuizCorrect
+                                ? 'Jawaban kamu sudah tepat!'
+                                : 'Jawaban kamu belum tepat, simak penjelasannya:',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _isQuizCorrect ? AppColors.accent : const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: _isQuizCorrect ? AppColors.accentDark : const Color(0xFFFCA5A5),
+                          width: 1,
+                        ),
+                      ),
                       child: Text(
-                        letter,
+                        _isQuizCorrect ? 'BENAR' : 'BELUM TEPAT',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w800,
-                          color: isSelected ? Colors.white : const Color(0xFF475569),
+                          color: _isQuizCorrect ? AppColors.emeraldDark : const Color(0xFF991B1B),
                         ),
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 1,
+                  color: _isQuizCorrect ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  (questionExplanation != null && questionExplanation.isNotEmpty)
+                      ? questionExplanation
+                      : (correctText.isNotEmpty
+                          ? 'Jawaban yang tepat untuk pertanyaan ini adalah opsi $correctLetter: "$correctText".'
+                          : 'Silakan pelajari kembali materi sebelumnya untuk memperdalam topik kuis ini.'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF334155),
+                    height: 1.55,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: Text(
-                        text,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: const Color(0xFF0F172A),
-                          height: 1.45,
+                ),
+              ],
+            ),
+          ),
+
+          // Policy Card & Retake Action
+          if (!_isBootcampActual) ...[
+            // Mini Course: Unlimited Retakes
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.all_inclusive_rounded, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Mode Mini Course: Kamu dapat mengulang kuis berkali-kali untuk evaluasi mandiri.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF475569),
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TactileMetroButton(
+                      onPressed: _resetQuizForRetake,
+                      backgroundColor: Colors.white,
+                      baseColor: const Color(0xFFCBD5E1),
+                      borderColor: const Color(0xFFCBD5E1),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Ulangi Kuis',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          );
-        }),
+          ] else ...[
+            // Bootcamp: Max 3 Attempts Policy
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            _quizAttemptCount >= _maxBootcampAttempts ? Icons.lock_outline_rounded : Icons.timer_outlined,
+                            size: 16,
+                            color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFEF4444) : AppColors.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Evaluasi Bootcamp',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFFEE2E2) : const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Percobaan $_quizAttemptCount dari $_maxBootcampAttempts',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFF991B1B) : const Color(0xFF0369A1),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _quizAttemptCount < _maxBootcampAttempts
+                        ? 'Sisa kesempatan mencoba kuis: ${_maxBootcampAttempts - _quizAttemptCount} kali.'
+                        : 'Batas kesempatan menjawab kuis untuk sesi bootcamp ini telah habis (3/3). Pelajari kembali materi modul.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      color: const Color(0xFF64748B),
+                      height: 1.45,
+                    ),
+                  ),
+                  if (_quizAttemptCount < _maxBootcampAttempts) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TactileMetroButton(
+                        onPressed: _resetQuizForRetake,
+                        backgroundColor: Colors.white,
+                        baseColor: const Color(0xFFCBD5E1),
+                        borderColor: const Color(0xFFCBD5E1),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Coba Lagi (${_maxBootcampAttempts - _quizAttemptCount}x sisa)',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
       ],
     );
   }
@@ -1983,18 +2516,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     if (_selectedQuizOptionId == null) return;
 
     List<Map<String, dynamic>> optionsList = [];
-    final firstItem = _quizOptions.first;
+    final firstItem = _quizOptions.isNotEmpty ? _quizOptions.first : null;
     if (firstItem is Map<String, dynamic> && firstItem.containsKey('options') && firstItem['options'] is List) {
       final nestedList = firstItem['options'] as List;
       for (int i = 0; i < nestedList.length; i++) {
         final opt = nestedList[i];
-        if (opt is Map<String, dynamic>) optionsList.add(opt);
+        if (opt is Map<String, dynamic>) {
+          optionsList.add(opt);
+        } else if (opt is Map) {
+          optionsList.add(opt.cast<String, dynamic>());
+        }
       }
     } else {
       for (int i = 0; i < _quizOptions.length; i++) {
         final opt = _quizOptions[i];
-        if (opt is Map<String, dynamic>) optionsList.add(opt);
+        if (opt is Map<String, dynamic>) {
+          optionsList.add(opt);
+        } else if (opt is Map) {
+          optionsList.add(opt.cast<String, dynamic>());
+        }
       }
+    }
+
+    if (optionsList.isEmpty) {
+      optionsList = [
+        {'id': 'a', 'text': 'Pilihan A', 'isCorrect': true},
+        {'id': 'b', 'text': 'Pilihan B', 'isCorrect': false},
+      ];
     }
 
     final selected = optionsList.firstWhere(
@@ -2005,6 +2553,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     setState(() {
       _quizSubmitted = true;
+      _submittedQuizOptionId = _selectedQuizOptionId;
+      _isQuizCorrect = isCorrect;
+      _quizAttemptCount++;
       if (isCorrect) _isUnlocked = true;
     });
 
@@ -2012,24 +2563,51 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       if (!_isSessionFinished) {
         _handleCompleteSession();
       }
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Hebat! Jawaban Anda benar.',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Jawaban belum tepat, silakan coba lagi.'),
-          backgroundColor: const Color(0xFF0F172A),
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _isBootcampActual
+                      ? 'Jawaban belum tepat. Sisa percobaan: ${_maxBootcampAttempts - _quizAttemptCount}.'
+                      : 'Jawaban belum tepat. Simak pembahasan di bawah lalu ulangi kuis.',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          setState(() {
-            _quizSubmitted = false;
-          });
-        }
-      });
     }
   }
 
@@ -2453,22 +3031,29 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     final bool isMaterial = _sessionType == 'MATERIAL';
     final bool canCompleteMaterial = isMaterial;
     final bool canCompleteVideo = _isUnlocked || _currentProgressFraction >= 0.95;
-    final bool canSubmitQuiz = _selectedQuizOptionId != null;
+    final bool canSubmitQuiz = _selectedQuizOptionId != null && !_quizSubmitted;
+    final bool canRetakeQuiz = isQuiz && _quizSubmitted && !_isQuizCorrect && (!_isBootcampActual || _quizAttemptCount < _maxBootcampAttempts);
     final bool isActionActive = isQuiz
-        ? canSubmitQuiz
+        ? (canSubmitQuiz || canRetakeQuiz)
         : (isMaterial ? canCompleteMaterial : canCompleteVideo);
     final bool canGoNext = _isSessionFinished;
 
     final String buttonLabel = _isSessionFinished
         ? 'Selesai'
         : (isQuiz
-            ? 'Kirim Jawaban'
+            ? (canRetakeQuiz
+                ? 'Ulangi Kuis'
+                : (_quizSubmitted && !_isQuizCorrect && _isBootcampActual && _quizAttemptCount >= _maxBootcampAttempts
+                    ? 'Percobaan Habis'
+                    : 'Kirim Jawaban'))
             : 'Selesaikan Modul');
 
     final VoidCallback? onMainPressed = _isSessionFinished
         ? null
         : (isQuiz
-            ? (canSubmitQuiz ? _submitQuizAnswer : null)
+            ? (canRetakeQuiz
+                ? _resetQuizForRetake
+                : (canSubmitQuiz ? _submitQuizAnswer : null))
             : (isMaterial
                 ? (_isSubmittingProgress ? null : _handleCompleteSession)
                 : (canCompleteVideo
@@ -2670,14 +3255,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         width: 18,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                       )
-                    : Text(
-                        buttonLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13.5,
-                          color: isActionActive ? Colors.white : const Color(0xFF94A3B8),
-                          letterSpacing: 0.2,
-                        ),
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (canRetakeQuiz) ...[
+                            const Icon(Icons.refresh_rounded, color: Colors.white, size: 16),
+                            const SizedBox(width: 6),
+                          ],
+                          Text(
+                            buttonLabel,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13.5,
+                              color: isActionActive ? Colors.white : const Color(0xFF94A3B8),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
               ),
             ),
