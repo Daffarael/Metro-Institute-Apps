@@ -924,13 +924,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             padding: const EdgeInsets.only(left: 14),
             child: Center(
               child: InkWell(
-                onTap: () {
-                  if (_isFullScreen) {
-                    _toggleFullScreen();
-                  } else {
-                    Navigator.pop(context);
-                  }
-                },
+                onTap: () => Navigator.pop(context),
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   width: 36,
@@ -939,10 +933,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(
-                      _isFullScreen ? Icons.fullscreen_exit_rounded : Icons.arrow_back_ios_new_rounded,
-                      size: _isFullScreen ? 20 : 15,
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 15,
                       color: Colors.white,
                     ),
                   ),
