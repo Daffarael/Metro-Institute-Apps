@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../../common/widgets/live_join_confirm_dialog.dart';
 
 /// BasecampUpcomingLive — Displays real upcoming live sessions from web mentee basecamp (Jadwal Live Terdekat).
 /// Only renders if upcomingLive is not empty.
@@ -149,11 +149,11 @@ class BasecampUpcomingLive extends StatelessWidget {
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(12),
                         child: InkWell(
-                          onTap: () async {
-                            final uri = Uri.tryParse(liveUrl);
-                            if (uri != null && await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
-                            }
+                          onTap: () {
+                            LiveJoinConfirmDialog.show(
+                              context,
+                              meetingUrl: liveUrl,
+                            );
                           },
                           borderRadius: BorderRadius.circular(12),
                           child: Container(

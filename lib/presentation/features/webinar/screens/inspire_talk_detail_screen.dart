@@ -2,10 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
+import '../../../common/widgets/live_join_confirm_dialog.dart';
 import '../../learn/widgets/checkout_bottom_sheet.dart';
 
 class InspireTalkDetailScreen extends StatefulWidget {
@@ -109,28 +109,7 @@ class _InspireTalkDetailScreenState extends State<InspireTalkDetailScreen> {
 
   Future<void> _openMeetingUrl() async {
     final url = (_activeData['meetingUrl'] ?? '').toString();
-    if (url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tautan sesi live akan dibuka menjelang sesi dimulai.'),
-          backgroundColor: AppColors.primary,
-        ),
-      );
-      return;
-    }
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tidak dapat membuka tautan sesi.'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
+    await LiveJoinConfirmDialog.show(context, meetingUrl: url);
   }
 
   void _openAttendanceDialog() {

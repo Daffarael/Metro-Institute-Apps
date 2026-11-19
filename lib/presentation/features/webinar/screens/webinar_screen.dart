@@ -2,10 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/webinar_remote_datasource.dart';
+import '../../../common/widgets/live_join_confirm_dialog.dart';
 import '../../learn/widgets/checkout_bottom_sheet.dart';
 
 class WebinarScreen extends StatefulWidget {
@@ -550,20 +550,16 @@ class _WebinarCard extends StatelessWidget {
     return 'Beli Tiket (${_formatRupiah(price)})';
   }
 
-  Future<void> _openMeetingUrl() async {
+  Future<void> _openMeetingUrl(BuildContext context) async {
     final url = webinar['meetingUrl'] as String? ?? '';
-    if (url.isEmpty) return;
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await LiveJoinConfirmDialog.show(context, meetingUrl: url);
   }
 
   void _handleCta(BuildContext context) {
     if (_isEnded) return;
     final isRegistered = webinar['isRegistered'] as bool? ?? false;
     if (isRegistered) {
-      _openMeetingUrl();
+      _openMeetingUrl(context);
       return;
     }
 

@@ -12,6 +12,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/datasources/remote/course_remote_datasource.dart';
 import '../../../../data/datasources/remote/bootcamp_remote_datasource.dart';
+import '../../../common/widgets/live_join_confirm_dialog.dart';
 import '../../../common/widgets/tactile_metro_button.dart';
 import '../../certificate/screens/certificate_claim_screen.dart';
 
@@ -43,7 +44,8 @@ class VideoPlayerScreen extends StatefulWidget {
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
 }
 
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTickerProviderStateMixin {
+class _VideoPlayerScreenState extends State<VideoPlayerScreen>
+    with SingleTickerProviderStateMixin {
   final CourseRemoteDataSource _courseDs = sl<CourseRemoteDataSource>();
   final BootcampRemoteDataSource _bootcampDs = sl<BootcampRemoteDataSource>();
 
@@ -216,17 +218,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
         final sessionData = data;
         if (sessionData != null && sessionData.isNotEmpty) {
-          final current = (sessionData['currentSession'] as Map<String, dynamic>?) ?? {};
-          final rawType = (current['type'] as String?) ?? widget.sessionType ?? 'VIDEO';
+          final current =
+              (sessionData['currentSession'] as Map<String, dynamic>?) ?? {};
+          final rawType =
+              (current['type'] as String?) ?? widget.sessionType ?? 'VIDEO';
           final rawUrl = (current['videoUrl'] as String?) ?? _currentVideoUrl;
-          final isComp = current['isCompleted'] == true || widget.isAlreadyCompleted;
+          final isComp =
+              current['isCompleted'] == true || widget.isAlreadyCompleted;
 
           // Parse materials
           List<dynamic> parsedMaterials = [];
           if (current['materials'] != null) {
             if (current['materials'] is String) {
               try {
-                parsedMaterials = jsonDecode(current['materials']) as List<dynamic>;
+                parsedMaterials =
+                    jsonDecode(current['materials']) as List<dynamic>;
               } catch (_) {
                 parsedMaterials = [];
               }
@@ -249,14 +255,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             }
           }
 
-          bool isLiveEnd = current['isLiveEnded'] == true || current['isChapterLiveEnded'] == true || current['isEnded'] == true;
-          final liveSched = current['liveScheduledAt'] ?? current['scheduledAt'];
+          bool isLiveEnd =
+              current['isLiveEnded'] == true ||
+              current['isChapterLiveEnded'] == true ||
+              current['isEnded'] == true;
+          final liveSched =
+              current['liveScheduledAt'] ?? current['scheduledAt'];
           if (liveSched != null) {
             final sched = DateTime.tryParse(liveSched.toString());
             if (sched != null) {
-              final dur = (current['videoDuration'] as num?)?.toInt() ?? (current['durationMinutes'] as num?)?.toInt() ?? 5400;
+              final dur =
+                  (current['videoDuration'] as num?)?.toInt() ??
+                  (current['durationMinutes'] as num?)?.toInt() ??
+                  5400;
               final durMin = dur > 300 ? (dur ~/ 60) : dur;
-              if (DateTime.now().isAfter(sched.add(Duration(minutes: durMin > 0 ? durMin : 90)))) {
+              if (DateTime.now().isAfter(
+                sched.add(Duration(minutes: durMin > 0 ? durMin : 90)),
+              )) {
                 isLiveEnd = true;
               }
             }
@@ -284,7 +299,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _sessionType = rawType;
               _currentTitle = current['title'] ?? _currentTitle;
               _currentVideoUrl = rawUrl;
-              _sessionDescription = current['description'] ?? current['assignmentDescription'];
+              _sessionDescription =
+                  current['description'] ?? current['assignmentDescription'];
               _materials = parsedMaterials;
               _quizOptions = parsedQuiz;
               _selectedQuizOptionId = null;
@@ -293,7 +309,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _isQuizCorrect = false;
               _quizAttemptCount = 0;
               _isLiveEnded = isLiveEnd;
-              _liveMeetingUrl = isLiveEnd ? null : (current['meetingUrl'] ?? current['liveUrl']);
+              _liveMeetingUrl = isLiveEnd
+                  ? null
+                  : (current['meetingUrl'] ?? current['liveUrl']);
               _prevSessionId = sessionData['prevSessionId'] as String?;
               _nextSessionId = sessionData['nextSessionId'] as String?;
               _isSessionFinished = isComp;
@@ -365,7 +383,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     setState(() => _isLoadingNotes = true);
     try {
       final list = await _courseDs.getSessionNotes(cId, sId);
-      if (mounted) setState(() { _notes = list; _isLoadingNotes = false; });
+      if (mounted)
+        setState(() {
+          _notes = list;
+          _isLoadingNotes = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoadingNotes = false);
     }
@@ -379,7 +401,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     setState(() => _isLoadingQna = true);
     try {
       final list = await _courseDs.getSessionQna(cId, sId);
-      if (mounted) setState(() { _qnaList = list; _isLoadingQna = false; });
+      if (mounted)
+        setState(() {
+          _qnaList = list;
+          _isLoadingQna = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoadingQna = false);
     }
@@ -433,11 +459,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         embedUrl.contains('b-cdn.net') ||
         embedUrl.contains('bunnycdn')) {
       if (!embedUrl.contains('autoplay=')) {
-        embedUrl = '$embedUrl${embedUrl.contains('?') ? '&' : '?'}autoplay=true';
+        embedUrl =
+            '$embedUrl${embedUrl.contains('?') ? '&' : '?'}autoplay=true';
       }
     }
 
-    final htmlContent = '''
+    final htmlContent =
+        '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -531,7 +559,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               if (mounted) {
                 setState(() {
                   _isPlayerInitializing = false;
-                  _playerErrorMessage = 'Gagal memuat player video: ${error.description}';
+                  _playerErrorMessage =
+                      'Gagal memuat player video: ${error.description}';
                 });
               }
             }
@@ -556,7 +585,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           } catch (_) {}
         },
       )
-      ..loadHtmlString(htmlContent, baseUrl: 'https://iframe.mediadelivery.net');
+      ..loadHtmlString(
+        htmlContent,
+        baseUrl: 'https://iframe.mediadelivery.net',
+      );
 
     _webViewController = controller;
   }
@@ -588,7 +620,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         videoPlayerController: _videoPlayerController!,
         autoPlay: true,
         looping: false,
-        aspectRatio: _videoPlayerController!.value.aspectRatio > 0 ? _videoPlayerController!.value.aspectRatio : 16 / 9,
+        aspectRatio: _videoPlayerController!.value.aspectRatio > 0
+            ? _videoPlayerController!.value.aspectRatio
+            : 16 / 9,
         allowPlaybackSpeedChanging: true,
         playbackSpeeds: const [0.75, 1.0, 1.25, 1.5, 2.0],
         materialProgressColors: ChewieProgressColors(
@@ -626,7 +660,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     double fraction = (currentMs / totalMs).clamp(0.0, 1.0);
 
     // Deteksi video tamat / hampir tamat
-    final bool isCompleted = controller.value.isCompleted ||
+    final bool isCompleted =
+        controller.value.isCompleted ||
         (totalMs > 2000 && totalMs - currentMs <= 1500) ||
         fraction >= 0.95;
 
@@ -643,16 +678,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     // Anti-skip protection: hanya aktifkan jika video cukup panjang (> 15 detik)
     // dan user mencoba melompat lebih dari 8 detik dari titik yang sudah ditonton
-    if (!_isUnlocked && totalMs > 15000 && currentSec > _maxWatchedSeconds + 8) {
+    if (!_isUnlocked &&
+        totalMs > 15000 &&
+        currentSec > _maxWatchedSeconds + 8) {
       controller.seekTo(Duration(seconds: _maxWatchedSeconds));
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
+          content: const Text(
+            'Simak materi video sampai tuntas terlebih dahulu.',
+          ),
           backgroundColor: AppColors.warning,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -670,7 +711,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       });
     }
 
-    if (!_isUnlocked && (_currentProgressFraction >= 0.90 || fraction >= 0.90)) {
+    if (!_isUnlocked &&
+        (_currentProgressFraction >= 0.90 || fraction >= 0.90)) {
       setState(() => _isUnlocked = true);
     }
   }
@@ -734,7 +776,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           content: Text(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -747,7 +791,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 28,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -789,7 +836,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 }
               },
               height: 48,
-              text: _nextSessionId != null ? 'Lanjut ke Sesi Berikutnya' : 'Klaim Sertifikat',
+              text: _nextSessionId != null
+                  ? 'Lanjut ke Sesi Berikutnya'
+                  : 'Klaim Sertifikat',
             ),
           ],
         ),
@@ -827,20 +876,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => VideoPlayerScreen(
-          sessionId: prevId,
-          title: prevTitle,
-          courseTitle: widget.courseTitle,
-          courseId: widget.courseId,
-          sessionType: prevType,
-          isAlreadyCompleted: prevIsCompleted,
-          isBootcamp: widget.isBootcamp,
-        ),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            VideoPlayerScreen(
+              sessionId: prevId,
+              title: prevTitle,
+              courseTitle: widget.courseTitle,
+              courseId: widget.courseId,
+              sessionType: prevType,
+              isAlreadyCompleted: prevIsCompleted,
+              isBootcamp: widget.isBootcamp,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(-1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeOutCubic;
-          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          final tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
           return SlideTransition(
             position: animation.drive(tween),
             child: child,
@@ -858,16 +911,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
+              const Icon(
+                Icons.lock_outline_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Selesaikan modul saat ini terlebih dahulu untuk melanjutkan ke modul berikutnya.'),
+                child: Text(
+                  'Selesaikan modul saat ini terlebih dahulu untuk melanjutkan ke modul berikutnya.',
+                ),
               ),
             ],
           ),
           backgroundColor: const Color(0xFF1E293B),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -883,20 +944,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => VideoPlayerScreen(
-          sessionId: nextId,
-          title: nextTitle,
-          courseTitle: widget.courseTitle,
-          courseId: widget.courseId,
-          sessionType: nextType,
-          isAlreadyCompleted: nextIsCompleted,
-          isBootcamp: widget.isBootcamp,
-        ),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            VideoPlayerScreen(
+              sessionId: nextId,
+              title: nextTitle,
+              courseTitle: widget.courseTitle,
+              courseId: widget.courseId,
+              sessionType: nextType,
+              isAlreadyCompleted: nextIsCompleted,
+              isBootcamp: widget.isBootcamp,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeOutCubic;
-          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          final tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
           return SlideTransition(
             position: animation.drive(tween),
             child: child,
@@ -911,7 +976,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final bool isVideo = _sessionType == 'VIDEO';
-    const headerGreen = Color(0xFF015F3D); // Deep Metro Green (matching the tactile button's rich tone)
+    const headerGreen = Color(
+      0xFF015F3D,
+    ); // Deep Metro Green (matching the tactile button's rich tone)
 
     return PopScope(
       canPop: !_isFullScreen,
@@ -954,7 +1021,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ),
           title: Text(
-            _isFullScreen ? (_currentTitle ?? widget.title) : widget.courseTitle,
+            _isFullScreen
+                ? (_currentTitle ?? widget.title)
+                : widget.courseTitle,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -967,11 +1036,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           actions: [
             IconButton(
               icon: Icon(
-                _isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                _isFullScreen
+                    ? Icons.fullscreen_exit_rounded
+                    : Icons.fullscreen_rounded,
                 color: Colors.white,
                 size: 24,
               ),
-              tooltip: _isFullScreen ? 'Keluar Mode Fokus' : 'Mode Layar Penuh (Fokus)',
+              tooltip: _isFullScreen
+                  ? 'Keluar Mode Fokus'
+                  : 'Mode Layar Penuh (Fokus)',
               onPressed: _toggleFullScreen,
             ),
             const SizedBox(width: 8),
@@ -985,7 +1058,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               // Top: Video Frame or Media Banner
               AnimatedCrossFade(
                 duration: const Duration(milliseconds: 220),
-                crossFadeState: _isFullScreen ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                crossFadeState: _isFullScreen
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
                 firstChild: _buildTopMediaFrame(),
                 secondChild: const SizedBox(width: double.infinity, height: 0),
               ),
@@ -1043,7 +1118,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         AnimatedSize(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeOutCubic,
-                          child: _isFullScreen ? const SizedBox.shrink() : _buildBottomActionDock(),
+                          child: _isFullScreen
+                              ? const SizedBox.shrink()
+                              : _buildBottomActionDock(),
                         ),
                       ],
                     ),
@@ -1069,7 +1146,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           width: double.infinity,
           decoration: const BoxDecoration(
             color: Colors.white,
-            border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(
@@ -1134,7 +1213,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               Icon(
                 icon,
                 size: 15,
-                color: isActive ? AppColors.emeraldDark : const Color(0xFF64748B),
+                color: isActive
+                    ? AppColors.emeraldDark
+                    : const Color(0xFF64748B),
               ),
               const SizedBox(width: 6),
               Flexible(
@@ -1143,7 +1224,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
-                    color: isActive ? AppColors.emeraldDark : const Color(0xFF64748B),
+                    color: isActive
+                        ? AppColors.emeraldDark
+                        : const Color(0xFF64748B),
                     letterSpacing: -0.1,
                   ),
                   maxLines: 1,
@@ -1167,7 +1250,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
         decoration: const BoxDecoration(
-          color: Color(0xFF015F3D), // Deep Metro Green matching button's rich tone
+          color: Color(
+            0xFF015F3D,
+          ), // Deep Metro Green matching button's rich tone
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1178,7 +1263,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               children: [
                 // 1. Session Type Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: isMaterial
                         ? AppColors.accent
@@ -1194,9 +1282,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       Icon(
                         isMaterial
                             ? Icons.menu_book_rounded
-                            : (isQuiz ? Icons.quiz_rounded : Icons.videocam_rounded),
+                            : (isQuiz
+                                  ? Icons.quiz_rounded
+                                  : Icons.videocam_rounded),
                         size: 13,
-                        color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
+                        color: isMaterial
+                            ? AppColors.emeraldDark
+                            : (isQuiz ? AppColors.primary : Colors.white),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -1206,7 +1298,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: isMaterial ? AppColors.emeraldDark : (isQuiz ? AppColors.primary : Colors.white),
+                          color: isMaterial
+                              ? AppColors.emeraldDark
+                              : (isQuiz ? AppColors.primary : Colors.white),
                           letterSpacing: -0.1,
                         ),
                       ),
@@ -1217,7 +1311,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
                 // 2. XP Reward Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.accent,
                     borderRadius: BorderRadius.circular(8),
@@ -1271,69 +1368,90 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       child: Container(
         color: Colors.black,
         child: _isPlayerInitializing
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
             : _playerErrorMessage != null
-                ? Center(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Column(
+            ? Center(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.play_circle_outline_rounded,
+                        color: Colors.white54,
+                        size: 32,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        (_playerErrorMessage ?? '').contains(
+                              'ERR_NAME_NOT_RESOLVED',
+                            )
+                            ? 'Video sedang bersiap atau koneksi terputus.\nSilakan coba lagi atau buka melalui browser.'
+                            : (_playerErrorMessage ?? 'Gagal memuat video.'),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white70,
+                          fontSize: 11.5,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.play_circle_outline_rounded, color: Colors.white54, size: 32),
-                          const SizedBox(height: 6),
-                          Text(
-                            (_playerErrorMessage ?? '').contains('ERR_NAME_NOT_RESOLVED')
-                                ? 'Video sedang bersiap atau koneksi terputus.\nSilakan coba lagi atau buka melalui browser.'
-                                : (_playerErrorMessage ?? 'Gagal memuat video.'),
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                          TactileMetroButton.primary(
+                            onPressed: _initAppropriatePlayer,
+                            icon: Icons.refresh_rounded,
+                            text: 'Coba Lagi',
+                            height: 34,
+                            fontSize: 11.5,
+                            isFullWidth: false,
+                            borderRadius: BorderRadius.circular(8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TactileMetroButton.primary(
-                                onPressed: _initAppropriatePlayer,
-                                icon: Icons.refresh_rounded,
-                                text: 'Coba Lagi',
-                                height: 34,
-                                fontSize: 11.5,
-                                isFullWidth: false,
-                                borderRadius: BorderRadius.circular(8),
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                          if (_currentVideoUrl != null &&
+                              _currentVideoUrl!.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            TactileMetroButton(
+                              onPressed: () async {
+                                final uri = Uri.tryParse(_currentVideoUrl!);
+                                if (uri != null) {
+                                  await launchUrl(
+                                    uri,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
+                              },
+                              icon: Icons.open_in_browser_rounded,
+                              text: 'Buka di Browser',
+                              height: 34,
+                              fontSize: 11,
+                              isFullWidth: false,
+                              backgroundColor: const Color(0xFF1E293B),
+                              baseColor: const Color(0xFF0F172A),
+                              textColor: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
                               ),
-                              if (_currentVideoUrl != null && _currentVideoUrl!.isNotEmpty) ...[
-                                const SizedBox(width: 8),
-                                TactileMetroButton(
-                                  onPressed: () async {
-                                    final uri = Uri.tryParse(_currentVideoUrl!);
-                                    if (uri != null) {
-                                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                    }
-                                  },
-                                  icon: Icons.open_in_browser_rounded,
-                                  text: 'Buka di Browser',
-                                  height: 34,
-                                  fontSize: 11,
-                                  isFullWidth: false,
-                                  backgroundColor: const Color(0xFF1E293B),
-                                  baseColor: const Color(0xFF0F172A),
-                                  textColor: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                ),
-                              ],
-                            ],
-                          ),
+                            ),
+                          ],
                         ],
                       ),
-                    ),
-                  )
-                : _isWebEmbedPlayer
-                    ? WebViewWidget(controller: _webViewController!)
-                    : Chewie(controller: _chewieController!),
+                    ],
+                  ),
+                ),
+              )
+            : _isWebEmbedPlayer
+            ? WebViewWidget(controller: _webViewController!)
+            : Chewie(controller: _chewieController!),
       ),
     );
   }
@@ -1341,7 +1459,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   // ── Tab 1: Overview / Modul Content ───────────────────────────────────────
   Widget _buildOverviewTab() {
     if (_isLoadingSessionData) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
 
     return NotificationListener<ScrollNotification>(
@@ -1390,7 +1510,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               _buildLiveContent(),
             ] else ...[
               // Default Video Description
-              if (_sessionDescription != null && _sessionDescription!.isNotEmpty) ...[
+              if (_sessionDescription != null &&
+                  _sessionDescription!.isNotEmpty) ...[
                 Text(
                   'Tentang Sesi Ini',
                   style: GoogleFonts.plusJakartaSans(
@@ -1407,11 +1528,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+                    border: Border.all(
+                      color: const Color(0xFFF1F5F9),
+                      width: 1.2,
+                    ),
                   ),
                   child: Text(
                     _sessionDescription!,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: const Color(0xFF475569), height: 1.6),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      color: const Color(0xFF475569),
+                      height: 1.6,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1427,7 +1555,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
   // ── Material / Reading Module: In-App Clean Reading ────────────────────────
   Widget _buildMaterialContent() {
-    final hasCustomContent = _sessionDescription != null && _sessionDescription!.trim().isNotEmpty;
+    final hasCustomContent =
+        _sessionDescription != null && _sessionDescription!.trim().isNotEmpty;
 
     if (hasCustomContent) {
       return Column(
@@ -1450,7 +1579,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.menu_book_rounded, size: 36, color: Color(0xFF94A3B8)),
+              const Icon(
+                Icons.menu_book_rounded,
+                size: 36,
+                color: Color(0xFF94A3B8),
+              ),
               const SizedBox(height: 12),
               Text(
                 'Modul Bacaan Siap Dipelajari',
@@ -1501,10 +1634,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
       // Horizontal Divider: --- or *** or ___
       if (RegExp(r'^([-*_]){3,}$').hasMatch(trimmed)) {
-        widgets.add(const Padding(
-          padding: EdgeInsets.symmetric(vertical: 14),
-          child: Divider(color: Color(0xFFE2E8F0), thickness: 1.2),
-        ));
+        widgets.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            child: Divider(color: Color(0xFFE2E8F0), thickness: 1.2),
+          ),
+        );
         i++;
         continue;
       }
@@ -1542,22 +1677,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           bottomPadding = 4;
         }
 
-        widgets.add(Padding(
-          padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
-          child: RichText(
-            text: TextSpan(
-              children: _parseInlineSpans(
-                titleText,
-                GoogleFonts.plusJakartaSans(
-                  fontSize: fontSize,
-                  fontWeight: fontWeight,
-                  color: const Color(0xFF0F172A),
-                  height: 1.35,
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
+            child: RichText(
+              text: TextSpan(
+                children: _parseInlineSpans(
+                  titleText,
+                  GoogleFonts.plusJakartaSans(
+                    fontSize: fontSize,
+                    fontWeight: fontWeight,
+                    color: const Color(0xFF0F172A),
+                    height: 1.35,
+                  ),
                 ),
               ),
             ),
           ),
-        ));
+        );
         i++;
         continue;
       }
@@ -1569,35 +1706,41 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           quoteLines.add(lines[i].substring(2).trim());
           i++;
         }
-        widgets.add(Container(
-          margin: const EdgeInsets.symmetric(vertical: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0FDF4),
-            borderRadius: BorderRadius.circular(10),
-            border: const Border(
-              left: BorderSide(color: AppColors.primary, width: 3.5),
+        widgets.add(
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(10),
+              border: const Border(
+                left: BorderSide(color: AppColors.primary, width: 3.5),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: quoteLines
+                  .map(
+                    (ql) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: RichText(
+                        text: TextSpan(
+                          children: _parseInlineSpans(
+                            ql,
+                            GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              color: const Color(0xFF166534),
+                              height: 1.6,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: quoteLines.map((ql) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: RichText(
-                text: TextSpan(
-                  children: _parseInlineSpans(
-                    ql,
-                    GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      color: const Color(0xFF166534),
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-              ),
-            )).toList(),
-          ),
-        ));
+        );
         continue;
       }
 
@@ -1605,82 +1748,100 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       if (RegExp(r'^\s*[-*•]\s+').hasMatch(line)) {
         final listItems = <String>[];
         while (i < lines.length && RegExp(r'^\s*[-*•]\s+').hasMatch(lines[i])) {
-          listItems.add(lines[i].replaceFirst(RegExp(r'^\s*[-*•]\s+'), '').trim());
+          listItems.add(
+            lines[i].replaceFirst(RegExp(r'^\s*[-*•]\s+'), '').trim(),
+          );
           i++;
         }
-        widgets.add(Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: listItems.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 8, right: 10),
-                    width: 5,
-                    height: 5,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        children: _parseInlineSpans(item, normalStyle),
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: listItems
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(top: 8, right: 10),
+                            width: 5,
+                            height: 5,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                children: _parseInlineSpans(item, normalStyle),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            )).toList(),
+                  )
+                  .toList(),
+            ),
           ),
-        ));
+        );
         continue;
       }
 
       // Ordered list: 1. 2. 3.
       if (RegExp(r'^\s*\d+\.\s+').hasMatch(line)) {
         final listItems = <Map<String, String>>[];
-        while (i < lines.length && RegExp(r'^\s*(\d+)\.\s+(.*)').hasMatch(lines[i])) {
+        while (i < lines.length &&
+            RegExp(r'^\s*(\d+)\.\s+(.*)').hasMatch(lines[i])) {
           final m = RegExp(r'^\s*(\d+)\.\s+(.*)').firstMatch(lines[i])!;
           listItems.add({'num': m.group(1)!, 'text': m.group(2)!});
           i++;
         }
-        widgets.add(Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: listItems.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Text(
-                      '${item['num']}.',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: listItems
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            child: Text(
+                              '${item['num']}.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                children: _parseInlineSpans(
+                                  item['text']!,
+                                  normalStyle,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        children: _parseInlineSpans(item['text']!, normalStyle),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )).toList(),
+                  )
+                  .toList(),
+            ),
           ),
-        ));
+        );
         continue;
       }
 
@@ -1698,14 +1859,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       }
 
       final combined = paragraphLines.join('\n');
-      widgets.add(Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: RichText(
-          text: TextSpan(
-            children: _parseInlineSpans(combined, normalStyle),
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: RichText(
+            text: TextSpan(children: _parseInlineSpans(combined, normalStyle)),
           ),
         ),
-      ));
+      );
     }
 
     return widgets;
@@ -1718,45 +1879,50 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     for (final match in pattern.allMatches(text)) {
       if (match.start > lastEnd) {
-        spans.add(TextSpan(
-          text: text.substring(lastEnd, match.start),
-          style: baseStyle,
-        ));
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style: baseStyle,
+          ),
+        );
       }
 
       final fullMatch = match.group(0)!;
       if (fullMatch.startsWith('**') && fullMatch.endsWith('**')) {
-        spans.add(TextSpan(
-          text: match.group(2),
-          style: baseStyle.copyWith(
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
+        spans.add(
+          TextSpan(
+            text: match.group(2),
+            style: baseStyle.copyWith(
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
           ),
-        ));
+        );
       } else if (fullMatch.startsWith('*') && fullMatch.endsWith('*')) {
-        spans.add(TextSpan(
-          text: match.group(3),
-          style: baseStyle.copyWith(fontStyle: FontStyle.italic),
-        ));
-      } else if (fullMatch.startsWith('`') && fullMatch.endsWith('`')) {
-        spans.add(TextSpan(
-          text: match.group(4),
-          style: baseStyle.copyWith(
-            fontFamily: 'monospace',
-            backgroundColor: const Color(0xFFF1F5F9),
-            color: const Color(0xFF0F172A),
+        spans.add(
+          TextSpan(
+            text: match.group(3),
+            style: baseStyle.copyWith(fontStyle: FontStyle.italic),
           ),
-        ));
+        );
+      } else if (fullMatch.startsWith('`') && fullMatch.endsWith('`')) {
+        spans.add(
+          TextSpan(
+            text: match.group(4),
+            style: baseStyle.copyWith(
+              fontFamily: 'monospace',
+              backgroundColor: const Color(0xFFF1F5F9),
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+        );
       }
 
       lastEnd = match.end;
     }
 
     if (lastEnd < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastEnd),
-        style: baseStyle,
-      ));
+      spans.add(TextSpan(text: text.substring(lastEnd), style: baseStyle));
     }
 
     return spans;
@@ -1768,7 +1934,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       children: [
         Text(
           'Berkas & Dokumen Pendukung',
-          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF0F172A),
+          ),
         ),
         const SizedBox(height: 10),
         ListView.separated(
@@ -1778,8 +1948,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           separatorBuilder: (context, index) => const SizedBox(height: 8),
           itemBuilder: (ctx, idx) {
             final raw = _materials[idx];
-            final mat = raw is Map ? raw.cast<String, dynamic>() : <String, dynamic>{};
-            final name = (mat['name'] as String?) ?? 'Dokumen Materi ${idx + 1}';
+            final mat = raw is Map
+                ? raw.cast<String, dynamic>()
+                : <String, dynamic>{};
+            final name =
+                (mat['name'] as String?) ?? 'Dokumen Materi ${idx + 1}';
             final fileUrl = (mat['url'] as String?) ?? '';
 
             return Container(
@@ -1798,7 +1971,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       color: AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.file_present_rounded, color: AppColors.primary, size: 20),
+                    child: const Icon(
+                      Icons.file_present_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1807,13 +1984,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       children: [
                         Text(
                           name,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'Unduh untuk mempelajari materi',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF64748B)),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: const Color(0xFF64748B),
+                          ),
                         ),
                       ],
                     ),
@@ -1821,7 +2005,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   TactileMetroButton.primary(
                     onPressed: () {
                       if (fileUrl.isNotEmpty) {
-                        launchUrl(Uri.parse(fileUrl), mode: LaunchMode.externalApplication);
+                        launchUrl(
+                          Uri.parse(fileUrl),
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                     icon: Icons.download_rounded,
@@ -1856,31 +2043,37 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         ? _quizOptions
         : [
             {
-              'question': 'Apa perbedaan mendasar antara UI (User Interface) dan UX (User Experience)?',
-              'explanation': 'UI berfokus pada estetika visual & layout antarmuka (warna, tipografi, komponen), sedangkan UX berfokus pada kemudahan alur, navigasi, dan kenyamanan pengguna secara menyeluruh.',
+              'question':
+                  'Apa perbedaan mendasar antara UI (User Interface) dan UX (User Experience)?',
+              'explanation':
+                  'UI berfokus pada estetika visual & layout antarmuka (warna, tipografi, komponen), sedangkan UX berfokus pada kemudahan alur, navigasi, dan kenyamanan pengguna secara menyeluruh.',
               'options': [
                 {
                   'id': 'a',
-                  'text': 'UI berfokus pada estetika visual & layout antarmuka, sedangkan UX berfokus pada kemudahan, alur, dan pengalaman pengguna secara menyeluruh.',
+                  'text':
+                      'UI berfokus pada estetika visual & layout antarmuka, sedangkan UX berfokus pada kemudahan, alur, dan pengalaman pengguna secara menyeluruh.',
                   'isCorrect': true,
                 },
                 {
                   'id': 'b',
-                  'text': 'UI hanya untuk website di komputer desktop, sedangkan UX hanya untuk aplikasi mobile smartphone.',
+                  'text':
+                      'UI hanya untuk website di komputer desktop, sedangkan UX hanya untuk aplikasi mobile smartphone.',
                   'isCorrect': false,
                 },
                 {
                   'id': 'c',
-                  'text': 'UI dibuat oleh programmer backend server, sedangkan UX dibuat oleh tim administrasi.',
+                  'text':
+                      'UI dibuat oleh programmer backend server, sedangkan UX dibuat oleh tim administrasi.',
                   'isCorrect': false,
                 },
                 {
                   'id': 'd',
-                  'text': 'UI dan UX adalah dua istilah identik tanpa ada perbedaan fungsi apapun.',
+                  'text':
+                      'UI dan UX adalah dua istilah identik tanpa ada perbedaan fungsi apapun.',
                   'isCorrect': false,
                 },
               ],
-            }
+            },
           ];
 
     String? questionTitle;
@@ -1888,7 +2081,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     List<Map<String, dynamic>> optionsList = [];
 
     final firstItem = sourceOptions.first;
-    if (firstItem is Map && firstItem.containsKey('options') && firstItem['options'] is List) {
+    if (firstItem is Map &&
+        firstItem.containsKey('options') &&
+        firstItem['options'] is List) {
       questionTitle = firstItem['question']?.toString();
       final exp = firstItem['explanation']?.toString().trim();
       if (exp != null && exp.isNotEmpty) {
@@ -1915,9 +2110,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       (o) => o['isCorrect'] == true,
       orElse: () => {},
     );
-    final int correctIdx = optionsList.indexWhere((o) => o['isCorrect'] == true);
-    final String correctLetter = correctIdx >= 0 ? String.fromCharCode(65 + correctIdx) : 'A';
-    final String correctText = (correctOption['text'] ?? correctOption['label'] ?? correctOption['title'] ?? '').toString();
+    final int correctIdx = optionsList.indexWhere(
+      (o) => o['isCorrect'] == true,
+    );
+    final String correctLetter = correctIdx >= 0
+        ? String.fromCharCode(65 + correctIdx)
+        : 'A';
+    final String correctText =
+        (correctOption['text'] ??
+                correctOption['label'] ??
+                correctOption['title'] ??
+                '')
+            .toString();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1936,7 +2140,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.help_outline_rounded, size: 14, color: AppColors.primary),
+                  const Icon(
+                    Icons.help_outline_rounded,
+                    size: 14,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 5),
                   Text(
                     'Soal Kuis',
@@ -1951,7 +2159,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
             if (!_isBootcampActual)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFECFDF5),
                   borderRadius: BorderRadius.circular(8),
@@ -1960,7 +2171,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.all_inclusive_rounded, size: 13, color: AppColors.emeraldDark),
+                    const Icon(
+                      Icons.all_inclusive_rounded,
+                      size: 13,
+                      color: AppColors.emeraldDark,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'Mini Course • Bebas Ulang',
@@ -1975,12 +2190,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               )
             else
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
-                  color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF),
+                  color: _quizAttemptCount >= _maxBootcampAttempts
+                      ? const Color(0xFFFEF2F2)
+                      : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFFECACA) : const Color(0xFFBFDBFE),
+                    color: _quizAttemptCount >= _maxBootcampAttempts
+                        ? const Color(0xFFFECACA)
+                        : const Color(0xFFBFDBFE),
                   ),
                 ),
                 child: Text(
@@ -1990,7 +2212,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFDC2626) : const Color(0xFF1D4ED8),
+                    color: _quizAttemptCount >= _maxBootcampAttempts
+                        ? const Color(0xFFDC2626)
+                        : const Color(0xFF1D4ED8),
                   ),
                 ),
               ),
@@ -2033,7 +2257,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           final idx = entry.key;
           final option = entry.value;
           final optId = option['id']?.toString() ?? '$idx';
-          final rawText = option['text'] ?? option['label'] ?? option['title'] ?? option['answer'];
+          final rawText =
+              option['text'] ??
+              option['label'] ??
+              option['title'] ??
+              option['answer'];
           final text = (rawText != null && rawText.toString().trim().isNotEmpty)
               ? rawText.toString()
               : 'Pilihan ${String.fromCharCode(65 + idx)}';
@@ -2075,7 +2303,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 letterTextColor = Colors.white;
                 textWeight = FontWeight.w700;
                 trailingBadge = Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFD1FAE5),
                     borderRadius: BorderRadius.circular(6),
@@ -2084,7 +2315,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 14),
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.primary,
+                        size: 14,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Pilihan Kamu (Benar)',
@@ -2106,7 +2341,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 letterTextColor = Colors.white;
                 textWeight = FontWeight.w700;
                 trailingBadge = Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEE2E2),
                     borderRadius: BorderRadius.circular(6),
@@ -2115,7 +2353,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cancel_rounded, color: Color(0xFFEF4444), size: 14),
+                      const Icon(
+                        Icons.cancel_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 14,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Pilihan Kamu (Salah)',
@@ -2147,7 +2389,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_rounded, color: AppColors.primary, size: 14),
+                    const Icon(
+                      Icons.check_rounded,
+                      color: AppColors.primary,
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'Kunci Jawaban',
@@ -2171,7 +2417,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           }
 
           return GestureDetector(
-            onTap: _quizSubmitted ? null : () => setState(() => _selectedQuizOptionId = optId),
+            onTap: _quizSubmitted
+                ? null
+                : () => setState(() => _selectedQuizOptionId = optId),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(bottom: 10),
@@ -2179,14 +2427,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               decoration: BoxDecoration(
                 color: cardBg,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: cardBorder,
-                  width: borderWidth,
-                ),
+                border: Border.all(color: cardBorder, width: borderWidth),
                 boxShadow: isSelected && !_quizSubmitted
                     ? [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.08),
+                          color: AppColors.primary.withValues(alpha: 0.08),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -2253,10 +2498,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             margin: const EdgeInsets.only(top: 14, bottom: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _isQuizCorrect ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+              color: _isQuizCorrect
+                  ? const Color(0xFFF0FDF4)
+                  : const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _isQuizCorrect ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A),
+                color: _isQuizCorrect
+                    ? const Color(0xFFA7F3D0)
+                    : const Color(0xFFFDE68A),
                 width: 1.2,
               ),
               boxShadow: const [
@@ -2276,12 +2525,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: _isQuizCorrect ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                        color: _isQuizCorrect
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        _isQuizCorrect ? Icons.check_circle_outline_rounded : Icons.lightbulb_outline_rounded,
-                        color: _isQuizCorrect ? AppColors.primary : const Color(0xFFD97706),
+                        _isQuizCorrect
+                            ? Icons.check_circle_outline_rounded
+                            : Icons.lightbulb_outline_rounded,
+                        color: _isQuizCorrect
+                            ? AppColors.primary
+                            : const Color(0xFFD97706),
                         size: 18,
                       ),
                     ),
@@ -2312,12 +2567,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: _isQuizCorrect ? AppColors.accent : const Color(0xFFFEE2E2),
+                        color: _isQuizCorrect
+                            ? AppColors.accent
+                            : const Color(0xFFFEE2E2),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: _isQuizCorrect ? AppColors.accentDark : const Color(0xFFFCA5A5),
+                          color: _isQuizCorrect
+                              ? AppColors.accentDark
+                              : const Color(0xFFFCA5A5),
                           width: 1,
                         ),
                       ),
@@ -2326,7 +2588,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
-                          color: _isQuizCorrect ? AppColors.emeraldDark : const Color(0xFF991B1B),
+                          color: _isQuizCorrect
+                              ? AppColors.emeraldDark
+                              : const Color(0xFF991B1B),
                         ),
                       ),
                     ),
@@ -2335,15 +2599,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 const SizedBox(height: 12),
                 Container(
                   height: 1,
-                  color: _isQuizCorrect ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A),
+                  color: _isQuizCorrect
+                      ? const Color(0xFFBBF7D0)
+                      : const Color(0xFFFDE68A),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  (questionExplanation != null && questionExplanation.isNotEmpty)
+                  (questionExplanation != null &&
+                          questionExplanation.isNotEmpty)
                       ? questionExplanation
                       : (correctText.isNotEmpty
-                          ? 'Jawaban yang tepat untuk pertanyaan ini adalah opsi $correctLetter: "$correctText".'
-                          : 'Silakan pelajari kembali materi sebelumnya untuk memperdalam topik kuis ini.'),
+                            ? 'Jawaban yang tepat untuk pertanyaan ini adalah opsi $correctLetter: "$correctText".'
+                            : 'Silakan pelajari kembali materi sebelumnya untuk memperdalam topik kuis ini.'),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -2371,7 +2638,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.all_inclusive_rounded, size: 16, color: AppColors.primary),
+                      const Icon(
+                        Icons.all_inclusive_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -2396,7 +2667,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 18),
+                          const Icon(
+                            Icons.refresh_rounded,
+                            color: AppColors.primary,
+                            size: 18,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Ulangi Kuis',
@@ -2433,9 +2708,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       Row(
                         children: [
                           Icon(
-                            _quizAttemptCount >= _maxBootcampAttempts ? Icons.lock_outline_rounded : Icons.timer_outlined,
+                            _quizAttemptCount >= _maxBootcampAttempts
+                                ? Icons.lock_outline_rounded
+                                : Icons.timer_outlined,
                             size: 16,
-                            color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFEF4444) : AppColors.primary,
+                            color: _quizAttemptCount >= _maxBootcampAttempts
+                                ? const Color(0xFFEF4444)
+                                : AppColors.primary,
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -2449,9 +2728,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
-                          color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFFFEE2E2) : const Color(0xFFE0F2FE),
+                          color: _quizAttemptCount >= _maxBootcampAttempts
+                              ? const Color(0xFFFEE2E2)
+                              : const Color(0xFFE0F2FE),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -2459,7 +2743,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: _quizAttemptCount >= _maxBootcampAttempts ? const Color(0xFF991B1B) : const Color(0xFF0369A1),
+                            color: _quizAttemptCount >= _maxBootcampAttempts
+                                ? const Color(0xFF991B1B)
+                                : const Color(0xFF0369A1),
                           ),
                         ),
                       ),
@@ -2488,7 +2774,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 18),
+                            const Icon(
+                              Icons.refresh_rounded,
+                              color: AppColors.primary,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Coba Lagi (${_maxBootcampAttempts - _quizAttemptCount}x sisa)',
@@ -2517,7 +2807,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 
     List<Map<String, dynamic>> optionsList = [];
     final firstItem = _quizOptions.isNotEmpty ? _quizOptions.first : null;
-    if (firstItem is Map<String, dynamic> && firstItem.containsKey('options') && firstItem['options'] is List) {
+    if (firstItem is Map<String, dynamic> &&
+        firstItem.containsKey('options') &&
+        firstItem['options'] is List) {
       final nestedList = firstItem['options'] as List;
       for (int i = 0; i < nestedList.length; i++) {
         final opt = nestedList[i];
@@ -2568,12 +2860,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Hebat! Jawaban Anda benar.',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -2581,7 +2880,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     } else {
@@ -2590,14 +2891,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+              const Icon(
+                Icons.info_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   _isBootcampActual
                       ? 'Jawaban belum tepat. Sisa percobaan: ${_maxBootcampAttempts - _quizAttemptCount}.'
                       : 'Jawaban belum tepat. Simak pembahasan di bawah lalu ulangi kuis.',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -2605,7 +2913,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           backgroundColor: const Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -2624,18 +2934,34 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         children: [
           Row(
             children: [
-              Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle)),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                ),
+              ),
               const SizedBox(width: 8),
               Text(
                 'Sesi Interaktif Live Mentoring',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            _sessionDescription ?? 'Bergabunglah ke dalam ruang diskusi daring dengan mentor melalui tautan berikut.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B), height: 1.5),
+            _sessionDescription ??
+                'Bergabunglah ke dalam ruang diskusi daring dengan mentor melalui tautan berikut.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: const Color(0xFF64748B),
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 16),
           if (_isLiveEnded)
@@ -2654,7 +2980,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       color: const Color(0xFFE2E8F0),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.videocam_off_rounded, color: Color(0xFF64748B), size: 20),
+                    child: const Icon(
+                      Icons.videocam_off_rounded,
+                      color: Color(0xFF64748B),
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2686,7 +3016,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             )
           else if (_liveMeetingUrl != null && _liveMeetingUrl!.isNotEmpty)
             TactileMetroButton.primary(
-              onPressed: () => launchUrl(Uri.parse(_liveMeetingUrl!), mode: LaunchMode.externalApplication),
+              onPressed: () => LiveJoinConfirmDialog.show(
+                context,
+                meetingUrl: _liveMeetingUrl!,
+              ),
               icon: Icons.videocam_rounded,
               text: 'Masuk Sesi Google Meet / Zoom',
               height: 48,
@@ -2703,98 +3036,109 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       children: [
         Expanded(
           child: _isLoadingNotes
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
               : _notes.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: const Icon(
+                            Icons.edit_note_rounded,
+                            size: 28,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          'Belum Ada Catatan',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: const Color(0xFF0F172A),
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Catat poin penting selama menyimak video untuk dipelajari kembali kapan saja.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            color: const Color(0xFF64748B),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _notes.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 10),
+                  itemBuilder: (ctx, idx) {
+                    final note = _notes[idx] as Map<String, dynamic>;
+                    final content = note['content'] ?? '';
+                    final ts = note['timestampSec'] != null
+                        ? '${(note['timestampSec'] / 60).floor()}:${(note['timestampSec'] % 60).toString().padLeft(2, '0')}'
+                        : null;
+
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (ts != null) ...[
                             Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
                               ),
-                              child: const Icon(Icons.edit_note_rounded, size: 28, color: Color(0xFF64748B)),
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              'Belum Ada Catatan',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: const Color(0xFF0F172A),
-                                letterSpacing: -0.2,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '⏱ Menit $ts',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              'Catat poin penting selama menyimak video untuk dipelajari kembali kapan saja.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5,
-                                color: const Color(0xFF64748B),
-                                height: 1.5,
-                              ),
-                            ),
                           ],
-                        ),
+                          Text(
+                            content,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: const Color(0xFF334155),
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _notes.length,
-                      separatorBuilder: (_, index) => const SizedBox(height: 10),
-                      itemBuilder: (ctx, idx) {
-                        final note = _notes[idx] as Map<String, dynamic>;
-                        final content = note['content'] ?? '';
-                        final ts = note['timestampSec'] != null ? '${(note['timestampSec'] / 60).floor()}:${(note['timestampSec'] % 60).toString().padLeft(2, '0')}' : null;
-
-                        return Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (ts != null) ...[
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '⏱ Menit $ts',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                              ],
-                              Text(
-                                content,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13,
-                                  color: const Color(0xFF334155),
-                                  height: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    );
+                  },
+                ),
         ),
 
         // Input Form Dock (Apple iMessage precision style)
@@ -2802,7 +3146,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
           decoration: const BoxDecoration(
             color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2)),
+            border: Border(
+              top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2),
+            ),
           ),
           child: Row(
             children: [
@@ -2815,12 +3161,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   ),
                   child: TextField(
                     controller: _noteInputController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      color: const Color(0xFF0F172A),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Tulis catatan penting...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        color: const Color(0xFF94A3B8),
+                      ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -2836,10 +3191,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 iconColor: Colors.white,
                 onPressed: () async {
                   final text = _noteInputController.text.trim();
-                  if (text.isEmpty || widget.courseId == null || _currentSessionId == null) return;
+                  if (text.isEmpty ||
+                      widget.courseId == null ||
+                      _currentSessionId == null)
+                    return;
                   _noteInputController.clear();
                   try {
-                    await _courseDs.createSessionNote(widget.courseId!, _currentSessionId!, text);
+                    await _courseDs.createSessionNote(
+                      widget.courseId!,
+                      _currentSessionId!,
+                      text,
+                    );
                     _loadNotes();
                   } catch (_) {}
                 },
@@ -2857,113 +3219,121 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       children: [
         Expanded(
           child: _isLoadingQna
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
               : _qnaList.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: const Icon(Icons.forum_outlined, size: 26, color: Color(0xFF64748B)),
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              'Belum Ada Diskusi',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: const Color(0xFF0F172A),
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Punya pertanyaan seputar materi? Tanyakan langsung untuk didiskusikan bersama mentor.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5,
-                                color: const Color(0xFF64748B),
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _qnaList.length,
-                      separatorBuilder: (_, index) => const SizedBox(height: 10),
-                      itemBuilder: (ctx, idx) {
-                        final item = _qnaList[idx] as Map<String, dynamic>;
-                        final content = item['content'] ?? '';
-                        final user = item['user'] as Map<String, dynamic>? ?? {};
-                        final userName = user['name'] ?? 'Mentee';
-
-                        return Container(
-                          padding: const EdgeInsets.all(14),
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: const Icon(
+                            Icons.forum_outlined,
+                            size: 26,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          'Belum Ada Diskusi',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: const Color(0xFF0F172A),
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Punya pertanyaan seputar materi? Tanyakan langsung untuk didiskusikan bersama mentor.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            color: const Color(0xFF64748B),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _qnaList.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 10),
+                  itemBuilder: (ctx, idx) {
+                    final item = _qnaList[idx] as Map<String, dynamic>;
+                    final content = item['content'] ?? '';
+                    final user = item['user'] as Map<String, dynamic>? ?? {};
+                    final userName = user['name'] ?? 'Mentee';
+
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryLight,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        userName.isNotEmpty ? userName[0].toUpperCase() : 'M',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    userName,
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryLight,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    userName.isNotEmpty
+                                        ? userName[0].toUpperCase()
+                                        : 'M',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF0F172A),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.primary,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(width: 8),
                               Text(
-                                content,
+                                userName,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13,
-                                  color: const Color(0xFF334155),
-                                  height: 1.45,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF0F172A),
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    ),
+                          const SizedBox(height: 6),
+                          Text(
+                            content,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: const Color(0xFF334155),
+                              height: 1.45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
 
         // Input Form Dock (Apple iMessage precision style)
@@ -2971,7 +3341,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
           decoration: const BoxDecoration(
             color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2)),
+            border: Border(
+              top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2),
+            ),
           ),
           child: Row(
             children: [
@@ -2984,12 +3356,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   ),
                   child: TextField(
                     controller: _qnaInputController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      color: const Color(0xFF0F172A),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Tanyakan sesuatu kepada mentor...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        color: const Color(0xFF94A3B8),
+                      ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -3005,10 +3386,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 iconColor: Colors.white,
                 onPressed: () async {
                   final text = _qnaInputController.text.trim();
-                  if (text.isEmpty || widget.courseId == null || _currentSessionId == null) return;
+                  if (text.isEmpty ||
+                      widget.courseId == null ||
+                      _currentSessionId == null)
+                    return;
                   _qnaInputController.clear();
                   try {
-                    await _courseDs.createSessionQna(widget.courseId!, _currentSessionId!, text);
+                    await _courseDs.createSessionQna(
+                      widget.courseId!,
+                      _currentSessionId!,
+                      text,
+                    );
                     _loadQna();
                   } catch (_) {}
                 },
@@ -3030,9 +3418,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     final bool isQuiz = _sessionType == 'QUIZ';
     final bool isMaterial = _sessionType == 'MATERIAL';
     final bool canCompleteMaterial = isMaterial;
-    final bool canCompleteVideo = _isUnlocked || _currentProgressFraction >= 0.95;
+    final bool canCompleteVideo =
+        _isUnlocked || _currentProgressFraction >= 0.95;
     final bool canSubmitQuiz = _selectedQuizOptionId != null && !_quizSubmitted;
-    final bool canRetakeQuiz = isQuiz && _quizSubmitted && !_isQuizCorrect && (!_isBootcampActual || _quizAttemptCount < _maxBootcampAttempts);
+    final bool canRetakeQuiz =
+        isQuiz &&
+        _quizSubmitted &&
+        !_isQuizCorrect &&
+        (!_isBootcampActual || _quizAttemptCount < _maxBootcampAttempts);
     final bool isActionActive = isQuiz
         ? (canSubmitQuiz || canRetakeQuiz)
         : (isMaterial ? canCompleteMaterial : canCompleteVideo);
@@ -3041,41 +3434,54 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     final String buttonLabel = _isSessionFinished
         ? 'Selesai'
         : (isQuiz
-            ? (canRetakeQuiz
-                ? 'Ulangi Kuis'
-                : (_quizSubmitted && !_isQuizCorrect && _isBootcampActual && _quizAttemptCount >= _maxBootcampAttempts
-                    ? 'Percobaan Habis'
-                    : 'Kirim Jawaban'))
-            : 'Selesaikan Modul');
+              ? (canRetakeQuiz
+                    ? 'Ulangi Kuis'
+                    : (_quizSubmitted &&
+                              !_isQuizCorrect &&
+                              _isBootcampActual &&
+                              _quizAttemptCount >= _maxBootcampAttempts
+                          ? 'Percobaan Habis'
+                          : 'Kirim Jawaban'))
+              : 'Selesaikan Modul');
 
     final VoidCallback? onMainPressed = _isSessionFinished
         ? null
         : (isQuiz
-            ? (canRetakeQuiz
-                ? _resetQuizForRetake
-                : (canSubmitQuiz ? _submitQuizAnswer : null))
-            : (isMaterial
-                ? (_isSubmittingProgress ? null : _handleCompleteSession)
-                : (canCompleteVideo
+              ? (canRetakeQuiz
+                    ? _resetQuizForRetake
+                    : (canSubmitQuiz ? _submitQuizAnswer : null))
+              : (isMaterial
                     ? (_isSubmittingProgress ? null : _handleCompleteSession)
-                    : () {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Simak materi video sampai tuntas terlebih dahulu.'),
-                            backgroundColor: const Color(0xFF1E293B),
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        );
-                      })));
+                    : (canCompleteVideo
+                          ? (_isSubmittingProgress
+                                ? null
+                                : _handleCompleteSession)
+                          : () {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Simak materi video sampai tuntas terlebih dahulu.',
+                                  ),
+                                  backgroundColor: const Color(0xFF1E293B),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 2),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                            })));
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: const Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2)),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
@@ -3115,7 +3521,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       backgroundColor: const Color(0xFF1E293B),
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 },
@@ -3130,7 +3538,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle_rounded, color: AppColors.emeraldDark, size: 16),
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.emeraldDark,
+                        size: 16,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Selesai',
@@ -3165,7 +3577,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 17),
+                      const Icon(
+                        Icons.workspace_premium_rounded,
+                        color: Colors.white,
+                        size: 17,
+                      ),
                     ],
                   ),
                 ),
@@ -3184,7 +3600,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       backgroundColor: const Color(0xFF1E293B),
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 },
@@ -3199,7 +3617,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle_rounded, color: AppColors.emeraldDark, size: 16),
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.emeraldDark,
+                        size: 16,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Selesai',
@@ -3234,7 +3656,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
@@ -3246,20 +3672,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               child: TactileMetroButton(
                 onPressed: onMainPressed,
                 isDisabled: !isActionActive,
-                backgroundColor: isActionActive ? AppColors.primary : const Color(0xFFF1F5F9),
-                baseColor: isActionActive ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
+                backgroundColor: isActionActive
+                    ? AppColors.primary
+                    : const Color(0xFFF1F5F9),
+                baseColor: isActionActive
+                    ? const Color(0xFF015F3D)
+                    : const Color(0xFFCBD5E1),
                 borderColor: isActionActive ? null : const Color(0xFFE2E8F0),
                 child: _isSubmittingProgress
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           if (canRetakeQuiz) ...[
-                            const Icon(Icons.refresh_rounded, color: Colors.white, size: 16),
+                            const Icon(
+                              Icons.refresh_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                             const SizedBox(width: 6),
                           ],
                           Text(
@@ -3267,7 +3704,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                             style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.w800,
                               fontSize: 13.5,
-                              color: isActionActive ? Colors.white : const Color(0xFF94A3B8),
+                              color: isActionActive
+                                  ? Colors.white
+                                  : const Color(0xFF94A3B8),
                               letterSpacing: 0.2,
                             ),
                           ),
@@ -3280,12 +3719,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             if (_nextSessionId != null) ...[
               const SizedBox(width: 10),
               TactileMetroIconButton(
-                onPressed: canGoNext ? () => _goToNextSession(_nextSessionId!) : null,
+                onPressed: canGoNext
+                    ? () => _goToNextSession(_nextSessionId!)
+                    : null,
                 isDisabled: !canGoNext,
                 icon: Icons.chevron_right_rounded,
                 iconColor: canGoNext ? Colors.white : const Color(0xFF94A3B8),
-                backgroundColor: canGoNext ? AppColors.primary : const Color(0xFFF1F5F9),
-                baseColor: canGoNext ? const Color(0xFF015F3D) : const Color(0xFFCBD5E1),
+                backgroundColor: canGoNext
+                    ? AppColors.primary
+                    : const Color(0xFFF1F5F9),
+                baseColor: canGoNext
+                    ? const Color(0xFF015F3D)
+                    : const Color(0xFFCBD5E1),
                 borderColor: canGoNext ? null : const Color(0xFFE2E8F0),
               ),
             ],
@@ -3295,4 +3740,3 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
     );
   }
 }
-
