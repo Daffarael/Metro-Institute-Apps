@@ -7,6 +7,13 @@ abstract class BootcampRemoteDataSource {
   Future<Map<String, dynamic>> getBootcampDetail(String id);
   Future<Map<String, dynamic>> getBootcampSession(String bootcampId, String sessionId);
   Future<Map<String, dynamic>> completeBootcampSession(String bootcampId, String sessionId);
+  Future<String> uploadAssignmentFile(String filePath, String fileName);
+  Future<Map<String, dynamic>> submitBootcampAssignment(
+    String bootcampId,
+    String sessionId, {
+    String? linkUrl,
+    String? fileUrl,
+  });
 }
 
 class BootcampRemoteDataSourceImpl implements BootcampRemoteDataSource {
@@ -81,6 +88,46 @@ class BootcampRemoteDataSourceImpl implements BootcampRemoteDataSource {
       throw Exception(msg);
     } catch (e) {
       throw Exception('Gagal mencatat progres bootcamp: $e');
+    }
+  }
+
+  @override
+  Future<String> uploadAssignmentFile(String filePath, String fileName) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+      final response = await dio.post('/mentee/upload', data: formData);
+      return (response.data['url'] as String?) ?? '';
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? 'Gagal mengunggah file tugas';
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Gagal mengunggah file tugas: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> submitBootcampAssignment(
+    String bootcampId,
+    String sessionId, {
+    String? linkUrl,
+    String? fileUrl,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/mentee/bootcamps/$bootcampId/sessions/$sessionId/assignments',
+        data: {
+          if (linkUrl != null && linkUrl.trim().isNotEmpty) 'linkUrl': linkUrl.trim(),
+          if (fileUrl != null && fileUrl.trim().isNotEmpty) 'fileUrl': fileUrl.trim(),
+        },
+      );
+      return (response.data['data'] as Map<String, dynamic>?) ?? {};
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? 'Gagal mengumpulkan tugas';
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Gagal mengumpulkan tugas: $e');
     }
   }
 }

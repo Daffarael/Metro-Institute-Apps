@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -98,6 +99,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   bool _isQuizCorrect = false;
   int _quizAttemptCount = 0;
   static const int _maxBootcampAttempts = 3;
+
+  // Assignment submission state
+  final TextEditingController _assignmentLinkController = TextEditingController();
+  String _assignmentFileUrl = '';
+  String _assignmentFileName = '';
+  bool _isUploadingAssignmentFile = false;
+  bool _isSubmittingAssignment = false;
+  Map<String, dynamic>? _submittedAssignment;
 
   // Scroll & Completion state for MATERIAL sessions
   final ScrollController _overviewScrollController = ScrollController();
@@ -293,6 +302,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             }
           }
 
+          final rawAssignment = current['assignment'] is Map<String, dynamic>
+              ? current['assignment'] as Map<String, dynamic>
+              : null;
+
           if (mounted) {
             setState(() {
               _allSessions = allSessionsList;
@@ -308,6 +321,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               _quizSubmitted = false;
               _isQuizCorrect = false;
               _quizAttemptCount = 0;
+              _submittedAssignment = rawAssignment;
+              _assignmentLinkController.text =
+                  (rawAssignment?['linkUrl'] as String?) ?? '';
+              _assignmentFileUrl =
+                  (rawAssignment?['fileUrl'] as String?) ?? '';
+              _assignmentFileName = _assignmentFileUrl.isNotEmpty
+                  ? _assignmentFileUrl.split('/').last
+                  : '';
               _isLiveEnded = isLiveEnd;
               _liveMeetingUrl = isLiveEnd
                   ? null
@@ -316,7 +337,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               _nextSessionId = sessionData['nextSessionId'] as String?;
               _isSessionFinished = isComp;
               _xpReward = xpVal;
-              _isUnlocked = isComp || (rawType != 'VIDEO');
+              _isUnlocked = isComp ||
+                  (rawType == 'ASSIGNMENT'
+                      ? rawAssignment != null
+                      : rawType != 'VIDEO');
               _isLoadingSessionData = false;
             });
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1508,6 +1532,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               _buildQuizContent(),
             ] else if (_sessionType == 'LIVE') ...[
               _buildLiveContent(),
+            ] else if (_sessionType == 'ASSIGNMENT') ...[
+              _buildAssignmentContent(),
             ] else ...[
               // Default Video Description
               if (_sessionDescription != null &&
@@ -3025,6 +3051,392 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               height: 48,
               borderRadius: BorderRadius.circular(14),
             ),
+        ],
+      ),
+    );
+  }
+
+  // ── Assignment Content & Submission (Link URL & File Upload) ───────────────
+  Future<void> _pickAndUploadAssignmentFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: [
+          'pdf', 'zip', 'rar', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx',
+          'png', 'jpg', 'jpeg', 'webp', 'py', 'sql', 'js', 'ts',
+        ],
+      );
+      if (result == null || result.files.isEmpty) return;
+      final picked = result.files.first;
+      if (picked.path == null) return;
+
+      setState(() => _isUploadingAssignmentFile = true);
+      final uploadedUrl = await _bootcampDs.uploadAssignmentFile(
+        picked.path!,
+        picked.name,
+      );
+      if (mounted && uploadedUrl.isNotEmpty) {
+        setState(() {
+          _assignmentFileUrl = uploadedUrl;
+          _assignmentFileName = picked.name;
+          _isUploadingAssignmentFile = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('File "${picked.name}" berhasil diunggah.'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      } else {
+        if (mounted) setState(() => _isUploadingAssignmentFile = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingAssignmentFile = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$e'.replaceAll('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleSubmitAssignment() async {
+    final link = _assignmentLinkController.text.trim();
+    final fileUrl = _assignmentFileUrl.trim();
+    if (link.isEmpty && fileUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Harap masukkan tautan tugas atau unggah file tugas.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    if (widget.courseId == null || _currentSessionId == null) return;
+
+    setState(() => _isSubmittingAssignment = true);
+    try {
+      final res = await _bootcampDs.submitBootcampAssignment(
+        widget.courseId!,
+        _currentSessionId!,
+        linkUrl: link.isNotEmpty ? link : null,
+        fileUrl: fileUrl.isNotEmpty ? fileUrl : null,
+      );
+      if (mounted) {
+        setState(() {
+          _submittedAssignment = res;
+          _isSubmittingAssignment = false;
+          _isUnlocked = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tugas berhasil dikumpulkan!'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmittingAssignment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$e'.replaceAll('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildAssignmentContent() {
+    final canSubmit = !_isSubmittingAssignment &&
+        !_isUploadingAssignmentFile &&
+        (_assignmentLinkController.text.trim().isNotEmpty ||
+            _assignmentFileUrl.trim().isNotEmpty);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.assignment_rounded,
+                  size: 14,
+                  color: Color(0xFFD97706),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'TUGAS / PROYEK PRAKTIK',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFD97706),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Instruksi Tugas:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  (_sessionDescription != null &&
+                          _sessionDescription!.trim().isNotEmpty)
+                      ? _sessionDescription!.trim()
+                      : 'Silakan kerjakan tugas sesuai arahan mentor dan kirimkan tautan (Google Drive / GitHub / Figma) atau unggah file tugas di bawah ini.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: const Color(0xFF475569),
+                    height: 1.55,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 1. Tautan Link
+          Text(
+            'Tautan Tugas (Google Drive / GitHub / Figma):',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _assignmentLinkController,
+            onChanged: (_) => setState(() {}),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: const Color(0xFF0F172A),
+            ),
+            decoration: InputDecoration(
+              hintText: 'https://github.com/... atau https://figma.com/...',
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: const Color(0xFF94A3B8),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // 2. Upload File
+          Text(
+            'Unggah File Tugas (PDF, ZIP, Gambar, atau Dokumen):',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: TactileMetroButton.secondary(
+                  onPressed: _isUploadingAssignmentFile
+                      ? null
+                      : _pickAndUploadAssignmentFile,
+                  isDisabled: _isUploadingAssignmentFile,
+                  icon: Icons.upload_file_rounded,
+                  text: _isUploadingAssignmentFile
+                      ? 'Mengunggah File...'
+                      : 'Pilih File dari Perangkat',
+                  height: 42,
+                  fontSize: 12.5,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ],
+          ),
+          if (_assignmentFileUrl.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFBBF7D0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.insert_drive_file_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _assignmentFileName.isNotEmpty
+                          ? _assignmentFileName
+                          : 'File Terunggah',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _assignmentFileUrl = '';
+                        _assignmentFileName = '';
+                      });
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+
+          TactileMetroButton.primary(
+            onPressed: canSubmit ? _handleSubmitAssignment : null,
+            isDisabled: !canSubmit,
+            isLoading: _isSubmittingAssignment,
+            icon: Icons.cloud_upload_rounded,
+            text: _isSubmittingAssignment ? 'Mengirim...' : 'Kumpulkan Tugas',
+            height: 44,
+            fontSize: 13.5,
+            borderRadius: BorderRadius.circular(12),
+          ),
+
+          if (_submittedAssignment != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary, width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Tugas telah dikumpulkan',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      if (_submittedAssignment!['score'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Nilai: ${_submittedAssignment!['score']}/100',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_submittedAssignment!['feedback'] != null &&
+                      _submittedAssignment!['feedback']
+                          .toString()
+                          .trim()
+                          .isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Feedback Mentor: ${_submittedAssignment!['feedback']}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: const Color(0xFF334155),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
